@@ -6,7 +6,7 @@ A program's own claims about itself prove nothing. So the code is kept short and
 
 ## What runs
 
-Everything that runs is in `extension/`: `manifest.json` and seven scripts, about 1,450 lines in all (`wc -l extension/*`). No build step, no dependencies, no minified code: the files you read are the files the browser runs.
+Everything that runs is in `extension/`: `manifest.json` and seven scripts, about 1,550 lines in all (`wc -l extension/*`). No build step, no dependencies, no minified code: the files you read are the files the browser runs.
 
 | File | What it does |
 |---|---|
@@ -22,7 +22,7 @@ Everything that runs is in `extension/`: `manifest.json` and seven scripts, abou
 What it does, and when:
 
 - **Nothing until you click** the "Zettelbranch" button at the bottom right. No timers, no watching of the page.
-- **Opening the panel** reads the conversation on screen: `GET /api/organizations` (once, to find your organization) and `GET …/chat_conversations/<id>?tree=True…`.
+- **Opening the panel** reads the conversation on screen: `GET /api/organizations` (once, to find your organization) and `GET …/chat_conversations/<id>?tree=True…`. On a chat of a tree, it also reads the list of your conversations (`GET …/chat_conversations_v2`, only `uuid` and `name` kept) to show that tree's chats as links.
 - **Branch** reads the list of your conversations (`GET …/chat_conversations_v2`, only `uuid` and `name` are kept) to find the next free address. If the chat is not in a tree yet, it asks for a tree name and a confirmation in browser dialogs, then renames the chat (`PUT …/chat_conversations/<id>` with `{"name": …}`).
 - **Open new chat** clicks claude.ai's own New chat link and types the prompt into the message box. You read it and press Send yourself; the extension never does.
 - **Name this branch** renames the new chat after a dialog where you can change the name.

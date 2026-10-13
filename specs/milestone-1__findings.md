@@ -24,21 +24,21 @@ Nothing here touched claude.ai. Every test ran in headless Chromium against a fa
 
 ## What was built
 
-Line counts after the fixes from Pascal's first real use (`df2a4ff`).
+Line counts after step 6c, the tree in the panel (`88ebd80`).
 
 | File | Lines | What |
 |---|---|---|
 | [manifest.json](../extension/manifest.json) | 19 | MV3, scripts on `https://claude.ai/*`, no permissions, no background; `gecko.id` `zettelbranch@pthom.github.io`, Firefox 128 or later |
 | [api.js](../extension/api.js) | 140 | The only network file: the four calls, an allowed list checked before each request, renames only to tree titles |
-| [tree.js](../extension/tree.js) | 102 | Addresses by segments, titles (` · `, or ` . ` and ` - ` typed by hand), next child, next root, the proposed tree name |
+| [tree.js](../extension/tree.js) | 135 | Addresses by segments, titles (` · `, or ` . ` and ` - ` typed by hand), next child, next root, the proposed tree name, a tree's chats in address order |
 | [conversation.js](../extension/conversation.js) | 296 | Messages from the API (path, text, placeholders); the page fallback, as Markdown |
 | [prompt.js](../extension/prompt.js) | 233 | The prompt of [forking__prompt](forking__prompt.md); parsing it back; the topic proposed for a branch's name |
-| [branch.js](../extension/branch.js) | 328 | The flow: read, branch, open the new chat, name |
-| [ui.js](../extension/ui.js) | 318 | The pill, the panel, the preview, the steps after Open new chat, the notices |
+| [branch.js](../extension/branch.js) | 358 | The flow: read (with the tree), branch, open the new chat, name |
+| [ui.js](../extension/ui.js) | 362 | The pill, the panel, the tree, the preview, the steps after Open new chat, the notices |
 | [content.js](../extension/content.js) | 7 | Mounts the pill, except on `/share/` pages |
-| **extension/** | **1,443** | |
+| **extension/** | **1,550** | |
 | [AUDIT.md](../AUDIT.md) | 179 | 18 points, 26 commands, what they cannot prove, an LLM prompt |
-| `tests/` | 1,866 | Audit, unit and end-to-end tests, the fake claude.ai (`tests/fake/`), real fixtures |
+| `tests/` | 2,038 | Audit, unit and end-to-end tests, the fake claude.ai (`tests/fake/`), real fixtures |
 
 The code uses only standard web APIs, so the same files should run in Chrome and Firefox. Not tried in Firefox yet (step 9).
 
@@ -47,7 +47,7 @@ The code uses only standard web APIs, so the same files should run in Chrome and
 As decided in the plan, with these details:
 
 - **Nothing before a click.** The pill is put on the page once, at load. No timers, no watching of the page. Tested: no API call in the 1.5 seconds after a page load.
-- **Opening the panel** reads the chat through the API: 2 requests the first time (organization, conversation), 1 after.
+- **Opening the panel** reads the chat through the API: 2 requests the first time (organization, conversation), 1 after. On a chat of a tree, also the conversation list ([step 6c](#the-tree-in-the-panel-step-6c)).
 - **Branch** reads the conversation list (2 requests for 127 fake chats) to find the next address. For a chat not in a tree, the tree-name dialog comes first, then the list, then the confirm with old and new title, then the rename and its read-back.
 - **The preview** shows the exact text, its size ("1,347 characters, about 337 tokens. 4 messages copied."), and a warning above 100,000 characters.
 - **Open new chat** clicks the app's New chat link, waits for the new chat (10 seconds at most), types the prompt with one `insertText` call, and compares the box with the preview. Two end-to-end tests check that the box holds exactly the preview's text.
@@ -100,6 +100,50 @@ What it shows:
 - **No navigation between branches.** Intended for Milestone 1; the banner (parent, siblings, children) comes later. Pascal's question: is that intended?
 
 Built offline the same day (`df2a4ff`), not yet checked on the real site: after "Open new chat" the panel shows two steps (type your question at the end of the box, then "Name this branch" once Claude has replied), the hidden panel's pill reads "Zettelbranch: name this branch" until the branch is named, and after a reload the panel opens with "Name this branch" at the top. When claude.ai's title is empty or repeats the parent's, the proposed name comes from the first question asked in the branch, the dialog says where the proposal comes from, and a named branch can be renamed; offline tests: audit 45/45, unit 44/44, end-to-end 21/21.
+
+## The tree in the panel (step 6c)
+
+Built offline by Claude on 2026-10-13, commit `88ebd80`, after Pascal found no way to move from one branch to another. Nothing touched claude.ai.
+
+### What it does
+
+- **When.** The panel opens (on its click) on a chat of a tree: its title is a tree title (` . ` and ` - ` typed by hand count), or it is a branch not named yet, whose header gives the tree and address. It then also reads the conversation list, the call Branch already makes. A chat not in a tree shows no tree and reads no list.
+- **What.** A "Tree zbtest: 7 chats" section above the message list: every chat of that tree, one line each, "address · topic", ordered by address segments (numbers as numbers, letters by their index: `1`, `1a`, `1a1`, `1a2`, `1a10`, `1b`, `1z`, `1aa`, `2`, `10`) and indented by depth.
+- **Moving.** Every other line is a plain link to `/chat/<uuid>`: a click loads that chat in the same tab, and the panel starts closed there. The current chat is marked "you are here" and is not a link.
+- **Flags.** An address used by two or more chats shows "used twice" (or "used 3 times") on each of its lines, all still listed.
+- **A branch not named yet.** The tree shows the named chats only, plus the current chat at its header's address, "(not named yet)". Other unnamed branches are not shown: placing them would mean reading their messages.
+- **Many chats.** The section scrolls inside the panel: at most 210 pixels high, or 24% of the window's height if that is less, with the current line scrolled into view.
+- **Errors.** If the list cannot be read, one line says so ("The tree could not be read (error 500)."; the technical detail in its tooltip), and the rest of the panel works.
+- **Read again** reads the chat and the list again. **Name this branch** and **Rename this branch** update the current line from memory: the tree is rebuilt from the list already read, with no new request.
+- **Privacy.** Only titles of that tree are kept for the section; never another tree's titles or a plain chat's title.
+
+### Numbers
+
+| | Before | After |
+|---|---|---|
+| `extension/` | 1,443 lines | 1,550 lines: tree.js 102 → 135, branch.js 328 → 358, ui.js 318 → 362 |
+| Audit | 45 of 45 | 45 of 45 pass, unchanged |
+| Unit tests | 44 | 47 of 47 pass. New: ordering by segments (input reversed, and sorted as strings: `1b1a` < `1b9` < `1b10`, `1z` < `1aa`), depth, typed separators, other trees and plain titles left out, duplicates, the current chat from its own title, a branch not named yet at its address |
+| End-to-end tests | 21 | 25 of 25 pass, 2 runs in a row. New: the tree on a root (order, indent, links, the current line, a duplicate flagged, no other tree's titles, the requests of Read again), on a branch with a link followed, the list failing then Read again bringing it back with a chat made meanwhile, a tree of 25 chats scrolling. Updated: a branch not named yet in the tree; the line after naming and after a rename, with no list read; no list read on a chat not in a tree. 221 requests, none escaped |
+
+Opening the panel on a chat of a tree costs the list's pages on top of the conversation: one request per 100 chats (2 in the fake, which has about 155). Branch still reads the list again, so the next address is never taken from an older list.
+
+### Choices beyond the brief
+
+1. **Where the current chat sits.** For a branch, its header's address, even if claude.ai's title happens to be another tree title (claude.ai could name a branch after its parent's full title, `zbtest/1 · …`). Its line's topic comes from its own title, not from the list, so the line is right after a rename even if the list lags.
+2. **A branch not named yet whose address is already taken** by a named chat: both lines show "used twice".
+3. **Links** are built only from ids shaped like claude.ai's (uuids); anything else would be listed without a link. The link's topic is underlined on hover.
+4. **The fake** got a second `zbtest/1a1` (the duplicate) and a tree `zbmany` of 25 chats, created out of order and older than the zbtest chats, so the sidebar's recent chats and every earlier test stay the same.
+5. **AUDIT.md**: besides its line count, its line on opening the panel now says that a chat of a tree also reads the conversation list.
+
+### To check on the real site (Pascal)
+
+In the Chrome test profile, after ⟳ on Zettelbranch in `chrome://extensions` and a reload of the tab:
+
+1. Open the panel in a `zbtest/` chat with branches: the Tree section lists them in order, indented, the current one marked.
+2. Click another line: that chat opens in the same tab, as a full page load. Does the sidebar keep its place?
+3. In a branch just opened and not named yet: the tree shows it at its address, "(not named yet)". Name it: the line changes without a reload.
+4. If you have a tree with many chats: the section scrolls, and the panel still fits the window.
 
 ## For Pascal
 
