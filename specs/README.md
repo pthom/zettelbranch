@@ -8,18 +8,22 @@ Claude maintains these files. Pascal answers questions inline and may edit anyth
 ## Conventions
 
 - **File names:** `<subject>__<kind>.md`. Subjects are lowercase with hyphens. Kinds:
-  - `specs`: the spec itself, the source of truth.
+  - `specs`: the spec itself, the source of truth; also sub-plans such as
+    [milestone-0__specs](milestone-0__specs.md).
   - `findings`: analysis, risks, facts gathered. Claims about claude.ai's behaviour that
     have not been checked on the real page are tagged *(to verify)*.
   - `questions`: decisions needed from Pascal.
   - `status`: current state of the work and next steps
-    ([zettenbranch__status](zettenbranch__status.md)).
+    ([zettelbranch__status](zettelbranch__status.md)).
+  - `prompt`: text the extension sends to Claude ([forking__prompt](forking__prompt.md)).
 - **Questions** have an ID (`AD-1`), a status, context, options with a recommendation,
   and an empty **Answer:** line. Answer there, in any form ("A", "B, but…", free text).
+  Options are explained in plain words, with what each one changes for Pascal. If a
+  question is unclear, say so on the Answer line and Claude explains or asks in chat.
 - **Defaults** at the end of a questions file are choices Claude will apply unless Pascal
   objects. To object, write under the item.
 - **Once answered**, Claude folds the decision into
-  [zettenbranch__specs](zettenbranch__specs.md), sets the status to `decided`, and notes
+  [zettelbranch__specs](zettelbranch__specs.md), sets the status to `decided`, and notes
   where it went.
 - **Links** are standard Markdown links (`[x](file.md)`), which work in Obsidian and on GitHub.
 - **Git:** these files are committed, for transparency. `.obsidian/` (local Obsidian
@@ -27,12 +31,16 @@ Claude maintains these files. Pascal answers questions inline and may edit anyth
 
 ## Map
 
-- Spec: [zettenbranch__specs](zettenbranch__specs.md)
-- Status: [zettenbranch__status](zettenbranch__status.md)
+- Spec: [zettelbranch__specs](zettelbranch__specs.md)
+- Status: [zettelbranch__status](zettelbranch__status.md)
+- Milestone 0: [plan](milestone-0__specs.md), [findings](milestone-0__findings.md)
+- Branch prompt draft: [forking__prompt](forking__prompt.md)
+- What public sources say about claude.ai: [claude-ai__findings](claude-ai__findings.md)
+- Anthropic's terms and support's answer: [terms__findings](terms__findings.md)
 
 | Subject | Findings | Questions |
 |---|---|---|
-| General | [findings](zettenbranch__findings.md) | [questions](zettenbranch__questions.md) |
+| General | [findings](zettelbranch__findings.md) | [questions](zettelbranch__questions.md) |
 | Data access | [findings](data-access__findings.md) | [questions](data-access__questions.md) |
 | Addressing | [findings](addressing__findings.md) | [questions](addressing__questions.md) |
 | Forking | [findings](forking__findings.md) | [questions](forking__questions.md) |
@@ -42,26 +50,24 @@ Claude maintains these files. Pascal answers questions inline and may edit anyth
 
 ## Open questions
 
-Start with **DA-1**: several other answers depend on it.
-
-| ID | Question | Depends on |
+| ID | Question | Where it stands |
 |---|---|---|
-| [DA-1](data-access__questions.md) | May the extension call claude.ai's own API? | |
-| [DA-2](data-access__questions.md) | If yes, reads only, or also renaming? | DA-1 |
-| [ZB-1](zettenbranch__questions.md) | Project name: Zettelbranch or ZettenBranch? | |
-| [ZB-2](zettenbranch__questions.md) | Add a Milestone 0 spike on the risky unknowns? | |
-| [ZB-3](zettenbranch__questions.md) | Remove agent working rules from the spec (now in CLAUDE.md)? | |
-| [AD-1](addressing__questions.md) | Title format | |
-| [AD-2](addressing__questions.md) | Turning an existing conversation into a tree root | |
-| [FK-1](forking__questions.md) | Where the parent summary lives | |
-| [FK-2](forking__questions.md) | How much context a branch carries | |
+| [DA-1](data-access__questions.md) | May the extension call claude.ai's own API? | Pascal leans A; Claude owes a plain explanation (secure? stable?) |
+| [DA-D1](data-access__questions.md) | How the prompt reaches the new chat | Pascal asked for a plain explanation |
+| [TA-1](trust-audit__questions.md) | Distribution channels | Pascal asked for a plain explanation |
+| [TS-2](testing__questions.md) | Sign-in method for the test profile | Probably moot now; Claude proposes C |
+| [ZB-3](zettelbranch__questions.md) | `CLAUDE.md` versus Claude's project memory | Rules moved to `CLAUDE.md`; to discuss |
 | [FK-3](forking__questions.md) | What branching from your own message means | |
-| [XR-1](cross-references__questions.md) | Where cross-references are written | DA-1 |
-| [TA-1](trust-audit__questions.md) | Distribution channels | |
-| [TS-1](testing__questions.md) | Fixtures in a public repo | |
-| [TS-2](testing__questions.md) | Sign-in method for the test profile | |
+| [XR-1](cross-references__questions.md) | Where cross-references are written | Depends on DA-1 |
+
+Decided on 2026-10-13: ZB-1, ZB-2, ZB-3 (main part), AD-1, AD-2, FK-1, FK-2, DA-2 (if
+DA-1 = A), TS-1. Each question file says where the decision went.
 
 ## History
 
 - 2026-10-13: vault created from Claude's first review of the spec. Not yet checked
   against the original design conversation (the share link is behind a Cloudflare check).
+- 2026-10-13, later: first answers folded into the spec; files renamed to
+  `zettelbranch__`. Added the branch prompt draft, the Milestone 0 plan, public research on
+  claude.ai, and Anthropic support's answer about the terms. Decided: no script or
+  automated browser ever touches claude.ai.

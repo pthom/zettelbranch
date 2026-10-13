@@ -27,7 +27,7 @@ should define:
 - the summary format, if Claude writes it;
 - the header layout, readable without the extension.
 
-Next step once FK-1 is answered: draft it in `forking__prompt.md`.
+Draft, written against the recommended answers: [forking__prompt](forking__prompt.md).
 
 ## The copy changes the nature of the context
 

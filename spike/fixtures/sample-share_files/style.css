@@ -1,0 +1,12 @@
+/* Hand-made sample stylesheet, served locally by p0-read-share.mjs */
+body { font-family: Georgia, serif; margin: 0; background: #f5f4ef; color: #222; }
+main { max-width: 760px; margin: 0 auto; padding: 24px; }
+[data-testid="user-message"] { background: #e8e5d8; border-radius: 12px; padding: 8px 14px; }
+.font-claude-response { padding: 8px 0; }
+.whitespace-pre-wrap { white-space: pre-wrap; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.hidden { display: none; }
+pre { background: #272822; color: #f8f8f2; padding: 12px; border-radius: 8px; }
+table { border-collapse: collapse; } td, th { border: 1px solid #aaa; padding: 4px 8px; }
+.katex-mathml { position: absolute; clip: rect(1px, 1px, 1px, 1px); }
+.artifact-block-cell { border: 1px solid #bbb; border-radius: 8px; padding: 8px; }

@@ -54,3 +54,16 @@ parent's page and must appear in the new chat's message box.
 
 Default: open the new chat inside the same page, no storage. Both stay compatible with
 "no persistent storage of conversation content".
+
+## Share links and the API's bot protection
+
+Checked 2026-10-13 with the design conversation's share link, from the command line:
+
+- `/share/<id>` returns the app shell (HTTP 200) with no conversation text. The page's
+  JavaScript then fetches `/api/chat_snapshots/<id>?rendering_mode=messages&render_all_tools=true`.
+- That API call, made outside a browser, gets a Cloudflare challenge (HTTP 403, "Just a
+  moment..."). Not bypassed.
+
+So claude.ai's API is guarded against non-browser clients. An extension's same-origin
+calls run inside a real, logged-in browser, so this should not block DA-1 = A
+*(to verify)*. It does mean any test or tool outside the browser cannot use the API.

@@ -1,0 +1,19 @@
+{
+  "name": "zettelbranch-spike",
+  "private": true,
+  "type": "module",
+  "description": "Milestone 0 spike. Throwaway code, never shipped.",
+  "scripts": {
+    "offline": "node offline-extract.mjs",
+    "browser": "node p0-read-share.mjs",
+    "compare": "node compare.mjs",
+    "inspect": "node inspect-snapshot.mjs",
+    "origin-md": "node snapshot-to-md.mjs",
+    "p0": "node offline-extract.mjs && node p0-read-share.mjs && node compare.mjs && node compare.mjs --extracted out/extracted-offline.json --out out/compare-offline.json && node inspect-snapshot.mjs",
+    "sample": "node offline-extract.mjs --html fixtures/sample-share.html --out out/sample/extracted-offline.json && node p0-read-share.mjs --html fixtures/sample-share.html --out out/sample && node compare.mjs --extracted out/sample/extracted.json --snapshot fixtures/sample-snapshot.json --out out/sample/compare.json && node inspect-snapshot.mjs --snapshot fixtures/sample-snapshot.json --out out/sample/snapshot-summary.json > /dev/null && node snapshot-to-md.mjs --snapshot fixtures/sample-snapshot.json --out out/sample/origin-conversation.md"
+  },
+  "devDependencies": {
+    "jsdom": "^29.1.1",
+    "playwright": "^1.64.0"
+  }
+}

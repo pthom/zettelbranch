@@ -1,0 +1,129 @@
+{
+  "uuid": "s0",
+  "snapshot_name": "Sample conversation",
+  "created_at": "2026-10-13T08:00:00.000Z",
+  "updated_at": "2026-10-13T08:00:00.000Z",
+  "created_by": "Sample Person",
+  "chat_messages": [
+    {
+      "uuid": "u1",
+      "sender": "human",
+      "index": 0,
+      "parent_message_uuid": "00000000-0000-4000-8000-000000000000",
+      "text": "How do I sort a list in Python?\nAnd what about *stars* in text?",
+      "content": [
+        {
+          "type": "text",
+          "text": "How do I sort a list in Python?\nAnd what about *stars* in text?",
+          "citations": []
+        }
+      ],
+      "attachments": [],
+      "files": [],
+      "files_v2": [],
+      "created_at": "2026-10-13T08:00:00.000Z",
+      "updated_at": "2026-10-13T08:00:00.000Z",
+      "truncated": false
+    },
+    {
+      "uuid": "a1",
+      "sender": "assistant",
+      "index": 1,
+      "parent_message_uuid": "u1",
+      "text": "",
+      "content": [
+        {
+          "type": "thinking",
+          "thinking": "The user wants sorting basics.",
+          "summaries": []
+        },
+        {
+          "type": "text",
+          "text": "## Sorting\n\nUse **sorted()** or *list.sort()*, with `key=` for custom order. See [the docs](https://docs.python.org/3/howto/sorting.html).\n\n- `sorted()` returns a new list\n  - works on any iterable\n- `list.sort()` sorts in place\n\n3. first step\n4. second step\n\n```python\nnums = [3, 1, 2]\nprint(sorted(nums))  # [1, 2, 3]\n```\n\n| Method | Returns |\n|---|---|\n| `sorted()` | new list |\n| `list.sort()` | None |\n\nEnergy: $E = mc^2$, and:\n\n$$\\sum_{i=1}^n i = \\frac{n(n+1)}{2}$$\n\n> Sorting is stable.\n\n---\n\nDone.",
+          "citations": []
+        },
+        {
+          "type": "tool_use",
+          "name": "artifacts",
+          "input": {
+            "id": "cheat",
+            "type": "text/markdown",
+            "title": "Sorting cheat sheet",
+            "command": "create",
+            "content": "..."
+          }
+        },
+        {
+          "type": "tool_result",
+          "name": "artifacts",
+          "content": [
+            {
+              "type": "text",
+              "text": "OK"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "The artifact has the full table.",
+          "citations": []
+        }
+      ],
+      "attachments": [],
+      "files": [],
+      "files_v2": [],
+      "created_at": "2026-10-13T08:00:00.000Z",
+      "updated_at": "2026-10-13T08:00:00.000Z",
+      "truncated": false,
+      "stop_reason": "stop_sequence"
+    },
+    {
+      "uuid": "u2",
+      "sender": "human",
+      "index": 2,
+      "parent_message_uuid": "a1",
+      "text": "Thanks! Here is my file. How do I install foo?",
+      "content": [
+        {
+          "type": "text",
+          "text": "Thanks! Here is my file. How do I install foo?",
+          "citations": []
+        }
+      ],
+      "attachments": [
+        {
+          "file_name": "notes.txt",
+          "file_size": 1200,
+          "file_type": "text/plain",
+          "extracted_content": "line one\nline two"
+        }
+      ],
+      "files": [],
+      "files_v2": [],
+      "created_at": "2026-10-13T08:00:00.000Z",
+      "updated_at": "2026-10-13T08:00:00.000Z",
+      "truncated": false
+    },
+    {
+      "uuid": "a2",
+      "sender": "assistant",
+      "index": 3,
+      "parent_message_uuid": "u2",
+      "text": "",
+      "content": [
+        {
+          "type": "text",
+          "text": "Run:\n\n```bash\npip install foo\n```",
+          "citations": []
+        }
+      ],
+      "attachments": [],
+      "files": [],
+      "files_v2": [],
+      "created_at": "2026-10-13T08:00:00.000Z",
+      "updated_at": "2026-10-13T08:00:00.000Z",
+      "truncated": false,
+      "stop_reason": "stop_sequence"
+    }
+  ]
+}

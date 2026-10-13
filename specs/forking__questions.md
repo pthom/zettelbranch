@@ -4,7 +4,7 @@ Context: [forking__findings](forking__findings.md).
 
 ## FK-1 · Where the parent summary lives
 
-**Status:** open
+**Status:** decided (2026-10-13). Folded into [spec](zettelbranch__specs.md#core-design) and [forking__prompt](forking__prompt.md).
 
 - **A.** Your first message carries address, path and fork point. The prompt asks Claude
   to start its first reply with a summary of the parent in a fixed format.
@@ -13,17 +13,17 @@ Context: [forking__findings](forking__findings.md).
   then puts it in the header. Costs a turn and adds a message to the parent.
 - **C.** No summary in Milestone 1; decide later.
 
-**Answer:**
+**Answer:** A
 
 ## FK-2 · How much context a branch carries
 
-**Status:** open
+**Status:** decided (2026-10-13). Folded into [spec](zettelbranch__specs.md#core-design).
 
 - **A.** Full transcript up to the fork point in Milestone 1; add "summary only" and
   "last N turns" later. *(recommended)*
 - **B.** Offer all three modes from the start.
 
-**Answer:**
+**Answer:** A
 
 ## FK-3 · What branching from your own message means
 
@@ -43,3 +43,8 @@ Context: [forking__findings](forking__findings.md).
 - **FK-D2** · The new chat opens inside the parent's project.
 - **FK-D3** · Messages are extracted as Markdown (lists, tables, code with language,
   LaTeX source for math).
+- **FK-D4** · The header and the instructions to Claude are in English whatever the UI
+  language, so the extension parses one format. Claude replies in the language of your
+  message. See [forking__prompt](forking__prompt.md).
+- **FK-D5** · Branching from a branch flattens the transcript into one sequence from the
+  root instead of nesting it. See [forking__prompt](forking__prompt.md#transcript).

@@ -11,7 +11,7 @@ Context: [trust-audit__findings](trust-audit__findings.md).
 - **B.** Also publish listed on AMO and the Chrome Web Store.
 - **C.** GitHub only. Firefox through Developer Edition with signing disabled.
 
-**Answer:**
+**Answer:** Whoa, I don't know. Give me details in a comprehensible way. 
 
 ## Defaults (object if you disagree)
 

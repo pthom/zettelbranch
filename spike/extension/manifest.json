@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "Zettelbranch P0 spike",
+  "version": "0.0.1",
+  "description": "Throwaway Milestone 0 probe. Reads a claude.ai share page from the DOM and writes the result to an attribute on <html>. No permissions, no background, no network.",
+  "content_scripts": [
+    {
+      "matches": ["https://claude.ai/share/*"],
+      "js": ["extract.js", "content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

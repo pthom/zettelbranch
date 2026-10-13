@@ -4,7 +4,7 @@ Context: [addressing__findings](addressing__findings.md).
 
 ## AD-1 · Title format
 
-**Status:** open
+**Status:** decided (2026-10-13). Folded into [spec](zettelbranch__specs.md#core-design).
 
 The title is the registry, so its format must be unambiguous to parse, and it must work
 with several trees.
@@ -19,11 +19,13 @@ with several trees.
 
 In the spec's example `1b1a · Zettelbranch`, was `Zettelbranch` the tree or the topic?
 
-**Answer:**
+**Answer:** Let's have a quick conversation about this, then you'll update this file.
+
+Decided in chat, 2026-10-13: A. In the spec's example `1b1a · Zettelbranch`, `Zettelbranch` was the topic.
 
 ## AD-2 · Turning an existing conversation into a tree root
 
-**Status:** open
+**Status:** decided (2026-10-13). Folded into [spec](zettelbranch__specs.md#core-design).
 
 When you click "branch from here" in a conversation that is not part of a tree yet:
 
@@ -32,7 +34,9 @@ When you click "branch from here" in a conversation that is not part of a tree y
 - **B.** The extension refuses until you create the root explicitly (a separate "start a
   tree here" action).
 
-**Answer:**
+**Answer:** Same here
+
+Decided in chat, 2026-10-13: A, rename it.
 
 ## Defaults (object if you disagree)
 
@@ -42,3 +46,6 @@ When you click "branch from here" in a conversation that is not part of a tree y
 - **AD-D3** · The header records the fork point (message number and a short quote).
 - **AD-D4** · Duplicate addresses are detected and flagged in the banner, not prevented.
 - **AD-D5** · After `z`, letters continue `aa`, `ab`…
+- **AD-D6** · The topic part of the title is claude.ai's automatic title; the extension
+  only adds the address prefix. Depends on the Milestone 0 rename test (P4 in
+  [milestone-0__specs](milestone-0__specs.md)).
