@@ -25,7 +25,29 @@ Pascal chose manual saves (2026-10-13).
 So P0 no longer tests whether claude.ai loads in an automated browser, or whether bot
 checks appear. That question is still open.
 
-### Files Pascal saves
+### Observations by hand
+
+Seen by Pascal on the real site, in his own test browser (no automation).
+
+**2026-10-13, setup.**
+
+- Test browser: a separate Chrome profile, "Zettelbranch test", signed in to claude.ai.
+  Chrome added Google's default extensions (Drive launcher, Docs Offline) to the new
+  profile; Pascal is removing them. The spike extension loads unpacked without problems.
+- Test project "Zettelbranch tests" created. Its URL is kept in Claude's local memory,
+  not in this public repo.
+- **Projects work differently on the "one Claude" layout.** The project's address is
+  `claude.ai/code/project/chan_…`, even in Chat and Cowork mode. The project page has
+  its own conversation stream (a welcome message with "Set up from recent work",
+  "Connect tools", "Make a plan", then normal messages) and a **Threads** panel: "Claude
+  will track your threads here as they start: what's working, what's waiting on you, and
+  what's done." The sidebar shows New, Projects, Artifacts, Scheduled, Customize, More,
+  and pinned projects.
+- Open: inside a project, is a branch a "thread"? Does a thread have a title that can
+  be renamed? This decides whether addresses in titles work inside projects (AD-1,
+  FK-D2).
+
+## Files Pascal saves
 
 Both go into `spike/out/`, which git ignores.
 
