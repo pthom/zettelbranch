@@ -6,12 +6,15 @@
 // needed, and the browser attaches the login cookie by itself. This file never reads,
 // stores or sends credentials or session tokens.
 //
-// Reads, plus renaming. Never sends a message, never deletes. The only calls:
+// Reads, plus renaming, plus (P9) claude.ai's own fork of a zbtest/ chat into a new chat.
+// Never sends a message, never deletes. The only calls:
 //
 //   GET  /api/organizations
 //   GET  /api/organizations/<org>/chat_conversations_v2?limit=<n>&offset=<n>
 //   GET  /api/organizations/<org>/chat_conversations/<id>?tree=True&rendering_mode=messages&render_all_tools=true
 //   PUT  /api/organizations/<org>/chat_conversations/<id>      body {"name": "zbtest/…"}
+//   POST /claudeai-rpc/anthropic.bard.api.v1alpha.ConversationService/PerformAction
+//        body: continueBranchAsNewChat only, from a zbtest/ chat (P9, NF-1)
 //
 // The API is undocumented. Every answer is checked; anything unexpected becomes an error
 // with the status and the first 200 characters of the body.
@@ -27,6 +30,7 @@
     { method: 'GET', re: new RegExp(`^/api/organizations/${ID}/chat_conversations_v2\\?limit=\\d+&offset=\\d+$`) },
     { method: 'GET', re: new RegExp(`^/api/organizations/${ID}/chat_conversations/${UUID}\\?tree=True&rendering_mode=messages&render_all_tools=true$`) },
     { method: 'PUT', re: new RegExp(`^/api/organizations/${ID}/chat_conversations/${UUID}$`) },
+    { method: 'POST', re: new RegExp('^/claudeai-rpc/anthropic\\.bard\\.api\\.v1alpha\\.ConversationService/PerformAction$') },
   ];
   const TEST_PREFIX = 'zbtest/';
   const PAGE_SIZE = 100;
@@ -45,7 +49,7 @@
 
   const redact = (path) => (orgCache ? path.split(orgCache.id).join('<org>') : path);
 
-  async function request(method, path, body) {
+  async function request(method, path, body, extraHeaders) {
     if (location.origin !== ORIGIN) throw new ApiError('not on claude.ai', { origin: location.origin });
     if (!ALLOWED.some((a) => a.method === method && a.re.test(path))) {
       throw new ApiError('request not in the allowed list', { method, path: redact(path) });
@@ -57,7 +61,7 @@
       res = await fetch(ORIGIN + path, {
         method,
         credentials: 'same-origin',
-        headers: body ? { 'content-type': 'application/json' } : undefined,
+        headers: body ? { 'content-type': 'application/json', ...(extraHeaders || {}) } : undefined,
         body: body ? JSON.stringify(body) : undefined,
       });
       text = await res.text();
@@ -161,6 +165,28 @@
     return { answer: json && typeof json === 'object' ? { keys: Object.keys(json), name: json.name } : json };
   }
 
+  // P9: claude.ai's own "continue branch as new chat" (Connect JSON). The new chat's id is
+  // ours to choose; the answer is empty and the copy fills in over a few seconds. Spike
+  // rule: only from a chat in the test tree, so the copy (which keeps the title) is too.
+  async function continueAsNewChat(sourceId, sourceTitle, throughMessageId) {
+    if (typeof sourceTitle !== 'string' || !sourceTitle.startsWith(TEST_PREFIX)) {
+      throw new ApiError('refused: the spike only forks chats whose title starts with zbtest/', {});
+    }
+    const o = await org();
+    const newId = crypto.randomUUID();
+    const sessionId = 'sess_' + crypto.randomUUID().replace(/-/g, '').slice(0, 24);
+    const body = {
+      header: { conversationId: newId, mutationId: { sessionId, version: 1 } },
+      continueBranchAsNewChat: { sourceConversationId: sourceId, throughMessageId },
+    };
+    const json = await request('POST', '/claudeai-rpc/anthropic.bard.api.v1alpha.ConversationService/PerformAction', body, {
+      'connect-protocol-version': '1',
+      'x-organization-uuid': o.id,
+      'anthropic-client-platform': 'web_claude_ai',
+    });
+    return { newId, answer: json === null ? 'empty' : shapeOf(json).slice(0, 200) };
+  }
+
   function errorInfo(e) {
     return e instanceof ApiError ? { error: e.message, ...e.details } : { error: String((e && e.message) || e) };
   }
@@ -170,6 +196,7 @@
     listConversations,
     getConversation,
     renameConversation,
+    continueAsNewChat,
     stats: () => ({ requests: stats.requests, ms: Math.round(stats.ms) }),
     errorInfo,
     ApiError,

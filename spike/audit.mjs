@@ -30,9 +30,10 @@ check(
   hits(/\bfetch\s*\(|XMLHttpRequest|sendBeacon|WebSocket|EventSource|importScripts|new Image\b|\.src\s*=|window\.open\s*\(|location\.(assign|replace)\s*\(|location\.href\s*=/, (f) => f !== NET_FILE),
   `grep -nE "fetch\\(|XMLHttpRequest|sendBeacon|WebSocket|EventSource|new Image|\\.src *=|window\\.open|location\\.(assign|replace|href *=)" spike/extension/*.js | grep -v ${NET_FILE}`
 );
+const posts = hits(/['"]POST['"]/);
 check(
-  `${NET_FILE} only uses GET and PUT`,
-  hits(/['"](POST|DELETE|PATCH)['"]/),
+  `Only GET and PUT, plus one POST in ${NET_FILE} (P9, claude.ai's own fork)`,
+  [...hits(/['"](DELETE|PATCH)['"]/), ...posts.filter((l) => l.file !== NET_FILE), ...(posts.length > 2 ? posts : [])],
   `grep -nE "'(POST|DELETE|PATCH)'" spike/extension/*.js`
 );
 check(

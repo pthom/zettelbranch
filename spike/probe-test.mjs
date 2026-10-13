@@ -120,6 +120,8 @@ try {
   check('P3 refuses on a private chat (no navigation)', r.refused === true && page.url() === urlBefore, r);
   r = await probe('p2', 'Check after sending');
   check('P2 check refuses on a private chat', r.refused === true, r);
+  r = await probe('p9', "Fork through Claude's last reply");
+  check('P9 refuses on a private chat', r.refused === true, r);
   check('refusals hold no private text or title', noSecrets(checks.slice(-5).map((c) => c.detail)).length === 0);
 
   r = await probe('p5', 'List conversations');
@@ -261,8 +263,20 @@ try {
   check('Copy results: clipboard denied, JSON shown in the panel instead', /Copy failed/.test(st) && Array.isArray(copied.results) && copied.results.length === resultCount, { status: st, results: copied.results && copied.results.length, expected: resultCount });
   check('The whole results log holds no private text or title', noSecrets(copied).length === 0, noSecrets(copied));
   writeJson(path.join(opt.out, 'results-log.json'), copied);
+  // ------------------------------------------------ K. P9, claude.ai's own fork
+  await sidebar('zbtest/1 · Root topic');
+  await page.waitForTimeout(800);
+  r = await probe('p9', "Fork through Claude's last reply");
+  check('P9 forks a zbtest chat through Claude\'s last reply', r.ok === true && r.through === "message 4 (Claude's)" && /^\/chat\/[0-9a-f-]{36}$/.test(r.newChatPath), r);
+  check('P9 shows a link to the new chat', (await page.locator(`${host} a[data-zb="p9-link"]`).getAttribute('href')) === r.newChatPath);
+  r = await probe('p9', 'Read the new chat');
+  check('P9 read: 4 messages, same roles and text, new ids, through message included', r.ok === true && r.copyMessages === 4 && r.allSameText && r.allSameRole && r.newIds && r.throughIncluded === true && r.sameTitle, { copy: r.copyMessages, through: r.throughWas, included: r.throughIncluded });
+  r = await probe('p9', 'Fork through my last message');
+  r = await probe('p9', 'Read the new chat');
+  check('P9 through your last message: 3 messages', r.ok === true && r.copyMessages === 3 && r.throughWas === 3 && r.throughIncluded === true, { copy: r.copyMessages, through: r.throughWas });
+
   await page.screenshot({ path: path.join(opt.out, 'panel.png') });
-  for (const id of ['p2', 'p4', 'p8']) {
+  for (const id of ['p2', 'p4', 'p8', 'p9']) {
     const sec = page.locator(`${host} section[data-zb-section="${id}"]`);
     await sec.screenshot({ path: path.join(opt.out, `${id}.png`) });
     fs.writeFileSync(path.join(opt.out, `${id}-steps.txt`), (await sec.locator('ol.steps').innerText()) + '\n');
@@ -279,9 +293,12 @@ const allowed = [
   /^GET \/api\/organizations\/<org>\/chat_conversations_v2\?limit=100&offset=\d+$/,
   /^GET \/api\/organizations\/<org>\/chat_conversations\/[0-9a-f-]{36}\?tree=True&rendering_mode=messages&render_all_tools=true$/,
   /^PUT \/api\/organizations\/<org>\/chat_conversations\/[0-9a-f-]{36}$/,
+  /^POST \/claudeai-rpc\/anthropic\.bard\.api\.v1alpha\.ConversationService\/PerformAction$/,
 ];
 const bad = fake.apiLog.filter((e) => !allowed.some((re) => re.test(`${e.method} ${e.path}`)));
-check('the extension made only the four allowed API calls', bad.length === 0, bad.slice(0, 5));
+check('the extension made only the five allowed API calls', bad.length === 0, bad.slice(0, 5));
+const rpcs = fake.apiLog.filter((e) => e.method === 'POST');
+check('every POST is claude.ai\'s own fork, nothing else', rpcs.length === 2 && rpcs.every((e) => e.action === 'continueBranchAsNewChat' && e.status === 200), rpcs);
 const puts = fake.apiLog.filter((e) => e.method === 'PUT');
 check('every rename went to a zbtest/ name', puts.length > 0 && puts.every((e) => e.name.startsWith('zbtest/')), puts.map((e) => e.name));
 const passive = (u) => u.startsWith('data:') || u.startsWith('blob:') || u.startsWith('about:');

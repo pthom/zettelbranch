@@ -192,6 +192,42 @@ export function createFakeClaude() {
     return done(405, { type: 'error', error: { type: 'method_not_allowed' } });
   }
 
+  // claude.ai's own fork (P9), as the public notes describe it: Connect JSON, the new id
+  // chosen by the caller, an empty answer. The copy here is immediate and includes the
+  // through message (an assumption to check on the real site).
+  async function rpc(route, req, url) {
+    const entry = { method: req.method(), path: url.pathname };
+    apiLog.push(entry);
+    const done = (status, body) => {
+      entry.status = status;
+      return json(route, status, body);
+    };
+    if (url.pathname !== '/claudeai-rpc/anthropic.bard.api.v1alpha.ConversationService/PerformAction' || req.method() !== 'POST') return done(404, { code: 'not_found' });
+    const h = req.headers();
+    if (h['connect-protocol-version'] !== '1' || h['x-organization-uuid'] !== ORG_CHAT) return done(400, { code: 'invalid_argument', message: 'missing headers' });
+    const body = JSON.parse(req.postData() || '{}');
+    const act = body.continueBranchAsNewChat;
+    const newId = body.header && body.header.conversationId;
+    entry.action = act ? 'continueBranchAsNewChat' : Object.keys(body).join(',');
+    if (!act || !newId || convs.has(newId)) return done(400, { code: 'invalid_argument', message: 'bad request' });
+    const src = convs.get(act.sourceConversationId);
+    if (!src) return done(404, { code: 'not_found', message: 'conversation not found' });
+    const through = pathOf(src);
+    const k = through.findIndex((m) => m.uuid === act.throughMessageId);
+    if (k < 0) return done(400, { code: 'failed_precondition', message: 'message not found' });
+    const copy = { uuid: newId, name: src.name, created_at: now(), updated_at: null, messages: [], leaf: null };
+    copy.updated_at = copy.created_at;
+    convs.set(newId, copy);
+    let parent = ROOT;
+    for (const m of through.slice(0, k + 1)) {
+      const c = { ...m, uuid: uuid(), parent_message_uuid: parent, index: copy.messages.length };
+      copy.messages.push(c);
+      parent = c.uuid;
+    }
+    copy.leaf = parent;
+    return done(200, {});
+  }
+
   async function fake(route, req, url) {
     const p = url.pathname;
     if (p === '/fake/list') return json(route, 200, byRecent().slice(0, 30).map((c) => ({ uuid: c.uuid, name: c.name })));
@@ -222,6 +258,10 @@ export function createFakeClaude() {
     if (url.pathname.startsWith('/api/')) {
       await api(route, req, url);
       return 'fake api';
+    }
+    if (url.pathname.startsWith('/claudeai-rpc/')) {
+      await rpc(route, req, url);
+      return 'fake rpc';
     }
     if (url.pathname.startsWith('/fake/')) {
       await fake(route, req, url);

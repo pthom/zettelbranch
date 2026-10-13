@@ -5,7 +5,7 @@
 (function (global) {
   'use strict';
 
-  const VERSION = '0.0.6';
+  const VERSION = '0.0.7';
   const Z = () => global.ZBProbes;
   const log = [];
   let host = null;
@@ -33,6 +33,8 @@
     pre { margin: 6px 0 0; padding: 6px; background: var(--code); border: 1px solid var(--line); border-radius: 6px; max-height: 220px; overflow: auto; white-space: pre-wrap; word-break: break-word; font: 11px/1.4 ui-monospace, Menlo, monospace; }
     pre:empty { display: none; }
     .preview { max-height: 260px; }
+    .link { display: inline-block; margin: 6px 0 0; color: var(--accent); font-weight: 600; }
+    .link[hidden] { display: none; }
     ol.steps { margin: 4px 0 0; padding-left: 18px; }
     ol.steps li { margin: 0 0 8px; }
     ol.steps li::marker { color: var(--accent); font-weight: 600; }
@@ -92,6 +94,10 @@
     b.addEventListener('click', async () => {
       if (before) before(out);
       const r = await run(id.toUpperCase(), label, fn, out);
+      if (r && typeof r.newChatPath === 'string' && extra.linkEl) {
+        extra.linkEl.setAttribute('href', r.newChatPath);
+        extra.linkEl.hidden = false;
+      }
       if (r && typeof r.preview === 'string' && extra.previewEl) {
         extra.previewEl.textContent = r.preview;
         extra.sizeEl.textContent = `${r.chars} characters, about ${r.tokensEstimate} tokens, ${r.turns} turns${r.flattened ? ', flattened' : ''}`;
@@ -177,6 +183,9 @@
     const previewEl = el('pre', { class: 'preview', 'data-zb': 'p8-preview' });
     const sizeEl = el('p', { 'data-zb': 'p8-size' });
 
+    // A new tab, so this tab keeps its results (they live in memory only).
+    const p9Link = el('a', { href: '#', hidden: '', target: '_blank', rel: 'noopener', 'data-zb': 'p9-link', class: 'link', text: 'Open the new chat (new tab)' });
+
     const reloadNote = (out) => {
       out.textContent = 'Opening a new chat… If no P3 result appears here after the new chat opens, the page reloaded (the panel restarted and lost its memory).';
     };
@@ -249,7 +258,21 @@
         after: [sizeEl, previewEl],
         previewEl,
         sizeEl,
-      })
+      }),
+      stepsSection('p9', "P9 · claude.ai's own fork", [
+        "claude.ai's \"continue branch as new chat\" (NF-1). It makes a new chat holding this one up to a message, as real messages.",
+      ], [
+        { text: 'Open a zbtest chat with a few messages, an image in one of them if you have one.' },
+        {
+          text: "Fork it: through Claude's last reply, or through your last message (to see whether that message is included).",
+          buttons: [
+            ["Fork through Claude's last reply", () => p.p9Fork('assistant')],
+            ['Fork through my last message', () => p.p9Fork('user')],
+          ],
+        },
+        { text: 'Wait about 5 seconds, then read the new chat (it compares it with this one).', buttons: [['Read the new chat', () => p.p9Read()]] },
+        { text: 'Click "Copy results" at the top and paste them to Claude. Then open the new chat with the link below (a new tab) and look. Delete the copies afterwards: they keep the original\'s title.' },
+      ], { after: [p9Link], linkEl: p9Link })
     );
     pre.style.margin = '6px 10px';
     panel.append(head, pre, body);

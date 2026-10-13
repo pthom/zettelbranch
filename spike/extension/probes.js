@@ -91,6 +91,7 @@
     p3: null,
     zbtestTitles: null, // from the last conversation list, zbtest titles only
     p8: { pending: null, forkAt: null },
+    p9: null, // the last native fork: { newId, sourceId, through }
   };
 
   function kindOf(path) {
@@ -921,6 +922,80 @@
     return { guard: g.page, autoTitle: old, ...(await confirmAndRename(pk.id, old, `${C().TEST_TREE}/${address} · ${topic}`)) };
   }
 
+  // ---------------------------------------------------------------- P9
+
+  // claude.ai's own "continue branch as new chat" (NF-1): a new chat holding this one
+  // through a message, as real messages. Only from a zbtest/ chat; the copy keeps the title.
+  async function p9Fork(role) {
+    const pk = pageKind();
+    if (pk.kind !== 'chat') return refuse('open the zbtest conversation to fork');
+    const g = await writeGuard({ allowNew: false });
+    if (!g.ok) return g;
+    if (!C().isTestTitle(g.title)) return refuse('P9 forks only a chat whose title starts with zbtest/; rename it first (P4 or P8)');
+    const conv = g.conv || (await A().getConversation(pk.id));
+    const path = C().pathOf(conv).path;
+    const i = path.map((m) => C().roleOf(m)).lastIndexOf(role);
+    if (i < 0) return { ok: false, error: `no ${role === 'user' ? 'message of yours' : 'reply from Claude'} in this chat` };
+    const t0 = performance.now();
+    const r = await A().continueAsNewChat(pk.id, g.title, path[i].uuid);
+    state.p9 = { newId: r.newId, sourceId: pk.id, through: { n: i + 1, role, uuid: path[i].uuid }, pathLength: path.length };
+    return {
+      ok: true,
+      sourcePath: path.length,
+      sourceMessagesInTree: conv.chat_messages.length,
+      through: `message ${i + 1} (${role === 'user' ? 'yours' : "Claude's"})`,
+      answer: r.answer,
+      ms: Math.round(performance.now() - t0),
+      newChatPath: `/chat/${r.newId}`,
+      next: 'Wait about 5 seconds, then click "Read the new chat".',
+    };
+  }
+
+  // Reads the copy and compares it with the source: counts, roles, exact text, files.
+  async function p9Read() {
+    if (!state.p9) return { ok: false, error: 'fork first (or the page reloaded since)' };
+    const { newId, sourceId, through } = state.p9;
+    let copy;
+    try {
+      copy = await A().getConversation(newId);
+    } catch (e) {
+      return { ok: false, error: 'the new chat cannot be read (yet?): click again in a few seconds', detail: A().errorInfo(e) };
+    }
+    const src = await A().getConversation(sourceId);
+    const sp = C().pathOf(src).path;
+    const cp = C().pathOf(copy).path;
+    const text = (m) => C().messageText(m, { placeholders: false });
+    const files = (m) => (m.files_v2 || m.files || []).length + (m.attachments || []).length;
+    const n = Math.min(sp.length, cp.length);
+    const perMessage = [];
+    for (let k = 0; k < cp.length; k++) {
+      const a = sp[k];
+      const b = cp[k];
+      perMessage.push({ n: k + 1, role: C().roleOf(b), sameRole: !!a && C().roleOf(a) === C().roleOf(b), sameText: !!a && text(a) === text(b), filesSource: a ? files(a) : null, filesCopy: files(b), sameId: !!a && a.uuid === b.uuid });
+    }
+    return {
+      ok: cp.length > 0,
+      copyMessages: cp.length,
+      copyMessagesInTree: copy.chat_messages.length,
+      sourcePath: sp.length,
+      throughWas: through.n,
+      throughIncluded: cp.length === through.n ? true : cp.length === through.n - 1 ? false : 'unclear',
+      allSameText: perMessage.every((x) => x.sameText),
+      allSameRole: perMessage.every((x) => x.sameRole),
+      newIds: perMessage.every((x) => !x.sameId),
+      filesSource: sp.slice(0, n).reduce((s, m) => s + files(m), 0),
+      filesCopy: cp.reduce((s, m) => s + files(m), 0),
+      titleCopy: C().isTestTitle(copy.name) ? copy.name : '(not a zbtest title)',
+      sameTitle: copy.name === src.name,
+      modelSource: src.model || null,
+      modelCopy: copy.model || null,
+      sameSettings: JSON.stringify(copy.settings || null) === JSON.stringify(src.settings || null),
+      perMessage,
+      newChatPath: `/chat/${newId}`,
+      next: 'Open the new chat (link below) and look: earlier messages shown as messages, the image there? Then delete it.',
+    };
+  }
+
   global.ZBProbes = {
     startWatching,
     pageKind,
@@ -942,6 +1017,8 @@
     p8Open,
     p8Check,
     p8Rename,
+    p9Fork,
+    p9Read,
     setForkAt,
     getForkAt,
     _state: state,
