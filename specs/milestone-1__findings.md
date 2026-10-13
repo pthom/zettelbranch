@@ -145,6 +145,16 @@ In the Chrome test profile, after ⟳ on Zettelbranch in `chrome://extensions` a
 3. In a branch just opened and not named yet: the tree shows it at its address, "(not named yet)". Name it: the line changes without a reload.
 4. If you have a tree with many chats: the section scrolls, and the panel still fits the window.
 
+## Second real use
+
+2026-10-13, by Pascal, on `oulipo/1a`: a branch `oulipo/1a1`, his question "tentons notre chance avec un enfant qui joue au ballon", named by hand `oulipo/1a1 · Jeux d'enfants` (Claude answered with a calligram of a child kicking a ball).
+
+- **Opening the panel takes about a second.** Pascal suggests a nice refresh button, a circular-arrow icon with a tooltip.
+- **The tree's links work**, but the panel does not follow when he moves to another chat with the sidebar.
+- **The two steps after "Open new chat" showed.**
+- **The proposed name came from claude.ai's title**, "Poèmes visuels d'un chat et de deux amoureux": claude.ai names a branch from its first message, which holds the parent's transcript, so its title describes the parent, even when it differs from the parent's title. "Not very important" (Pascal).
+- **After naming, the panel is confusing:** it offers to branch again with nothing saying this chat is the branch he just made; and the notice should simply say to reload to see the new name in the sidebar. After a reload, everything was right.
+
 ## For Pascal
 
 **To check on the real page (step 8):**
