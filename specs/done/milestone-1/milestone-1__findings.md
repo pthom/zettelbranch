@@ -13,7 +13,7 @@ Nothing here touched claude.ai. Every test ran in headless Chromium against a fa
 | 3 | `conversation.js`: the path, message text, placeholders, the page fallback | `0fc8acf` |
 | 5 | `prompt.js`: the branch prompt, flattening, parsing back | `faeb448` |
 | 6 | `branch.js`, `ui.js`, `content.js`: the flow and the panel | `bfd6867` |
-| 7 | [AUDIT.md](../AUDIT.md) and its commands | `0c39e64` |
+| 7 | [AUDIT.md](../../../AUDIT.md) and its commands | `0c39e64` |
 
 | Tests (`cd tests && npm test`) | Result |
 |---|---|
@@ -32,12 +32,12 @@ Line counts after step 6e, following the chat and Claude's branch title (`a3891b
 | [api.js](../extension/api.js) | 146 | The only network file: the four calls, an allowed list checked before each request, renames only to tree titles |
 | [tree.js](../extension/tree.js) | 135 | Addresses by segments, titles (` · `, or ` . ` and ` - ` typed by hand), next child, next root, the proposed tree name, a tree's chats in address order |
 | [conversation.js](../extension/conversation.js) | 296 | Messages from the API (path, text, placeholders); the page fallback, as Markdown |
-| [prompt.js](../extension/prompt.js) | 273 | The prompt of [forking__prompt](forking__prompt.md); parsing it back; the topic proposed for a branch's name |
+| [prompt.js](../extension/prompt.js) | 273 | The prompt of [forking__prompt](../../forking__prompt.md); parsing it back; the topic proposed for a branch's name |
 | [branch.js](../extension/branch.js) | 408 | The flow: read (with the tree), branch, open the new chat, name |
 | [ui.js](../extension/ui.js) | 448 | The pill, the panel, the refresh button, the tree, the preview, the steps after Open new chat, the notices |
 | [content.js](../extension/content.js) | 7 | Mounts the pill, except on `/share/` pages |
 | **extension/** | **1,732** | |
-| [AUDIT.md](../AUDIT.md) | 184 | 18 points, 30 commands, what they cannot prove, an LLM prompt |
+| [AUDIT.md](../../../AUDIT.md) | 184 | 18 points, 30 commands, what they cannot prove, an LLM prompt |
 | `tests/` | 2,303 | Audit, unit and end-to-end tests, the fake claude.ai (`tests/fake/`), real fixtures |
 
 The code uses only standard web APIs, so the same files should run in Chrome and Firefox. Not tried in Firefox yet (step 9).
@@ -206,7 +206,7 @@ Built offline by Claude on 2026-10-13, commit `a3891bd`, from Pascal's two decis
 - **The panel follows the chat on screen.** While it is open, a check every 0.4 seconds compares the tab's address with the page the panel shows. When you move to another chat (the sidebar, a tree link without a page load, Send in a new chat), it reads that chat and its tree, exactly as the refresh button does: reads only, never a write. On a page that is not a chat, it shows that page's state, as before. Hidden, nothing runs: Hide stops the check, and the pill starts it again.
 - **Our own flow is not followed.** Open new chat moves the tab to the new chat itself: the panel counts that page as seen and keeps its steps. After you press Send, claude.ai moves to the new chat's page, and the panel follows: it shows the branch "(not named yet)" with its Name button.
 - **Right after Send.** If claude.ai shows the new chat before it holds your message, the panel keeps the steps. If Claude has not replied yet, the box says "When Claude has replied:" before its button. The panel does not read again on its own when Claude finishes: the Name button reads the chat when you click it.
-- **Claude suggests the branch's name.** The instructions ask Claude to end its first reply with a separate last line, "Branch title:" and 3 to 6 words: when a message follows the instructions, and always for a branch from a chat's first message (your message is pre-filled there). The texts are in [forking__prompt](forking__prompt.md#instructions), word for word; a unit test compares them with the code.
+- **Claude suggests the branch's name.** The instructions ask Claude to end its first reply with a separate last line, "Branch title:" and 3 to 6 words: when a message follows the instructions, and always for a branch from a chat's first message (your message is pre-filled there). The texts are in [forking__prompt](../../forking__prompt.md#instructions), word for word; a unit test compares them with the code.
 - **Name this branch** proposes, in order: the current name of a branch already named, Claude's branch title ("Proposed by Claude in its first reply."), your first question's words, claude.ai's title, Claude's reply's words. The title is read leniently from the last non-empty line of Claude's first reply: bold or italic marks, quotes and a final period are dropped.
 - **Flattening** drops the "Branch title:" line from a branch's first reply, as it drops the summary: in the transcript, in the header's quote, and in the panel's message list.
 
@@ -270,7 +270,7 @@ Two issues:
 - After Open new chat, the panel warns if the box differs from the preview ("The message box holds N characters, the preview had M"). If that warning ever shows, tell Claude.
 - Chrome may warn "Unrecognized manifest key 'browser_specific_settings'" on its extensions page. That key is for Firefox; the warning is harmless.
 
-**A wording point in the prompt, fixed by Claude after review:** pasted text is copied under a `[pasted text: notes.txt]` line (M1-D2), but the instructions said every text in square brackets marks content not carried over. They now say: 'Placeholders ending in "not copied", such as [file: photo.png, not copied], mark content that was not carried over; ask me if you need it. Text under a [pasted text: …] line is text I pasted, copied in full.' Changed in `prompt.js`, its unit test and [forking__prompt](forking__prompt.md#instructions).
+**A wording point in the prompt, fixed by Claude after review:** pasted text is copied under a `[pasted text: notes.txt]` line (M1-D2), but the instructions said every text in square brackets marks content not carried over. They now say: 'Placeholders ending in "not copied", such as [file: photo.png, not copied], mark content that was not carried over; ask me if you need it. Text under a [pasted text: …] line is text I pasted, copied in full.' Changed in `prompt.js`, its unit test and [forking__prompt](../../forking__prompt.md#instructions).
 
 **Firefox (step 9), not tested offline:**
 
@@ -293,10 +293,10 @@ Built offline by Claude on 2026-10-13, commit `ba045c4`, as decided in NF-2 = A.
 
 - **From the last message, Claude's reply** (the panel's default), the preview says "claude.ai will copy this conversation into a new chat, named `zbtest/1d · Root topic`. Your first message there:", then shows that message.
 - **Open new chat** asks claude.ai for the copy (the `POST` of P9, with only `continueBranchAsNewChat` in its body). It reads the new chat once a second until it has as many messages as this one (15 seconds at most), checks their roles, renames it `<tree>/<address> · <parent's topic>`, reads the name back, and loads the copy's page.
-- **On that page** the panel opens by itself, with "Start the branch" and the line about the default model. The click puts the first message in the box: the header and the instructions, no transcript ([forking__prompt](forking__prompt.md#when-claudeai-copied-the-conversation)). You add your text and press Send.
+- **On that page** the panel opens by itself, with "Start the branch" and the line about the default model. The click puts the first message in the box: the header and the instructions, no transcript ([forking__prompt](../../forking__prompt.md#when-claudeai-copied-the-conversation)). You add your text and press Send.
 - **Anywhere else**, or **when claude.ai's copy fails**, the quoted transcript, as before. A failure (an error answer, an unexpected answer, a copy not complete after 15 seconds, a copy that differs, a rename that fails) goes straight on to the quoted transcript, with a note such as "claude.ai's own copy failed: HTTP 500 internal; this branch uses a quoted transcript instead."
 - **Name this branch** works on any branch chat and proposes the current name. A branch claude.ai copied is named from the start, so the dialog is for changing its topic.
-- **Copies from such chats** are flattened into one list, each turn with its branch and place ([the rules](forking__prompt.md#flattening-and-attribution)).
+- **Copies from such chats** are flattened into one list, each turn with its branch and place ([the rules](../../forking__prompt.md#flattening-and-attribution)).
 
 ### Numbers
 
@@ -324,7 +324,7 @@ In the fake, the copy shows half its messages for 1.5 seconds, then all. From th
 10. **Attribution in a chat with no header message** (a root, or a branch claude.ai copied that is not started yet): its own address. A started branch attributes the copied messages to its parent.
 11. **A branch claude.ai copied, not started yet,** still lists its messages and allows Branch.
 12. **Tests:** the earlier tests of the quoted transcript that used the last reply now pick an earlier one; the fake's `zbtest/3` and `zbtest/4` got two more messages each for that. The fake refuses a fork through any message but the last of the shown path, as claude.ai does, and has switches for a 500 and for a copy that never fills.
-13. **The spec:** its lines on where the header goes and on what the network does now mention claude.ai's copy ([zettelbranch__specs](zettelbranch__specs.md)).
+13. **The spec:** its lines on where the header goes and on what the network does now mention claude.ai's copy ([zettelbranch__specs](../../zettelbranch__specs.md)).
 
 ### To check on the real site (Pascal)
 

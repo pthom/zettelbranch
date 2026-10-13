@@ -28,11 +28,10 @@ Claude maintains these files. Pascal answers questions inline and may edit anyth
 
 - Spec: [zettelbranch__specs](zettelbranch__specs.md)
 - Status: [zettelbranch__status](zettelbranch__status.md)
-- Milestone 1: [plan](milestone-1__specs.md)
 - Branch prompt draft: [forking__prompt](forking__prompt.md)
 - What public sources say about claude.ai, and what Milestone 0 confirmed on the real site: [claude-ai__findings](claude-ai__findings.md)
 - Anthropic's terms and support's answer: [terms__findings](terms__findings.md)
-- Finished work: the [done log](done/README.md). It holds the first review of the spec (findings and questions per subject, all decided), the original design conversation with its check against the vault, and Milestone 0 (plan and results).
+- Finished work: the [done log](done/README.md). It holds the first review of the spec (findings and questions per subject, all decided), the original design conversation with its check against the vault, Milestone 0 and Milestone 1 (plans and results; 0.1.0 released).
 
 ## Open questions
 

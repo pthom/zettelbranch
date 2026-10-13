@@ -1,8 +1,8 @@
 # Milestone 1 plan
 
-The first version Pascal uses every day: branch any conversation from any message, with a preview, into a new chat that is filled and named with its address. Decided on 2026-10-13 ([milestone-1__questions](done/milestone-1/milestone-1__questions.md): M1-1 = A, M1-2 = C, M1-3 = B with the name editable, M1-4 = A).
+The first version Pascal uses every day: branch any conversation from any message, with a preview, into a new chat that is filled and named with its address. Decided on 2026-10-13 ([milestone-1__questions](milestone-1__questions.md): M1-1 = A, M1-2 = C, M1-3 = B with the name editable, M1-4 = A).
 
-Builds on Milestone 0 ([what it established](claude-ai__findings.md#9-checked-on-pascals-account-milestone-0)).
+Builds on Milestone 0 ([what it established](../../claude-ai__findings.md#9-checked-on-pascals-account-milestone-0)).
 
 ## What you get
 
@@ -21,7 +21,7 @@ Not in Milestone 1: a button on each message, the banner (path, siblings, childr
 |---|---|---|
 | The conversation | the API: `GET …/chat_conversations/<id>?tree=True…` | the path from the root to the current leaf; the page only as a fallback, since it holds part of a long chat |
 | The registry | the API list | every title that parses as `<tree>/<address> · <topic>`; next free child by segments |
-| The prompt | [forking__prompt](forking__prompt.md) | header, flattened transcript, instructions, your message; no summary asked for a first-message branch |
+| The prompt | [forking__prompt](../../forking__prompt.md) | header, flattened transcript, instructions, your message; no summary asked for a first-message branch |
 | Message text | the API's message blocks | text and code kept, pasted text too; thinking and tool calls left out (FK-D1); images, files and artifacts become placeholders (`[file: photo.png, not copied]`) |
 | The new chat | the app's own New chat link | no page load; the prompt held in memory (DA-D1) |
 | Filling the box | one `execCommand('insertText')` call | exact, up to at least 100,000 characters; a warning above that |
@@ -62,8 +62,8 @@ Each step ends with offline tests passing and a commit. Steps 1 to 3 and 5 to 7 
    - **6e. Two decisions of Pascal (2026-10-13), after 6d.** The panel follows you: while it is open, moving to another chat reads that chat and its tree (reads only; the only change to "nothing without a click"). And Claude suggests the branch's name: the instructions ask it to end its first reply with "Branch title: …", which "Name this branch" proposes first (`specs/forking__prompt.md`). *Built offline, a3891bd ([notes](milestone-1__findings.md#following-the-chat-and-claudes-branch-title-step-6e)).*
 7. **Audit.** `AUDIT.md` and its greps; the same checks as the spike's, adapted. *Done, 0c39e64.*
 8. **Real-page checklist (Pascal, by hand, about 15 minutes).** In the Chrome test profile, in `zbtest/` chats: a root, a branch from a reply, a branch from your own message, a branch of a branch, a long chat.
-9. **Firefox.** The same checklist in a separate Firefox profile, the extension loaded from `about:debugging`.
-10. **Release 0.1.0.** A tag on GitHub, SHA-256 of each file, install notes for Chrome and Firefox. Then Pascal loads it in his main browser, and `spike/` is deleted (git history keeps it).
+9. **Firefox.** *Done on 2026-10-13: works (Firefox 157); the issues found were fixed or are known limits (see the build notes).* The same checklist in a separate Firefox profile, the extension loaded from `about:debugging`.
+10. **Release 0.1.0.** *Done on 2026-10-13: tag `v0.1.0`, a zip and the SHA-256 of each file on GitHub. `spike/` is kept for now: its probe panel served twice after the build (P9, P10).* A tag on GitHub, SHA-256 of each file, install notes for Chrome and Firefox. Then Pascal loads it in his main browser, and `spike/` is deleted (git history keeps it).
 
 ## Pascal's session (steps 4 and 8)
 

@@ -25,7 +25,7 @@ Unknowns: whether it works on your account and for any message; it belongs to cl
 
 ## NF-2 · Use claude.ai's own fork when branching from the last reply?
 
-**Status:** decided (2026-10-13): A. Folded into the plan (`specs/milestone-1__specs.md`, step 6b) and the spec's core design.
+**Status:** decided (2026-10-13): A. Folded into the plan (`specs/done/milestone-1/milestone-1__specs.md`, step 6b) and the spec's core design.
 
 The probe showed that claude.ai copies a conversation into a new chat only through its **last** message. Through an earlier message, it refuses.
 

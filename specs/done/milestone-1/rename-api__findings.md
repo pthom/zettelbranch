@@ -41,4 +41,6 @@ What is left, to make the open tab show a new name at once:
 - **claude.ai's own rename menu** (the title at the top of a chat, then Rename), driven by Zettelbranch: the tab would update as when Pascal renames by hand. But the extension would drive claude.ai's interface (open the menu, fill the field, confirm), which breaks when claude.ai changes it, and must work in French and English. A probe first.
 - **Keep today's rename** (the older API, documented by use) and the reload notice, and live with the lag.
 
-Decision: RN-1 (in chat).
+## RN-1 · Decision
+
+Decided in chat on 2026-10-13 (Pascal: "A, release 0.1.0. Then note B as a possible improvement for later."): keep today's rename through the older API and the reload notice; the lag is a known limit of 0.1.0. Renaming through claude.ai's own menu stays a possible improvement for later, to try after some real use.

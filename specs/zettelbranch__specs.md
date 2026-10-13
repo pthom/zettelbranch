@@ -90,6 +90,8 @@ Done on 2026-10-13: a short spike on the unknowns that could change the design. 
 
 ## First milestone
 
-The first everyday version, decided on 2026-10-13 (M1-1 to M1-4). A Zettelbranch button at the bottom right opens a list of the conversation's messages; you pick the branch point, read a preview of the exact first message, and a new chat opens with it in the box. Branches carry their address from the start: the parent becomes a tree root if needed, and once Claude has replied you click "Name this branch", edit the proposed name if you like, and a notice offers to reload so the open tab shows it. A button on each message, the banner, cross-references and the app trigger come later. Plan: [milestone-1__specs](milestone-1__specs.md).
+*Done: Zettelbranch 0.1.0, released on 2026-10-13. Plan and results in `specs/done/milestone-1/`.*
+
+The first everyday version, decided on 2026-10-13 (M1-1 to M1-4). A Zettelbranch button at the bottom right opens a list of the conversation's messages; you pick the branch point, read a preview of the exact first message, and a new chat opens with it in the box. Branches carry their address from the start: the parent becomes a tree root if needed, and once Claude has replied you click "Name this branch", edit the proposed name if you like, and a notice offers to reload so the open tab shows it. A button on each message, the banner, cross-references and the app trigger come later. Plan: [milestone-1__specs](done/milestone-1/milestone-1__specs.md).
 
 From Milestone 0: extraction reads the conversation through the API (the page holds only part of a long chat); the prompt goes into the message box in one `execCommand` call; the new chat opens through the app's own New chat link, the prompt held in memory.

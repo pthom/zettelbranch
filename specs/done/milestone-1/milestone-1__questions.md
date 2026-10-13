@@ -1,10 +1,10 @@
 # Milestone 1 questions
 
-Context: [milestone-1__specs](../../milestone-1__specs.md), and what Milestone 0 found ([claude-ai__findings](../../claude-ai__findings.md#9-checked-on-pascals-account-milestone-0)).
+Context: [milestone-1__specs](milestone-1__specs.md), and what Milestone 0 found ([claude-ai__findings](../../claude-ai__findings.md#9-checked-on-pascals-account-milestone-0)).
 
 ## M1-1 · Does Milestone 1 name branches with their address?
 
-**Status:** decided (2026-10-13): A. Folded into the [plan](../../milestone-1__specs.md) and the [spec](../../zettelbranch__specs.md#first-milestone).
+**Status:** decided (2026-10-13): A. Folded into the [plan](milestone-1__specs.md) and the [spec](../../zettelbranch__specs.md#first-milestone).
 
 The spec's first milestone was "extraction plus a branch button; addresses come after". Milestone 0 showed that renaming works, and the spike already computes addresses correctly (`1a`, `1b`, `1a1`, by segments).
 
@@ -15,7 +15,7 @@ The spec's first milestone was "extraction plus a branch button; addresses come 
 
 ## M1-2 · Where the Branch button lives
 
-**Status:** decided (2026-10-13): C, the button at the bottom right now, a button on each message later. Folded into the [plan](../../milestone-1__specs.md).
+**Status:** decided (2026-10-13): C, the button at the bottom right now, a button on each message later. Folded into the [plan](milestone-1__specs.md).
 
 - **A.** One small "Branch" button at the bottom right of the page, like the spike's panel. It opens a list of the conversation's messages (number, who wrote it, first words), with Claude's last reply chosen; you pick another if you like. It never touches claude.ai's own page layout, so a claude.ai redesign rarely breaks it. *(recommended for Milestone 1)*
 - **B.** A "Branch from here" button on every message, next to claude.ai's own Copy and Retry buttons. The most natural to use, but it plugs into claude.ai's layout: the page only draws the messages near the screen and redraws them as you scroll, so the extension has to keep watching the page to re-add its buttons, and a claude.ai redesign can break it at any time.
@@ -25,7 +25,7 @@ The spec's first milestone was "extraction plus a branch button; addresses come 
 
 ## M1-3 · When the new branch gets its name
 
-**Status:** decided (2026-10-13): B, with the name editable. After Claude's first reply, "Name this branch" in the panel opens a browser dialog pre-filled with `<tree>/<address> · <automatic title>`; the topic can be changed, the address part must stay. Nothing happens on its own. Folded into the [plan](../../milestone-1__specs.md) and the [spec](../../zettelbranch__specs.md#core-design).
+**Status:** decided (2026-10-13): B, with the name editable. After Claude's first reply, "Name this branch" in the panel opens a browser dialog pre-filled with `<tree>/<address> · <automatic title>`; the topic can be changed, the address part must stay. Nothing happens on its own. Folded into the [plan](milestone-1__specs.md) and the [spec](../../zettelbranch__specs.md#core-design).
 
 The name is `<tree>/<address> · <topic>`, and the topic is claude.ai's automatic title. That title only exists after Claude's first reply. Renaming earlier works (P4), but then the topic would be missing.
 
@@ -36,7 +36,7 @@ The name is `<tree>/<address> · <topic>`, and the topic is claude.ai's automati
 
 ## M1-4 · How the open tab shows the new name
 
-**Status:** decided (2026-10-13): A. Folded into the [plan](../../milestone-1__specs.md) and the [spec](../../zettelbranch__specs.md#known-risks--open-questions).
+**Status:** decided (2026-10-13): A. Folded into the [plan](milestone-1__specs.md) and the [spec](../../zettelbranch__specs.md#known-risks--open-questions).
 
 When the extension renames a chat through the API, claude.ai keeps the new name (your phone shows it at once), but the open tab keeps showing the old one until you reload the page. A plain reload (Cmd+R) is enough; Shift+Reload is not needed. In P8 this made a rename look like a failure.
 
