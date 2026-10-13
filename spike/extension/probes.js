@@ -658,6 +658,10 @@
       total: r.items.length,
       zbtest: zb.length,
       zbtestTitles: state.zbtestTitles.slice().sort(),
+      // Test chats only: claude.ai's own summary field, to see what it holds.
+      zbtestSummaries: zb
+        .map((c) => ({ title: c.name, chars: typeof c.summary === 'string' ? c.summary.length : 0, start: typeof c.summary === 'string' ? c.summary.slice(0, 300) : null }))
+        .sort((a, b) => (a.title < b.title ? -1 : 1)),
       oldestCreated: created[0] || null,
       newestUpdated: updated[updated.length - 1] || null,
       requests: r.requests,

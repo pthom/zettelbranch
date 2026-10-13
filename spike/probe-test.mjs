@@ -128,6 +128,7 @@ try {
   check('P5 picks the organization with chat', r.organization && r.organization.withChat === 1 && r.organization.organizations === 2, r.organization);
   check('P5 result holds no private title', noSecrets(r).length === 0, noSecrets(r));
   check('P5 counts sidebar entries', r.sidebar && r.sidebar.chatEntries === 30 && r.sidebar.selector === '[data-testid="sidebar-recents"] a[href*="/chat/"]', r.sidebar);
+  check('P5 shows the summaries of zbtest chats only', r.zbtestSummaries.length === 4 && r.zbtestSummaries.every((x) => x.start === `Test summary of ${x.title}.`) && r.mix.withSummary === 124, r.zbtestSummaries);
   check('P5 counts the kinds of conversations', r.mix && r.mix.platform && Object.values(r.mix.platform).reduce((a, b) => a + b, 0) === 124, r.mix);
 
   r = await probe('p6', 'Compare page and API');

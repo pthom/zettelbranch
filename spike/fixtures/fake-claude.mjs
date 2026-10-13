@@ -145,7 +145,9 @@ export function createFakeClaude() {
 
   // ---------------------------------------------------------------- JSON shapes
 
-  const listItem = (c) => ({ uuid: c.uuid, name: c.name, summary: '', model: 'claude-fake', created_at: c.created_at, updated_at: c.updated_at, is_starred: false, project_uuid: null, current_leaf_message_uuid: c.leaf });
+  // Summaries: zbtest chats get a test one, private chats a secret one that must never show.
+  const summaryOf = (c) => (String(c.name).startsWith('zbtest/') ? `Test summary of ${c.name}.` : 'SECRET-PRIVATE-TEXT in a summary');
+  const listItem = (c) => ({ uuid: c.uuid, name: c.name, summary: summaryOf(c), model: 'claude-fake', created_at: c.created_at, updated_at: c.updated_at, is_starred: false, project_uuid: null, current_leaf_message_uuid: c.leaf });
   const convJson = (c) => ({ ...listItem(c), settings: {}, chat_messages: c.messages });
   const byRecent = () => [...convs.values()].sort((a, b) => (a.updated_at < b.updated_at ? 1 : -1));
 
