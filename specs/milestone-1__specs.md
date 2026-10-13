@@ -65,22 +65,28 @@ its probe panel is at hand if claude.ai changes meanwhile (M1-D5).
 
 ## Steps
 
-Each step ends with offline tests passing and a commit.
+Each step ends with offline tests passing and a commit. Steps 1 to 3 and 5 to 7 are done
+(2026-10-13): audit 45/45, unit tests 30/30, end-to-end tests 19/19; build notes in
+[milestone-1__findings](milestone-1__findings.md). Next: Pascal's session below (steps 4
+and 8).
 
-1. **Start.** Claude sets up `extension/`, `tests/`, `AUDIT.md`. Before loading the new
+1. **Start.** *Done, 98f98e9.* Claude sets up `extension/`, `tests/`, `AUDIT.md`. Before loading the new
    extension, Pascal turns the spike extension off (not removed) in the Chrome test
    profile, so the two panels never run together.
 2. **API and tree.** `api.js`, `tree.js`, with the audit script and the fake claude.ai.
-3. **Conversation.** `conversation.js`: the path and the text of each message, with
+   *Done, cf2bb38.*
+3. **Conversation.** *Done, 0fc8acf.* `conversation.js`: the path and the text of each message, with
    placeholders. Tested on fixtures (step 4) and on the fake.
 4. **Fixtures (Pascal, about 10 minutes).** One `zbtest/` chat with a code block, a
    table, a formula, an edited message and a pasted file; Pascal saves its API answer
    and the conversation list with the browser's developer tools (step-by-step guide
    then). Claude keeps only the `zbtest/` entries before committing.
 5. **Prompt.** `prompt.js`, from the spike, with flattening and the first-message rule.
+   *Done, faeb448.*
 6. **Branch flow and UI.** `branch.js`, `ui.js`: button, message picker, preview, new
-   chat, fill; "Name this branch" with its dialog; the reload notice.
+   chat, fill; "Name this branch" with its dialog; the reload notice. *Done, bfd6867.*
 7. **Audit.** `AUDIT.md` and its greps; the same checks as the spike's, adapted.
+   *Done, 0c39e64.*
 8. **Real-page checklist (Pascal, by hand, about 15 minutes).** In the Chrome test
    profile, in `zbtest/` chats: a root, a branch from a reply, a branch from your own
    message, a branch of a branch, a long chat.
@@ -89,6 +95,55 @@ Each step ends with offline tests passing and a commit.
 10. **Release 0.1.0.** A tag on GitHub, SHA-256 of each file, install notes for Chrome and
     Firefox. Then Pascal loads it in his main browser, and `spike/` is deleted (git
     history keeps it).
+
+## Pascal's session (steps 4 and 8)
+
+About 25 minutes, in the Chrome profile "Zettelbranch test". Every chat is a `zbtest/`
+chat, deleted at the end.
+
+**A. Load Zettelbranch.**
+
+1. `chrome://extensions`: turn the spike off (its switch; do not remove it).
+2. "Load unpacked", pick the repo's `extension/` folder. Chrome may warn about
+   `browser_specific_settings`: that key is for Firefox, ignore it.
+3. Reload the claude.ai tab. A "Zettelbranch" pill sits at the bottom right.
+
+**B. The fixture chat (step 4).**
+
+1. New chat. Send: "Reply with a short Python function in a code block, a 2 by 2
+   Markdown table, and the formula for the area of a circle in LaTeX."
+2. Edit your message (the pencil under it), change one word, and send again: this makes
+   a native branch.
+3. Send a second message with an image attached (any screenshot), and paste a long text
+   into the box (a few pages copied from anywhere) so that claude.ai shows it as a
+   "Pasted" attachment. Send.
+4. Rename the chat by hand: `zbtest/1 · fixture` (sidebar, ⋯, Rename).
+5. Save two answers with the developer tools (Cmd+Opt+I, Network tab), then reload the
+   page (Cmd+R):
+   - filter `tree=True`; right-click the request, Copy, Copy response; in VS Code, paste
+     into a new file `tests/out/fixture-conversation.json`;
+   - filter `chat_conversations_v2`, the same, into `tests/out/fixture-list.json`.
+
+   `tests/out/` is never committed. The list holds all your titles: Claude keeps only the
+   `zbtest/` entries before committing a fixture.
+
+**C. The checklist (step 8).** Write down anything odd; screenshots help.
+
+1. In `zbtest/1 · fixture`, open the pill. The list shows every message, Claude's last
+   reply selected.
+2. Click Branch. Read the preview, then "Open new chat". The box holds the text; press
+   Send. After the reply, open the panel, "Name this branch", OK. A notice appears;
+   "Reload now": the sidebar shows `zbtest/1a · …`.
+3. Back in `zbtest/1`, pick one of your own messages, Branch: your message is at the end
+   of the box. Send, name it: `zbtest/1b · …`; this time change the topic in the dialog.
+4. In `zbtest/1a`, Branch again: `zbtest/1a1`. In the preview, the transcript is one flat
+   list (no transcript inside a transcript).
+5. A new chat, one short message, then Branch: a dialog asks the tree name; type
+   `zbtest`. It becomes `zbtest/2 · …`, and its branch `zbtest/2a`.
+6. Open one of your own long chats and the pill: the list shows all its messages. Do not
+   branch there (Cancel at the preview).
+7. Move between chats with the sidebar: the pill stays.
+8. Tell Claude what you saw. Then delete every `zbtest/` chat.
 
 ## Rules carried over
 

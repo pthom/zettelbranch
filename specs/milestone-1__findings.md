@@ -113,12 +113,13 @@ As decided in the plan, with these details:
 - Chrome may warn "Unrecognized manifest key 'browser_specific_settings'" on its
   extensions page. That key is for Firefox; the warning is harmless.
 
-**A wording point in the prompt (a spec change, your call):** pasted text is now copied,
-under a `[pasted text: notes.txt]` line. The instructions still say "Text in square
-brackets, such as [artifact: …, not copied], marks content that was not carried over."
-Claude could read the pasted-text line as "not copied". A fix: "Text in square brackets
-ending in 'not copied' marks content that was not carried over." The code follows
-[forking__prompt](forking__prompt.md) as written until you decide.
+**A wording point in the prompt, fixed by Claude after review:** pasted text is copied
+under a `[pasted text: notes.txt]` line (M1-D2), but the instructions said every text in
+square brackets marks content not carried over. They now say: 'Placeholders ending in
+"not copied", such as [file: photo.png, not copied], mark content that was not carried
+over; ask me if you need it. Text under a [pasted text: …] line is text I pasted, copied
+in full.' Changed in `prompt.js`, its unit test and
+[forking__prompt](forking__prompt.md#instructions).
 
 **Firefox (step 9), not tested offline:**
 

@@ -11,21 +11,24 @@ Milestone 0 is closed: every probe passed
 ([in brief](done/milestone-0/milestone-0__findings.md#in-brief)). The facts Milestone 1
 builds on are in
 [claude-ai__findings](claude-ai__findings.md#9-checked-on-pascals-account-milestone-0).
-Milestone 1 started: [plan](milestone-1__specs.md), its questions decided. Claude builds
-the offline steps first (code, fake claude.ai, tests, audit).
+Milestone 1: the offline steps are built and tested (audit 45/45, unit 30/30,
+end-to-end 19/19; [build notes](milestone-1__findings.md)). Next: Pascal's session, in
+the [plan](milestone-1__specs.md#pascals-session-steps-4-and-8).
 
 ## Waiting on Pascal
 
-1. **Clean up:** delete every `zbtest/` chat (`zbtest/1`, `2`, `2a`, `2b`, `p2-20k`,
-   `p2-100k`), and the P1 chat if still there (Claude answered it "ok").
-2. **Optional:** ask a person at Anthropic about automated tests (draft from Claude).
+1. **Clean up first:** delete every `zbtest/` chat left from Milestone 0 (`zbtest/1`,
+   `2`, `2a`, `2b`, `p2-20k`, `p2-100k`), and the P1 chat if still there, so the new
+   test tree starts empty.
+2. **The Milestone 1 session** (about 25 minutes):
+   [load, fixture chat, checklist](milestone-1__specs.md#pascals-session-steps-4-and-8).
+3. **Optional:** ask a person at Anthropic about automated tests (draft from Claude).
 
 ## Next for Claude
 
-1. Milestone 1, offline steps 1 to 3 and 5 to 7 of the plan: set-up, API and tree,
-   conversation, prompt, branch flow and UI, audit.
-2. Then Pascal's steps: fixtures (step 4), the real-page checklist (step 8), Firefox
-   (step 9).
+1. After Pascal's session: turn his two saved answers into committed fixtures (only
+   `zbtest/` entries), test `conversation.js` on them, fix what the checklist found.
+2. Then Firefox (step 9) and the 0.1.0 release (step 10).
 
 ## Not checked, for later
 

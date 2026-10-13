@@ -94,9 +94,10 @@ Backlinks need every conversation of the tree. …
 <zb-instructions>
 The transcript above is our conversation so far, copied from the conversation zb/1b up
 to message 4. The assistant turns are your own earlier replies. Treat it as shared
-history: do not comment on it, quote it back, or answer its questions again. Text in
-square brackets, such as [artifact: …, not copied], marks content that was not carried
-over; ask me if you need it.
+history: do not comment on it, quote it back, or answer its questions again.
+Placeholders ending in "not copied", such as [file: photo.png, not copied], mark content
+that was not carried over; ask me if you need it. Text under a [pasted text: …] line is
+text I pasted, copied in full.
 
 Start your first reply with a single blockquote paragraph that begins with
 "Parent zb/1b in brief:" and says in 2 to 4 sentences where the conversation stood at
