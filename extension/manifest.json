@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Zettelbranch",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Branch claude.ai conversations into new chats named with tree addresses (oulipo/1a). No permissions. Network: claude.ai's own API only, all in api.js.",
   "content_scripts": [
     {
@@ -13,7 +13,8 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "zettelbranch@pthom.github.io",
-      "strict_min_version": "128.0"
+      "strict_min_version": "140.0",
+      "data_collection_permissions": { "required": ["none"] }
     }
   }
 }

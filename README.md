@@ -39,24 +39,25 @@ Every step, with more pictures: the [user manual](docs/MANUAL.md).
 
 ## Status
 
-Version 0.1.1 (2026-10-13), the first everyday version, used by its author in Chrome and Firefox.
+Version 0.1.2 (2026-10-13), an early version, used by its author in Chrome and Firefox.
+
+> **Expect it to break.** Zettelbranch relies on claude.ai's undocumented web interface, which Anthropic updates often and without notice. One of these updates will break it, probably soon. When it does, please [open an issue](https://github.com/pthom/zettelbranch/issues).
 
 Known limits:
 
 - Images, files and artifacts are not copied into a branch: they become placeholders.
-- It relies on claude.ai's undocumented web interface, which can change at any time. Zettelbranch renames a chat through claude.ai's own title menu; if that menu changes, it renames another way, and the open tab then shows the new name only after a reload.
-- In Firefox it runs as a temporary add-on for now (removed when Firefox quits).
+- Zettelbranch renames a chat through claude.ai's own title menu; if that menu changes, it renames another way, and the open tab then shows the new name only after a reload.
 
-Later: a banner in each branch (path, siblings, children), a "Branch from here" button on each message, cross-references between distant branches, a trigger from the Claude apps, a version signed by Mozilla.
+Later: a banner in each branch (path, siblings, children), a "Branch from here" button on each message, cross-references between distant branches, a trigger from the Claude apps.
 
 This is an independent project, not made or endorsed by Anthropic.
 
 ## Install
 
-Download `zettelbranch-0.1.1.zip` from the [release](https://github.com/pthom/zettelbranch/releases/tag/v0.1.1) and check it against the SHA-256 sums there, or use the `extension/` folder of this repository at tag `v0.1.1`. No build step: what is in `extension/` is what runs.
+From the [latest release](https://github.com/pthom/zettelbranch/releases/latest). No build step: what is in `extension/` is what runs, and the release lists the SHA-256 of every file.
 
-- **Chrome:** unzip it into a folder you keep. Open `chrome://extensions`, turn on Developer mode, click "Load unpacked" and pick that folder.
-- **Firefox:** open `about:debugging#/runtime/this-firefox`, click "Load Temporary Add-on…" and pick the zip (or `manifest.json` in the folder), then allow Zettelbranch on claude.ai (the puzzle icon in the toolbar).
+- **Firefox:** download `zettelbranch-0.1.2.xpi` (signed by Mozilla) and open it in Firefox: it installs like any add-on. Then allow Zettelbranch on claude.ai (the puzzle icon in the toolbar).
+- **Chrome:** download `zettelbranch-0.1.2.zip` and unzip it into a folder you keep. Open `chrome://extensions`, turn on Developer mode, click "Load unpacked" and pick that folder.
 
 Then open claude.ai: a "Zettelbranch" button sits at the bottom right.
 
@@ -69,6 +70,8 @@ The extension must be easy to audit:
 - It never reads, stores or sends your login or session tokens, and stores no conversation content.
 - Nothing is sent automatically. It writes (renames a chat, fills the message box) only when you click, and you press Send yourself. To rename, it uses claude.ai's own title menu on the chat on screen: the only page elements it sends events to are that menu's title button, its Rename item and its rename field (plus a click on the New chat link). It reads only when you open its panel or click (a chat opened from the panel's tree opens with the panel), and while the panel is open, when you move to another chat.
 - [AUDIT.md](AUDIT.md) lists what the code never does, with the `grep` commands that prove it.
+
+**Don't take our word for it: ask your own LLM.** The code is short (about 1,850 lines, no dependencies, no build step). [AUDIT.md](AUDIT.md#a-prompt-for-an-llm-audit) ends with a ready-to-paste prompt: give it to your favourite LLM with this repository, and it checks that Zettelbranch sends your conversations nowhere but claude.ai, with file names and line numbers for every finding.
 
 ## Developers
 

@@ -136,4 +136,4 @@ claude.ai can branch a conversation when you edit or retry a message, but those 
 - **"claude.ai changed, Zettelbranch needs an update":** claude.ai's internal API answered something unexpected. Branching from the messages on screen may still work; the panel says so.
 - **The message box already holds text:** Zettelbranch does not overwrite a draft. Empty the box, then click Open new chat again.
 - **The new name does not show:** reload the page. Your other devices show it already.
-- **Firefox:** a temporary add-on is removed when Firefox quits; load it again from `about:debugging`.
+- **Firefox:** if you loaded Zettelbranch as a temporary add-on (from `about:debugging`), Firefox removes it when it quits. The signed `.xpi` from the release installs for good.
