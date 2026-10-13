@@ -22,7 +22,7 @@ Ask for short answers, so that each picture holds a whole reply.
 
 ## The still pictures (Cmd+Shift+4, a selected area)
 
-Pascal pastes them in the chat (full screen is fine); Claude crops them. Received and cropped into `docs/images/`: `start.png`, `choose.png`, `tree-name.png`, `preview.png`, `new-chat.png`, `first-reply.png`, `name.png`, `named.png`, `sidebar.png`. Still to come: the video (`sky/1b`) and `tree.png` (after `sky/1a1`).
+Pascal pastes them in the chat (full screen is fine); Claude crops them. All received and cropped into `docs/images/`: `start`, `choose`, `tree-name`, `preview`, `new-chat`, `first-reply`, `name`, `named`, `tree` (3 chats; `sky/1a1` was not needed), `sidebar`. The video came as 11 screenshots of `sky/1b`; Claude made them into `docs/images/demo.gif` (23 s, 717 KB), the sidebar cropped out and the new-chat greeting hidden. The README is rewritten around them, with the `sky` examples (no `oulipo`).
 
 1. `choose.png`: `sky/1` with the panel open, **message 2 clicked** (selected), the list and the Branch button visible.
 2. Branch: type `sky` as the tree name, OK, OK. Then `preview.png`: the preview, with "Open new chat".

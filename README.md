@@ -1,27 +1,64 @@
 # Zettelbranch
 
-A browser extension for [claude.ai](https://claude.ai) that turns conversations into a tree you can find your way in. You branch any conversation from any message into a new chat, and each branch is named with an address, like the cards of Niklas Luhmann's Zettelkasten: `oulipo/1`, `oulipo/1a`, `oulipo/1a1`, `oulipo/1b`…
+Branch your [claude.ai](https://claude.ai) conversations into a tree you can find your way in.
+
+![Branching a conversation with Zettelbranch](docs/images/demo.gif)
+
+Long conversations wander: a tangent here, an alternative there, and the thread is lost. Zettelbranch lets you branch a conversation from any message into a new chat, and names each branch with a short address, like the cards of Niklas Luhmann's Zettelkasten:
+
+```
+sky/1    · Why the sky is blue
+sky/1a   · Why sunsets are red          (a branch of sky/1)
+sky/1a1  · The green flash              (a branch of sky/1a)
+sky/1b   · The sky on Mars              (another branch of sky/1)
+```
+
+Each branch is an ordinary claude.ai chat with its address in its title, so your tree shows in the sidebar, on your phone, everywhere. Zettelbranch only adds a small panel to claude.ai in your browser.
 
 The name: *Zettelkasten* (German, "box of slips") + *branch*. Also inspired by Georges Perec's card systems and the cross-references that run through his books.
 
+## How it works
+
+**1. Choose where the branch starts.** Click the Zettelbranch button, pick a message: one of Claude's replies (the branch continues after it) or one of your own (the branch is an alternative to it).
+
+<img src="docs/images/choose.png" alt="The panel: choose where the branch starts" width="420">
+
+**2. Check the preview, open the new chat.** The new chat receives the conversation so far, with a short header (address, path, where it was forked from). Add your question and press Send yourself.
+
+<img src="docs/images/new-chat.png" alt="The new chat, with the text in the box and the next steps" width="560">
+
+**3. Claude picks up the thread.** Its first reply starts with a summary of where the parent stood, and ends with a suggested name for the branch.
+
+<img src="docs/images/first-reply.png" alt="Claude's first reply: summary, answer, suggested name" width="560">
+
+**4. Name the branch, find your way in the tree.** One click renames the chat `sky/1a · Why sunsets are red`; the panel lists the whole tree, with links.
+
+<img src="docs/images/tree.png" alt="The tree in the panel" width="420"> <img src="docs/images/sidebar.png" alt="The sidebar, with the branches named by address" width="270">
+
+Every step, with more pictures: the [user manual](docs/MANUAL.md).
+
 ## Status
 
-Version 0.1.0, the first everyday version (2026-10-13). Used by its author on the real site, in Chrome and Firefox.
-
-- **Branch** any conversation from any message: Claude's reply ("continue after it") or your own message ("instead of it"). A preview shows the exact text first.
-- **A new chat** opens with the conversation copied into the message box; you add your question and press Send yourself. Claude starts with a short summary of where the parent stood.
-- **Addresses:** a conversation becomes the root of a tree (`oulipo/1`) and each branch gets the next address (`oulipo/1a`, `oulipo/1a1`…). Claude suggests a name for the branch; you can change it.
-- **The tree** of the current chat is listed in the panel, with links to every branch.
+Version 0.1.1 (2026-10-13), the first everyday version, used by its author in Chrome and Firefox.
 
 Known limits:
 
-- Zettelbranch renames a chat through claude.ai's own title menu, so the open tab shows the new name at once. If claude.ai changes that menu, Zettelbranch renames through the API instead: then the open tab shows the new name only after a reload, and Firefox's sidebar can take longer. Your other devices show it at once.
 - Images, files and artifacts are not copied into a branch: they become placeholders.
-- It relies on claude.ai's undocumented web API, which can change at any time.
+- It relies on claude.ai's undocumented web interface, which can change at any time. Zettelbranch renames a chat through claude.ai's own title menu; if that menu changes, it renames another way, and the open tab then shows the new name only after a reload.
+- In Firefox it runs as a temporary add-on for now (removed when Firefox quits).
 
-Later: a banner in each branch (path, siblings, children), a "Branch from here" button on each message, cross-references between distant branches, a trigger from the Claude apps, a signed Firefox version.
+Later: a banner in each branch (path, siblings, children), a "Branch from here" button on each message, cross-references between distant branches, a trigger from the Claude apps, a version signed by Mozilla.
 
 This is an independent project, not made or endorsed by Anthropic.
+
+## Install
+
+Download `zettelbranch-0.1.1.zip` from the [release](https://github.com/pthom/zettelbranch/releases/tag/v0.1.1) and check it against the SHA-256 sums there, or use the `extension/` folder of this repository at tag `v0.1.1`. No build step: what is in `extension/` is what runs.
+
+- **Chrome:** unzip it into a folder you keep. Open `chrome://extensions`, turn on Developer mode, click "Load unpacked" and pick that folder.
+- **Firefox:** open `about:debugging#/runtime/this-firefox`, click "Load Temporary Add-on…" and pick the zip (or `manifest.json` in the folder), then allow Zettelbranch on claude.ai (the puzzle icon in the toolbar).
+
+Then open claude.ai: a "Zettelbranch" button sits at the bottom right.
 
 ## Trust
 
@@ -32,15 +69,6 @@ The extension must be easy to audit:
 - It never reads, stores or sends your login or session tokens, and stores no conversation content.
 - Nothing is sent automatically. It writes (renames a chat, fills the message box) only when you click, and you press Send yourself. To rename, it uses claude.ai's own title menu on the chat on screen: the only page elements it sends events to are that menu's title button, its Rename item and its rename field (plus a click on the New chat link). It reads only when you open its panel or click, and while the panel is open, when you move to another chat.
 - [AUDIT.md](AUDIT.md) lists what the code never does, with the `grep` commands that prove it.
-
-## Install
-
-Download `zettelbranch-0.1.0.zip` from the [release](https://github.com/pthom/zettelbranch/releases/tag/v0.1.0) and check it against the SHA-256 sums there, or use the `extension/` folder of this repository at tag `v0.1.0`. No build step: what is in `extension/` is what runs.
-
-- **Chrome:** unzip it into a folder you keep. Open `chrome://extensions`, turn on Developer mode, click "Load unpacked" and pick that folder.
-- **Firefox:** open `about:debugging#/runtime/this-firefox`, click "Load Temporary Add-on…" and pick the zip (or `manifest.json` in the folder), then allow Zettelbranch on claude.ai (the puzzle icon in the toolbar). Firefox removes a temporary add-on when it quits; a version signed by Mozilla comes later.
-
-Then open claude.ai: a "Zettelbranch" button sits at the bottom right.
 
 ## Developers
 

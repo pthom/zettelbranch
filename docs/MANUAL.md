@@ -74,7 +74,7 @@ Click OK: the chat is renamed, and its new name shows at once at the top of the 
 
 ![After naming: the new name at the top, and the panel with the tree](images/named.png)
 
-![The sidebar, with both chats named by their address](images/sidebar.png)
+![The sidebar, with the chats named by their address](images/sidebar.png)
 
 If claude.ai's own rename menu cannot be used, Zettelbranch renames the chat another way, and the panel tells you to reload the page to see the new name.
 
