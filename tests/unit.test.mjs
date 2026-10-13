@@ -197,3 +197,136 @@ describe('api.js', () => {
     assert.equal(calls.length, 0);
   });
 });
+
+// ---------------------------------------------------------------- conversation.js
+
+describe('conversation.js, from the API', () => {
+  const C = loadIntoWindow(['conversation.js']).ZBConversation;
+  const msg = (uuid, sender, text, parent, extra = {}) => ({ uuid, sender, parent_message_uuid: parent, content: [{ type: 'text', text }], attachments: [], files: [], files_v2: [], ...extra });
+
+  test('the path follows the current leaf; an edited message\'s old version is left out', () => {
+    const conv = {
+      current_leaf_message_uuid: 'm5',
+      chat_messages: [
+        msg('m1', 'human', 'one', 'root', { index: 0 }),
+        msg('m2', 'assistant', 'two', 'm1', { index: 1 }),
+        msg('m3', 'human', 'OLD three', 'm2', { index: 2 }),
+        msg('m4', 'human', 'three', 'm2', { index: 3 }),
+        msg('m5', 'assistant', 'four', 'm4', { index: 4 }),
+      ],
+    };
+    assert.deepEqual([...C.fromApi(conv).map((m) => `${m.n} ${m.role} ${m.text}`)], ['1 user one', '2 assistant two', '3 user three', '4 assistant four']);
+    delete conv.current_leaf_message_uuid;
+    assert.equal(C.pathOf(conv).length, 5, 'without a leaf: every message, by index');
+  });
+
+  test('message text: text and pasted text kept, thinking and tools left out, placeholders for the rest', () => {
+    const user = {
+      sender: 'human',
+      content: [{ type: 'text', text: 'Here are my notes and a photo.' }],
+      attachments: [{ file_name: 'notes.txt', extracted_content: 'Pasted line one\nPasted line two' }, { file_name: 'report.pdf' }],
+      files: [{ file_name: 'photo.png' }],
+      files_v2: [{ file_kind: 'image', file_name: 'photo.png' }],
+    };
+    assert.equal(C.messageText(user), [
+      'Here are my notes and a photo.',
+      '[file: photo.png, not copied]',
+      '[pasted text: notes.txt]\nPasted line one\nPasted line two',
+      '[file: report.pdf, not copied]',
+    ].join('\n\n'));
+    const claude = {
+      sender: 'assistant',
+      content: [
+        { type: 'thinking', thinking: 'THINKING-SECRET-TEXT' },
+        { type: 'redacted_thinking', data: 'x' },
+        { type: 'text', text: 'I read your **notes**.\n\n```python\nprint(1)\n```' },
+        { type: 'tool_use', name: 'artifacts', input: { id: 'plan', title: 'Garden plan', content: 'TOOL-SECRET-TEXT' } },
+        { type: 'tool_use', name: 'artifacts', input: { id: 'plan', command: 'update' } },
+        { type: 'tool_use', name: 'web_search', input: { query: 'TOOL-SECRET-TEXT' } },
+        { type: 'tool_result', content: [{ type: 'text', text: 'TOOL-SECRET-TEXT' }] },
+        { type: 'tool_use', name: 'create_file', input: { path: '/mnt/out/report.md', file_text: 'TOOL-SECRET-TEXT' } },
+        { type: 'text', text: 'Done.' },
+      ],
+    };
+    assert.equal(C.messageText(claude), [
+      'I read your **notes**.\n\n```python\nprint(1)\n```',
+      '[artifact: Garden plan, not copied]',
+      '[artifact: plan, not copied]',
+      '[file: report.md, not copied]',
+      'Done.',
+    ].join('\n\n'));
+    assert.equal(C.messageText({ sender: 'human', content: [], text: 'Old shape' }), 'Old shape');
+    assert.equal(C.messageText({ sender: 'human', attachments: [{ file_name: '', extracted_content: 'x' }] }), '[pasted text]\nx');
+  });
+});
+
+describe('conversation.js, from the page', () => {
+  // Hand-made, imitating claude.ai's markup (test ids, rows, Markdown classes, KaTeX).
+  const PAGE = `<!doctype html><html><body>
+    <nav data-testid="sidebar"><a href="/chat/x">Sidebar title that must not appear</a></nav>
+    <div data-testid="transcript-list">
+      <div data-testid="transcript-row" data-index="40" data-perf-row="human">
+        <div data-testid="file-thumbnail">notes.txt</div>
+        <div data-testid="user-message"><p class="whitespace-pre-wrap break-words">First line
+  indented line
+last line</p></div>
+      </div>
+      <div data-testid="transcript-row" data-index="41" data-perf-row="assistant">
+        <div data-testid="assistant-message"><div class="font-claude-response">
+          <div class="thinking-block"><button>Thought for 3 seconds</button><div>THINKING-SECRET-TEXT</div></div>
+          <div class="standard-markdown">
+            <h2>A <em>title</em></h2>
+            <p>Some <strong>bold</strong>, <code>inline</code> and a <a href="https://example.com/x">link</a>. Done.</p>
+            <ul><li>one</li><li>two<ul><li>nested</li></ul></li></ul>
+            <ol start="3"><li>three</li></ol>
+            <div class="relative"><div class="text-xs">python</div><button>Copy</button><pre><code class="language-python">def f(x):
+    return x
+</code></pre></div>
+            <table><thead><tr><th>A</th><th>B</th></tr></thead><tbody><tr><td>1</td><td>a|b</td></tr></tbody></table>
+            <p>Inline <span class="katex"><span class="katex-mathml"><math><semantics><mrow></mrow><annotation encoding="application/x-tex">x^2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true">x2</span></span> math.</p>
+            <span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><annotation encoding="application/x-tex">\\int f</annotation></semantics></math></span></span></span>
+            <blockquote><p>Quoted</p></blockquote>
+            <p><img src="data:," alt="chart"></p>
+          </div>
+          <div class="artifact-card" data-testid="artifact-block"><svg></svg><span>Garden plan</span><span>Document</span></div>
+          <div class="standard-markdown"><p>After the artifact.</p></div>
+          <div class="actions"><button>Retry</button><span>Claude can make mistakes.</span></div>
+        </div></div>
+      </div>
+    </div></body></html>`;
+  const win = loadIntoWindow(['conversation.js'], { html: PAGE });
+  const C = win.ZBConversation;
+  const r = C.fromPage(win.document);
+
+  test('finds the messages and numbers them by their rows', () => {
+    assert.equal(r.numbered, true);
+    assert.deepEqual([...r.messages.map((m) => `${m.n} ${m.role}`)], ['41 user', '42 assistant']);
+    assert.equal(r.messages[0].text, 'First line\n  indented line\nlast line');
+  });
+
+  test('Claude\'s message as Markdown, without thinking, buttons or UI text', () => {
+    assert.equal(r.messages[1].text, [
+      '## A *title*',
+      'Some **bold**, `inline` and a [link](https://example.com/x). Done.',
+      '- one\n- two\n  - nested',
+      '3. three',
+      '```python\ndef f(x):\n    return x\n```',
+      '| A | B |\n| --- | --- |\n| 1 | a\\|b |',
+      'Inline $x^2$ math.',
+      '$$\n\\int f\n$$',
+      '> Quoted',
+      '[image: chart, not copied]',
+      '[artifact: Garden plan, not copied]',
+      'After the artifact.',
+    ].join('\n\n'));
+    assert.ok(!JSON.stringify(r).includes('THINKING-SECRET-TEXT'));
+    assert.ok(!JSON.stringify(r).includes('Sidebar title'));
+  });
+
+  test('without rows, messages are numbered from 1', () => {
+    const w = loadIntoWindow(['conversation.js'], { html: '<body><div data-testid="user-message"><p>Hi</p></div><div class="font-claude-response"><p>Hello</p></div></body>' });
+    const p = w.ZBConversation.fromPage(w.document);
+    assert.equal(p.numbered, false);
+    assert.deepEqual([...p.messages.map((m) => `${m.n} ${m.role} ${m.text}`)], ['1 user Hi', '2 assistant Hello']);
+  });
+});
