@@ -88,3 +88,19 @@ For Zettelbranch:
 
 Decision: NF-2 in `specs/native-fork__questions.md`.
 
+## Third run: the real rule (2026-10-13, Zettelbranch 0.1.0 with step 6b)
+
+Pascal's check of step 6b: a new chat, two exchanges, renamed `zbtest/1 · Short message`, then Branch from Claude's last reply (message 4 of 4). claude.ai refused the fork: 400 `failed_precondition`, "This version can't be continued in a new session." Zettelbranch fell back to the quoted copy, with its note, as designed.
+
+Putting the three runs together:
+
+| Fork through | Result |
+|---|---|
+| message 6 of `zbtest/1 . fixture`: the end of the branch shown, which was the **older** version (Pascal had edited message 3, then switched back to "1/2") | worked |
+| message 5 and message 2 of the same chat (not the end of a branch) | refused |
+| message 4 of `zbtest/1 · Short message`: the end of the **only, latest** branch | refused |
+
+So claude.ai's action only continues an **earlier version** in a new chat: the end of a branch you switched away from with the arrows. It is the "Continue in a new session" of the merged UI's "earlier version" banner, and the error names in the notes (`continue_branch_not_an_old_branch`) say the same. The latest version can only be continued in place. *(Our reading of three runs and the notes; it fits all of them.)*
+
+For Zettelbranch, that means the native fork never applies to the usual case: branching a conversation from where it stands. NF-2's premise ("from the last reply") does not hold. Decision: NF-3 (in chat).
+
