@@ -142,7 +142,8 @@ Well-known projects:
 | [agarwalvishal/claude-chat-exporter](https://github.com/agarwalvishal/claude-chat-exporter) | Script: tree GET, org from cookie | 717 | 2026-09-09 |
 | [socketteer/Claude-Conversation-Exporter](https://github.com/socketteer/Claude-Conversation-Exporter) | Chrome extension: list and tree GET from extension pages, `credentials: 'include'` | 128 | 2026-04-29 |
 
-The DOM holds less than it seems *(to verify)*. The transcript is a virtualized list
+The DOM holds less than it seems (checked on 2026-10-13, P6: 11 of 80 messages in the
+page of one of Pascal's chats). The transcript is a virtualized list
 (TanStack Virtual), so only messages near the viewport exist in the DOM
 ([chat-export#14, 2026-09-15](https://github.com/Trifall/chat-export/issues/14)). On
 merged accounts, the page first loads only the latest 30 to 122 messages of the current

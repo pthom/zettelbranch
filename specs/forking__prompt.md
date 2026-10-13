@@ -108,6 +108,20 @@ is no message below, reply with the summary only.
 The second paragraph exists only if FK-1 = A. With FK-1 = B the summary is in the
 header instead; with C it is gone.
 
+When nothing comes before the fork point (a branch from a chat's first message), the
+transcript is empty and there is nothing to summarise. The instructions then say only:
+
+```
+<zb-instructions>
+This chat is a new branch of the conversation zb/1b, started from its first message, so
+there is no earlier history (the transcript above is empty). Do not comment on the
+header lines; they are for my own records. Answer my message below.
+</zb-instructions>
+```
+
+Seen in Milestone 0 (P8): asked for a summary anyway, Claude summarised an empty
+transcript ("copied up to message 0").
+
 The instructions are in English whatever the UI language, so the extension parses one
 format. Claude replies in the language of your message.
 
@@ -120,6 +134,9 @@ format. Claude replies in the language of your message.
 
 <the answer to your message>
 ```
+
+Seen in Milestone 0 (P8, 2026-10-13): Claude followed it. The blockquote came first,
+with the right parent, in 2 sentences, and was the whole reply when no message followed.
 
 The extension reads this blockquote for the banner's "where this came from". The banner
 lists siblings and children by their titles, not by these summaries: a summary describes
@@ -142,7 +159,8 @@ breaks.
 | Summary | Message 2 | first blockquote starting with `Parent` |
 
 If the transcript became an attachment, reading it back needs the attachment's text.
-Whether the page holds it is unknown *(to verify, Milestone 0)*.
+The API holds it (`extracted_content`); the page only while that message is on screen
+(Milestone 0, P6). So it is read through the API.
 
 ## Size
 
@@ -154,7 +172,7 @@ later.
 ## Open points
 
 - Whether Claude follows "do not answer its questions again" reliably, especially when
-  the last copied turn is your own unanswered question. Test with real branches in
-  Milestone 1.
+  the last copied turn is your own unanswered question. In P8 it did not re-answer
+  anything, on a two-message transcript. Test with longer real branches in Milestone 1.
 - Whether the `<zb-…>` tags show up as raw text in the mobile app (they should, which is
   fine) or get stripped by the renderer *(to verify)*.

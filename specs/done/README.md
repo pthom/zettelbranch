@@ -7,6 +7,12 @@ changed, the commits, a link. The linked file holds the details. Files whose wor
 move to a folder here, one per piece of work, and stay for history. To find the commit
 that added an entry: `git log -S "<a few words of its title>" -- specs/done/README.md`.
 
+- **2026-10-13: Probes P6, P7 and P8 done**
+  ([findings](../milestone-0__findings.md#fourth-probe-session-p8s-check-p6-p7)): Claude
+  follows the branch prompt (summary first, right parent, no re-answering); the page holds
+  only 11 of a long chat's 80 messages, so extraction reads the API; the P0 selectors hold
+  on a chat page. A branch from a chat's first message now asks for no summary. Spike
+  4b87d1f.
 - **2026-10-13: Probes P3, P4 and P5 done**
   ([findings](../milestone-0__findings.md#third-probe-session-p8-p3-p5)): a new chat opens
   without a page load and keeps the extension's memory (DA-D1 holds); API renames work

@@ -142,8 +142,8 @@ has readable addresses, cross-references, or code short enough to audit.
 
 - claude.ai DOM is undocumented and changes. Isolate all selectors in one module,
   test them against saved fixtures, fail loudly when they break.
-- The page renders only part of a long conversation (a virtualized list; the new
-  experience first loads only recent messages) *(to verify)*. So extraction reads the
+- The page renders only part of a long conversation: a virtualized list, 11 of 80
+  messages in one of Pascal's chats (Milestone 0, P6). So extraction reads the
   conversation through the API when it answers as expected, and from the page otherwise.
 - The sidebar only shows recent conversations (14 of Pascal's 63). The registry reads
   the full list through the API, which returns all of them in one request (Milestone 0,

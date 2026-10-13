@@ -13,6 +13,7 @@ Results of the Milestone 0 spike ([milestone-0__specs](milestone-0__specs.md)). 
 | 2026-10-13 | First probe session, by Pascal in the test profile, spike 0.0.2: P5, then P1 | by hand | none | 1 (P1), 1 message sent |
 | 2026-10-13 | Second session, spike 0.0.3: P4 (renames), stopped at P8 (its panel was unclear) | by hand | none | 2 (P4 chats A and B), 2 messages sent |
 | 2026-10-13 | Third session, spike 0.0.4: P4 after a reload, P8 (two branches of `zbtest/2`), P3, P5 | by hand | none | 2 (P8 branches), 2 messages sent |
+| 2026-10-13 | Fourth session, spike 0.0.4: P8's checks, P5, P6 and P7 on one of Pascal's own long chats (read-only), P2 refused | by hand | none | 0 |
 
 ## P0 · Read a shared conversation
 
@@ -305,6 +306,60 @@ also prints a plain `grep` for each check.
 | No extension APIs (`chrome.*`) | pass |
 | Manifest: no permissions, no background, claude.ai only | pass |
 
+## Fourth probe session: P8's check, P6, P7
+
+2026-10-13, by Pascal, spike 0.0.4 (the extension was not reloaded to 0.0.5).
+
+**P8 · Did Claude follow the branch prompt?**
+
+| | `zbtest/2a`, from Claude's reply | `zbtest/2b`, from Pascal's own message |
+|---|---|---|
+| Fork point | after message 2 (Claude) | instead of message 1, the chat's first message |
+| Transcript | 2 turns | empty |
+| Summary | first, right format and parent, 2 sentences, accurate | first, right format and parent, but about nothing: "The parent conversation had no exchanges before this fork point, since the transcript was copied up to message 0." |
+| Rest of the reply | nothing (no message followed, as instructed) | an answer to the pre-filled message |
+
+So the prompt works, and Claude did not re-answer the transcript. One flaw: a branch from
+a chat's first message has nothing to summarise. Fixed in 0.0.6 (spike 4b87d1f): such a
+branch asks for no summary, and the check expects none; the text is in
+[forking__prompt](forking__prompt.md#instructions). Tested offline only.
+
+**P6 · Page versus API**, on one of Pascal's own long chats (counts only):
+
+| Measure | Result |
+|---|---|
+| API | 80 messages on the path, 80 in the tree, no branch points |
+| Page | **11 of 80** messages in the DOM: rows 60 to 68 and 78 to 80, the rest replaced by spacers (scroll height 63,673 px for 1,014 on screen) |
+| The 11 on the page | identical to the API (similarity 1.0) |
+| Pasted text attachments | 2. Their text is in the API (`extracted_content`, 7,039 and 4,547 characters); on the page only when the row is drawn (one was, one was not) |
+| Files | images, a document, a "blob", in 9 user messages: files, not text |
+
+So the page is a virtualized list. Each row is a `[data-testid="transcript-row"]` with
+`data-index` (its position in the conversation) and `data-perf-row` (`human` or
+`assistant`), inside `[data-testid="transcript-sizer"]`. Extraction reads the API, as
+decided; the page is the fallback, and its rows say which messages it holds.
+
+One gap in the page reading: the user message holding a pasted attachment (row 65) has a
+`human` row but no `[data-testid="user-message"]`, so the extractor missed it. With the
+API it does not matter; for the page fallback, the rows' `data-perf-row` is a better
+role marker.
+
+**P7 · Extraction on a real chat page** (English UI):
+
+- User turns `[data-testid="user-message"]`, Claude's `.font-claude-response`, as on the
+  share page. `[data-testid="assistant-message"]` matches the same 7: a test id, a better
+  choice than a class name.
+- All lookups matched: message box, Send, New chat link, sidebar entries.
+- No code block, table or math among the drawn messages: still untested on a chat page.
+- The page's root carries `data-frame-mode="cowork"`: the merged layout.
+- French UI not run: the selectors are attributes and class names, never visible text.
+
+**P5:** the sidebar now shows all four `zbtest/` titles. The `summary` field needs 0.0.5
+or later.
+
+**P2:** refused four times, nothing changed: the buttons were clicked on the P6/P7 chat,
+not a new one. Version 0.0.6 opens the new chat itself.
+
 ## Third probe session: P8, P3, P5
 
 2026-10-13, by Pascal, spike 0.0.4. The copied results hold only P3 and P5: the P8
@@ -471,8 +526,6 @@ tree probes ignore them. Spike a2302f6.
 - **Attachment chip:** still unknown; P2's long text should show it. After each
   insertion the probes list every new `data-testid` on the page.
 - **Long text:** whether a single large `execCommand` call stays inline (P2).
-- **P8's verdict:** did Claude follow the branch prompt? "Check summary" in `zbtest/2a`
-  and `zbtest/2b`.
 - **claude.ai's `summary` field:** what it holds (P5, 0.0.5, test chats only).
 - **Page title:** format unknown; P4 "Read title" shows it.
 

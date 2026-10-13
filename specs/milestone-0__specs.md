@@ -28,8 +28,9 @@ editor's internals. Testing from the page's own world would prove the wrong thin
 ## Done
 
 P0 (reading a saved share page, offline), P1 (inserting text), P3 (new chat without a
-reload), P4 (renaming), P5 (the conversation list), and the first part of P8 (two real
-branches): results in [milestone-0__findings](milestone-0__findings.md),
+reload), P4 (renaming), P5 (the conversation list), P6 (page versus API), P7 (extraction
+on a chat page) and P8 (two real branches): results in
+[milestone-0__findings](milestone-0__findings.md),
 entries in the [done log](done/README.md). The test setup is done too: the Chrome
 profile "Zettelbranch test", the spike extension loaded unpacked, test chats in the
 `zbtest` tree.
@@ -43,9 +44,6 @@ ordinary chats of the `zbtest` tree.
 |---|---|---|---|
 | P2 | What happens with long text? Try 5k, 20k, 100k characters. | Know whether and when text becomes an attachment, and whether it stays in the model's context. | [forking__prompt](forking__prompt.md) layout, FK-2 |
 | P5 (extra) | What does claude.ai's own `summary` field hold? Test chats only. | Know whether it could feed the banner. | Banner |
-| P6 | Does the page hold the text of a pasted attachment, and every message of a long chat? | It can be read from the page, or the API is needed. | Flattening in [forking__prompt](forking__prompt.md), DA-1 |
-| P7 | Which DOM containers separate user and assistant turns, independent of UI language? Check with the UI in French and in English. | Stable selectors found; fixtures saved (TS-1). | Milestone 1 extraction |
-| P8 (rest) | Does Claude follow the draft branch prompt? The two branches exist (`zbtest/2a`, `zbtest/2b`); left: the check of Claude's replies. | Summary in the expected format; no re-answering of the transcript. | [forking__prompt](forking__prompt.md) |
 
 P8 is the only probe that needs Claude to answer well; P2 and P4 need sent messages but
 not good replies.
@@ -67,14 +65,10 @@ sends a message: you press Send yourself.
 
 | Probe | What you do | New chats | Messages you send |
 |---|---|---|---|
-| P2 | Two new chats: "20k" in one, "100k" in the other. Send each, then "Check after sending", and OK in the rename dialog. | 2 | 2, long |
+| P2 | Follow the panel's steps: "20k", Send, "Check after sending" and OK; then the same with "100k". The panel opens each new chat itself. | 2 | 2, long |
 | P5 | "List conversations": shows the test chats' summaries. Read-only. | 0 | 0 |
-| P6 | Open a long chat, or one with a pasted file, then "Compare page and API". Read-only, any chat. | 0 | 0 |
-| P7 | "Run extractor" on a chat. Read-only, any chat. | 0 | 0 |
-| P8 | Open `zbtest/2a`, click "Check summary"; same in `zbtest/2b`. | 0 | 0 |
 
-2 new chats and 2 sent messages, plus Claude's replies. P7 in French too is optional:
-the selectors use attributes and class names, not visible text.
+2 new chats and 2 sent messages, plus Claude's replies.
 
 4. **Naming.** Test chats get titles that start with `zbtest/`. The panel renames only
    after a dialog that shows the old and the new title: read it, then click OK. The
