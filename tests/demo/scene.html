@@ -55,14 +55,17 @@
   </div>
 
 <script>
-// ---- the timeline (seconds). Coordinates are in the screenshots' pixels (866 x 1033).
-const DURATION = 30;
+// ---- the timeline (seconds). Coordinates are in the screenshots' pixels (866 x 1033). Frames
+// 12 to 14 were taken with claude.ai's sidebar closed and cropped wider (930 px): k() converts
+// their coordinates; they are shown at the same width.
+const k = (v) => (v * 866) / 930;
+const DURATION = 37.6;
 const XFADE = 0.17; // a quick dissolve between screenshots: every pixel changes, which a GIF pays for
 const FRAMES = [ // [start, image, crossfade]
   [2.8, '01', true], [6.3, '02', true], [10.3, '03', true], [12.0, '04'], [12.4, '05'], [12.8, '06'], [13.2, '07'], [13.6, '08'],
-  [15.4, '09', true], [20.4, '10', true], [22.6, '11', true],
+  [15.4, '09', true], [20.4, '10', true], [22.6, '11', true], [26.4, '12', true], [28.6, '13', true], [31.6, '14', true],
 ];
-const CARD = [[0, 2.8], [27.4, 99]]; // title card shown (fades at the edges)
+const CARD = [[0, 2.8], [35.0, 99]]; // title card shown (fades at the edges)
 const CAPTIONS = [ // [start, end, step, text]
   [2.8, 6.3, 1, 'Open the Zettelbranch panel and choose where the branch starts'],
   [6.3, 10.3, 2, 'Check the preview: a short header, then the conversation so far'],
@@ -70,7 +73,9 @@ const CAPTIONS = [ // [start, end, step, text]
   [13.9, 15.4, 3, '…and press Send yourself'],
   [15.4, 20.4, 4, 'Claude sums up where you were, answers, and suggests a name'],
   [20.4, 22.6, 5, 'Keep the suggested name, or change the topic'],
-  [22.6, 27.4, 6, 'Done: the branch is named sky/1b, and the panel shows the tree'],
+  [22.6, 26.4, 6, 'Done: the branch is named sky/1b, and the panel shows the tree'],
+  [26.4, 28.6, 7, 'Move around the tree: click a branch to open it'],
+  [28.6, 35.0, 7, 'It opens with the panel, showing where you are'],
 ];
 const HIGHLIGHTS = [ // [start, end, x1, y1, x2, y2, label]
   [3.0, 4.6, 467, 832, 846, 952, 'where the branch starts'],
@@ -80,16 +85,21 @@ const HIGHLIGHTS = [ // [start, end, x1, y1, x2, y2, label]
   [17.9, 19.6, 78, 754, 306, 786, 'a suggested name'],
   [20.8, 21.8, 95, 96, 493, 132, ''],
   [23.0, 24.7, 8, 8, 212, 42, 'the new name', 'below'],
-  [24.7, 27.0, 465, 746, 848, 823, 'the tree'],
+  [24.6, 26.2, 465, 746, 848, 823, 'the tree'],
+  [26.8, 28.2, k(532), k(749), k(908), k(821), 'click a branch'],
+  [28.9, 30.6, k(528), k(668), k(806), k(696), 'where you are'],
+  [32.0, 34.4, k(532), k(699), k(908), k(710), 'back at the root'],
 ];
 const CURSOR = [ // [time, x, y]: eased moves between points
   [2.8, 330, 560], [3.3, 330, 560], [4.2, 655, 936], [4.6, 655, 936], [5.5, 500, 998], [6.6, 500, 998],
   [7.1, 640, 860], [8.8, 640, 860], [9.6, 524, 998], [10.6, 524, 998], [11.5, 140, 768], [11.9, 140, 768],
   [12.4, 260, 860], [13.9, 260, 860], [14.8, 721, 800], [15.8, 721, 800], [16.6, 780, 640], [19.3, 780, 640],
-  [20.0, 708, 999], [20.9, 708, 999], [21.9, 454, 193], [23.0, 454, 193], [24.0, 300, 905], [99, 300, 905],
+  [20.0, 708, 999], [20.9, 708, 999], [21.9, 454, 193], [23.0, 454, 193], [24.0, 300, 905], [26.7, 300, 905],
+  [27.9, k(628), k(785)], [29.0, k(628), k(785)], [29.8, k(470), k(560)], [30.5, k(470), k(560)], [31.2, k(618), k(763)],
+  [32.4, k(618), k(763)], [33.2, 380, 880], [99, 380, 880],
 ];
-const CURSOR_SHOWN = [3.0, 26.8];
-const CLICKS = [4.35, 5.65, 9.75, 11.65, 14.95, 20.15, 22.05];
+const CURSOR_SHOWN = [3.0, 34.6];
+const CLICKS = [4.35, 5.65, 9.75, 11.65, 14.95, 20.15, 22.05, 28.1, 31.35];
 
 // ---- geometry
 const S = 797 / 866, X0 = 42, Y0 = 112 + 28 + 1;
