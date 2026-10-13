@@ -31,6 +31,7 @@ Claude maintains these files. Pascal answers questions inline and may edit anyth
 - Branch prompt draft: [forking__prompt](forking__prompt.md)
 - What public sources say about claude.ai, and what Milestone 0 confirmed on the real site: [claude-ai__findings](claude-ai__findings.md)
 - Anthropic's terms and support's answer: [terms__findings](terms__findings.md)
+- Why branches made in Firefox could not be named, and the fix in 0.1.3: [firefox-insertion__findings](firefox-insertion__findings.md)
 - Finished work: the [done log](done/README.md). It holds the first review of the spec (findings and questions per subject, all decided), the original design conversation with its check against the vault, Milestone 0 and Milestone 1 (plans and results; 0.1.0 released).
 
 ## Open questions
