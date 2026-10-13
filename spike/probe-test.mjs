@@ -6,6 +6,7 @@
 // fallback, which shows the JSON in the panel.
 //
 //   node probe-test.mjs [--out out/probe-test]
+import fs from 'node:fs';
 import path from 'node:path';
 import { chromium } from 'playwright';
 import { createFakeClaude, SECRETS } from './fixtures/fake-claude.mjs';
@@ -254,6 +255,11 @@ try {
   check('The whole results log holds no private text or title', noSecrets(copied).length === 0, noSecrets(copied));
   writeJson(path.join(opt.out, 'results-log.json'), copied);
   await page.screenshot({ path: path.join(opt.out, 'panel.png') });
+  for (const id of ['p4', 'p8']) {
+    const sec = page.locator(`${host} section[data-zb-section="${id}"]`);
+    await sec.screenshot({ path: path.join(opt.out, `${id}.png`) });
+    fs.writeFileSync(path.join(opt.out, `${id}-steps.txt`), (await sec.locator('ol.steps').innerText()) + '\n');
+  }
 } catch (e) {
   check('test run finished without an exception', false, String(e && e.stack ? e.stack : e));
 } finally {
@@ -286,6 +292,6 @@ const summary = {
 };
 writeJson(path.join(opt.out, 'report.json'), { summary, checks, apiLog: fake.apiLog, dialogs, aborted });
 console.log(`\n${summary.passed} passed, ${summary.failed} failed. API calls: ${JSON.stringify(summary.apiCalls)}. Requests: ${JSON.stringify(summary.requests)}`);
-console.log(`wrote ${path.relative(process.cwd(), opt.out)}/{report.json, results-log.json, panel.png}`);
+console.log(`wrote ${path.relative(process.cwd(), opt.out)}/{report.json, results-log.json, panel.png, p4.png, p8.png}`);
 if (summary.failed) exitCode = 1;
 process.exit(exitCode);

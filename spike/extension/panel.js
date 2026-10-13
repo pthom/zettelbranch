@@ -5,7 +5,7 @@
 (function (global) {
   'use strict';
 
-  const VERSION = '0.0.3';
+  const VERSION = '0.0.4';
   const Z = () => global.ZBProbes;
   const log = [];
   let host = null;
@@ -33,6 +33,11 @@
     pre { margin: 6px 0 0; padding: 6px; background: var(--code); border: 1px solid var(--line); border-radius: 6px; max-height: 220px; overflow: auto; white-space: pre-wrap; word-break: break-word; font: 11px/1.4 ui-monospace, Menlo, monospace; }
     pre:empty { display: none; }
     .preview { max-height: 260px; }
+    ol.steps { margin: 4px 0 0; padding-left: 18px; }
+    ol.steps li { margin: 0 0 8px; }
+    ol.steps li::marker { color: var(--accent); font-weight: 600; }
+    ol.steps p { color: var(--fg); }
+    .fork { font-weight: 600; }
   `;
 
   function el(tag, props = {}, children = []) {
@@ -63,7 +68,7 @@
     }
     log.push({ probe, action, at: new Date().toISOString(), ms: Math.round(performance.now() - t0), page: Z().pageKind().kind, result });
     show(out, result);
-    status(`${log.length} result${log.length === 1 ? '' : 's'} in memory`);
+    status(`${log.length} result${log.length === 1 ? '' : 's'} in memory. A reload empties them: copy them first.`);
     return result;
   }
 
@@ -82,23 +87,35 @@
     }
   }
 
+  function probeButton(id, [label, fn, before], out, extra) {
+    const b = el('button', { type: 'button', 'data-zb': `${id}-${label}`, text: label });
+    b.addEventListener('click', async () => {
+      if (before) before(out);
+      const r = await run(id.toUpperCase(), label, fn, out);
+      if (r && typeof r.preview === 'string' && extra.previewEl) {
+        extra.previewEl.textContent = r.preview;
+        extra.sizeEl.textContent = `${r.chars} characters, about ${r.tokensEstimate} tokens, ${r.turns} turns${r.flattened ? ', flattened' : ''}`;
+      }
+    });
+    return b;
+  }
+
   // One section per probe: plain instructions, buttons, a result area.
   function section(id, title, lines, buttons, extra = {}) {
     const out = el('pre', { 'data-zb-result': id });
-    const row = el('div', { class: 'row' });
-    for (const [label, fn, before] of buttons) {
-      const b = el('button', { type: 'button', 'data-zb': `${id}-${label}`, text: label });
-      b.addEventListener('click', async () => {
-        if (before) before(out);
-        const r = await run(id.toUpperCase(), label, fn, out);
-        if (r && typeof r.preview === 'string' && extra.previewEl) {
-          extra.previewEl.textContent = r.preview;
-          extra.sizeEl.textContent = `${r.chars} characters, about ${r.tokensEstimate} tokens, ${r.turns} turns${r.flattened ? ', flattened' : ''}`;
-        }
-      });
-      row.append(b);
-    }
-    return el('section', { 'data-zb-section': id }, [el('h3', { text: title }), ...lines.map((l) => el('p', { text: l })), ...(extra.before || []), row, out, ...(extra.after || [])]);
+    const row = el('div', { class: 'row' }, buttons.map((b) => probeButton(id, b, out, extra)));
+    return el('section', { 'data-zb-section': id }, [el('h3', { text: title }), ...lines.map((l) => el('p', { text: l })), row, out, ...(extra.after || [])]);
+  }
+
+  // A probe done in order: numbered steps, each with its text, controls and buttons.
+  function stepsSection(id, title, intro, steps, extra = {}) {
+    const out = el('pre', { 'data-zb-result': id });
+    const items = steps.map((st) => {
+      const kids = [el('p', { text: st.text }), ...(st.controls || [])];
+      if (st.buttons) kids.push(el('div', { class: 'row' }, st.buttons.map((b) => probeButton(id, b, out, extra))));
+      return el('li', {}, kids);
+    });
+    return el('section', { 'data-zb-section': id }, [el('h3', { text: title }), ...intro.map((l) => el('p', { text: l })), el('ol', { class: 'steps' }, items), out, ...(extra.after || [])]);
   }
 
   function build() {
@@ -131,10 +148,11 @@
     const head = el('div', { class: 'head' }, [el('b', { text: `Zettelbranch spike ${VERSION}` }), copyBtn, clearBtn, hide, statusEl]);
 
     // P8 controls, read on click.
-    const forkLabel = el('span', { 'data-zb': 'p8-fork', text: 'Fork at: last message of the chosen kind' });
+    const forkLabel = el('span', { class: 'fork', 'data-zb': 'p8-fork' });
     const showFork = () => {
       const v = p.getForkAt();
-      forkLabel.textContent = v ? `Fork at: message ${v}` : 'Fork at: last message of the chosen kind';
+      const last = mode() === 'own' ? 'your last message' : "Claude's last reply";
+      forkLabel.textContent = v ? `Branch point: message ${v} of the chat` : `Branch point: ${last}`;
     };
     const step = (d) => () => {
       const base = p.getForkAt() || global.ZBExtract.countMessages(document) || 1;
@@ -153,6 +171,9 @@
     const reply = el('input', { type: 'radio', name: 'zb-mode', value: 'reply', checked: '' });
     const own = el('input', { type: 'radio', name: 'zb-mode', value: 'own' });
     const mode = () => (own.checked ? 'own' : 'reply');
+    reply.addEventListener('click', showFork);
+    own.addEventListener('click', showFork);
+    showFork();
     const previewEl = el('pre', { class: 'preview', 'data-zb': 'p8-preview' });
     const sizeEl = el('p', { 'data-zb': 'p8-size' });
 
@@ -183,12 +204,11 @@
         'In a zbtest chat, click "Open new chat". The panel clicks New chat itself and types a marker. Do not send it.',
         'If no P3 result appears after the new chat opens, the page reloaded.',
       ], [['Open new chat', () => p.p3(), reloadNote]]),
-      section('p4', 'P4 · Rename and automatic title', [
-        'Chat A: send a first message, then click "Rename now" right away, before the reply ends. Chat B: wait for the automatic title, then "Rename now".',
-        'Then reload, click "Read title" again, and look at the titles on your phone.',
-      ], [
-        ['Rename now', () => p.p4Rename()],
-        ['Read title', () => p.p4Read()],
+      stepsSection('p4', 'P4 · Rename and automatic title', ['Two new chats, A and B.'], [
+        { text: 'Chat A: open a new chat, send a short first message, then click "Rename now" at once, before the reply ends.', buttons: [['Rename now', () => p.p4Rename()]] },
+        { text: 'Chat B: open a new chat, send a short first message, wait until claude.ai shows its automatic title, then click "Rename now" again.' },
+        { text: 'Click "Copy results" at the top and paste them to Claude: the reload of the next step empties the panel.' },
+        { text: 'Reload the page (Cmd+R) and look at the sidebar. Then open each chat and click "Read title". Copy the results again, and look at the titles on your phone.', buttons: [['Read title', () => p.p4Read()]] },
       ]),
       section('p5', 'P5 · Conversation list', ['Read-only, nothing is changed. Shows counts, and only the zbtest/ titles.'], [
         ['List conversations', () => p.p5()],
@@ -206,20 +226,22 @@
           return { ok, copied: ok ? 'diagnostics (no message text)' : 'copy failed' };
         }],
       ]),
-      section('p8', 'P8 · Branch prompt', [
-        'In a zbtest chat: choose the fork point, click "Build prompt", read the preview, then "Open new chat and insert".',
-        'Press Send yourself. After Claude replies, click "Check summary", then "Rename branch".',
+      stepsSection('p8', 'P8 · Branch prompt', [
+        'Two branches from one zbtest chat that has a few messages (P4\'s chat B will do): one from Claude\'s reply, one from your own message.',
       ], [
-        ['Build prompt', () => p.p8Build(mode())],
-        ['Make it a tree root', () => p.p8MakeRoot()],
-        ['Open new chat and insert', () => p.p8Open(), reloadNote],
-        ['Check summary', () => p.p8Check()],
-        ['Rename branch', () => p.p8Rename()],
+        { text: 'Open that chat. Its title must be zbtest/ and a number, such as zbtest/2 (a tree root). Only if it is not:', buttons: [['Make it a tree root', () => p.p8MakeRoot()]] },
+        {
+          text: 'Choose where the branch starts. By default, the last message of that kind; − and + move to an earlier or later message.',
+          controls: [
+            el('div', { class: 'row' }, [el('label', {}, [reply, "from Claude's reply"]), el('label', {}, [own, 'from my own message'])]),
+            el('div', { class: 'row' }, [forkLabel, minus, plus, auto]),
+          ],
+        },
+        { text: 'Build the branch\'s first message. Read the preview below the steps.', buttons: [['Build prompt', () => p.p8Build(mode())]] },
+        { text: 'Open it: the panel opens a new chat and puts the message in the box. Read it, then press Send yourself. (From your own message: your message is at the end; change it if you like.)', buttons: [['Open new chat and insert', () => p.p8Open(), reloadNote]] },
+        { text: 'After Claude replies, in the new chat: check the summary, then rename the branch to its address (click OK in the dialog).', buttons: [['Check summary', () => p.p8Check()], ['Rename branch', () => p.p8Rename()]] },
+        { text: 'For the second branch, go back to the parent chat, choose the other option at step 2, and redo steps 3 to 5.' },
       ], {
-        before: [
-          el('div', { class: 'row' }, [forkLabel, minus, plus, auto]),
-          el('div', { class: 'row' }, [el('label', {}, [reply, "from Claude's reply"]), el('label', {}, [own, 'from my own message'])]),
-        ],
         after: [sizeEl, previewEl],
         previewEl,
         sizeEl,
