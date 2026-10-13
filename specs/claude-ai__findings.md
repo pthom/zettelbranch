@@ -49,7 +49,7 @@ What third parties report. Everything in this table is *(to verify)*.
 | | Legacy accounts | Merged accounts |
 |---|---|---|
 | Edit or retry makes a sibling in the stored tree | yes | yes |
-| `< 1/2 >` arrows to switch | yes, on the web | only for forks made before the account switched over; newer forks are hidden |
+| `< 1/2 >` arrows to switch | yes, on the web | only for forks made before the account switched over; newer forks are hidden. **Not confirmed:** on Pascal's merged account, an edit made on 2026-10-13 shows `< 2/2 >` (see below) |
 | Fork into a new chat | no | "Continue in a new session" on the "earlier version" banner, so only for old forks |
 | Edit and retry in "upgraded" (sandbox) chats | n/a | refused: "Editing and retrying aren't available here yet" |
 | Tree view, named branches, links | no | no |

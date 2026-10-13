@@ -6,7 +6,9 @@ addresses (`1`, `1a`, `1a1`, `1b`...), visible links between them, and explicit
 cross-references between distant branches.
 
 Name: *Zettelkasten* (German "box of slips") + *branch* (Git). Inspired by Niklas
-Luhmann's card file and Georges Perec's cross-referenced index cards.
+Luhmann's card file, with its branching addresses and links between cards, and by
+Georges Perec: the keyword card systems he built as a documentalist, and the
+cross-references (renvois) that run through his books.
 
 Owner: Pascal (pthom), independent open-source developer. Working rules for Claude
 live in `CLAUDE.md` at the repo root, not here.
@@ -18,9 +20,10 @@ Status: idea stage. Nothing exists yet.
 claude.ai stores each conversation as a tree (editing a message or retrying creates a
 sibling), but only exposes it through `< 1/2 >` arrows. Branches are hidden, easy to
 lose, unnamed, and cannot be linked. On the new "one Claude" experience (chat and
-Cowork merged, rolling out since 2026-09), it is worse: "Branching a conversation from
-an earlier point isn't available" (Anthropic help center), and new edits are reported
-to be stored but hidden. ChatGPT has "Branch in new chat" (a fork into a separate
+Cowork merged, rolling out since 2026-09), "Branching a conversation from an earlier
+point isn't available" (Anthropic help center). Third parties report that new edits are
+hidden there, but on Pascal's account an edit made on 2026-10-13 still shows its
+`< 2/2 >` arrows. ChatGPT has "Branch in new chat" (a fork into a separate
 conversation), but forks are not nested or linked either.
 
 Pascal's account is on the new experience, which every account ends up on: it is the
