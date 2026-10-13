@@ -64,3 +64,7 @@ In Firefox (the signed 0.1.3 once Mozilla signs it, or a temporary add-on), then
 2. Type a question, Send, then Name this branch: it works, the name proposed by Claude.
 3. Open `oulipo/1c` (made by 0.1.2 in Firefox): the panel says "Branch oulipo/1c (not named yet)", and Name this branch works.
 4. Drag the panel by its title bar to a place where it hides nothing; Hide, then the pill: it opens where you left it.
+
+## Checked on the real site
+
+2026-10-14, by Pascal, in Firefox and Chrome: "it works". A branch made in Firefox keeps its line breaks and can be named; Chrome unchanged.
