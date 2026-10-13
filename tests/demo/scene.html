@@ -5,7 +5,7 @@
 <html><head><meta charset="utf-8"><title>Zettelbranch demo</title>
 <style>
   :root { --ink: #2b2118; --muted: #6b5a4a; --accent: #9a5434; --accent-soft: rgba(201, 100, 66, 0.10); --glow: #d97757; }
-  html, body { margin: 0; width: 880px; height: 1120px; overflow: hidden; }
+  html, body { margin: 0; width: 880px; height: 800px; overflow: hidden; }
   body { background: linear-gradient(160deg, #f6f1e7 0%, #ede4d4 100%); font-family: system-ui, -apple-system, "Helvetica Neue", sans-serif; color: var(--ink); position: relative; }
 
   /* Caption band */
@@ -14,11 +14,11 @@
   .cap .text { font-size: 22px; font-weight: 600; line-height: 1.25; letter-spacing: -0.01em; }
 
   /* The window */
-  .win { position: absolute; left: 42px; top: 112px; width: 797px; height: 978px; border-radius: 14px; overflow: hidden; background: #fcfcfb; box-shadow: 0 18px 50px rgba(60, 40, 20, 0.22), 0 2px 6px rgba(60, 40, 20, 0.12); border: 1px solid rgba(60, 40, 20, 0.12); }
+  .win { position: absolute; left: 42px; top: 112px; width: 797px; height: 654px; border-radius: 14px; overflow: hidden; background: #fcfcfb; box-shadow: 0 18px 50px rgba(60, 40, 20, 0.22), 0 2px 6px rgba(60, 40, 20, 0.12); border: 1px solid rgba(60, 40, 20, 0.12); }
   .bar { height: 28px; background: #efe9df; border-bottom: 1px solid rgba(60, 40, 20, 0.10); display: flex; align-items: center; padding-left: 12px; gap: 7px; }
   .dot { width: 11px; height: 11px; border-radius: 50%; }
   .url { margin-left: 18px; font-size: 12px; color: var(--muted); background: #faf7f1; border-radius: 6px; padding: 2px 12px; }
-  .shot { position: absolute; left: 0; top: 28px; width: 797px; height: 950px; }
+  .shot { position: absolute; left: 0; top: 28px; width: 797px; height: 626px; overflow: hidden; }
   .shot img { position: absolute; left: 0; top: 0; width: 797px; opacity: 0; }
 
   /* Highlights, cursor, click ripples */
@@ -61,6 +61,10 @@
 const k = (v) => (v * 866) / 930;
 const DURATION = 37.6;
 const XFADE = 0.17; // a quick dissolve between screenshots: every pixel changes, which a GIF pays for
+// Each screenshot shows 660 px of its height, from VIEW[name]: the part that step needs.
+// (Frames 12 to 14 in the 866-wide coordinates of k().)
+const H = 680;
+const VIEW = { '01': 353, '02': 353, '03': 353, '04': 353, '05': 353, '06': 353, '07': 353, '08': 353, '09': 345, '10': 0, '11': 353, '12': 282, '13': 282, '14': 282 };
 const FRAMES = [ // [start, image, crossfade]
   [2.8, '01', true], [6.3, '02', true], [10.3, '03', true], [12.0, '04'], [12.4, '05'], [12.8, '06'], [13.2, '07'], [13.6, '08'],
   [15.4, '09', true], [20.4, '10', true], [22.6, '11', true], [26.4, '12', true], [28.6, '13', true], [31.6, '14', true],
@@ -84,7 +88,7 @@ const HIGHLIGHTS = [ // [start, end, x1, y1, x2, y2, label]
   [15.9, 17.9, 86, 401, 742, 503, 'a summary of the parent'],
   [17.9, 19.6, 78, 754, 306, 786, 'a suggested name'],
   [20.8, 21.8, 95, 96, 493, 132, ''],
-  [23.0, 24.7, 8, 8, 212, 42, 'the new name', 'below'],
+  [23.0, 24.7, 468, 632, 846, 666, 'the new name'],
   [24.6, 26.2, 465, 746, 848, 823, 'the tree'],
   [26.8, 28.2, k(532), k(749), k(908), k(821), 'click a branch'],
   [28.9, 30.6, k(528), k(668), k(806), k(696), 'where you are'],
@@ -94,16 +98,20 @@ const CURSOR = [ // [time, x, y]: eased moves between points
   [2.8, 330, 560], [3.3, 330, 560], [4.2, 655, 936], [4.6, 655, 936], [5.5, 500, 998], [6.6, 500, 998],
   [7.1, 640, 860], [8.8, 640, 860], [9.6, 524, 998], [10.6, 524, 998], [11.5, 140, 768], [11.9, 140, 768],
   [12.4, 260, 860], [13.9, 260, 860], [14.8, 721, 800], [15.8, 721, 800], [16.6, 780, 640], [19.3, 780, 640],
-  [20.0, 708, 999], [20.9, 708, 999], [21.9, 454, 193], [23.0, 454, 193], [24.0, 300, 905], [26.7, 300, 905],
+  [20.0, 708, 999], [20.35, 708, 999], [20.45, 620, 560], [20.9, 620, 560], [21.9, 454, 193], [22.45, 454, 193],
+  [22.7, 600, 560], [23.2, 600, 560], [24.0, 300, 905], [26.7, 300, 905],
   [27.9, k(628), k(785)], [29.0, k(628), k(785)], [29.8, k(470), k(560)], [30.5, k(470), k(560)], [31.2, k(618), k(763)],
   [32.4, k(618), k(763)], [33.2, 380, 880], [99, 380, 880],
 ];
-const CURSOR_SHOWN = [3.0, 34.6];
+// The cursor hides while the view jumps (to the dialog at the top, and back).
+const CURSOR_SHOWN = [[3.0, 20.3], [20.55, 22.5], [22.75, 34.6]];
 const CLICKS = [4.35, 5.65, 9.75, 11.65, 14.95, 20.15, 22.05, 28.1, 31.35];
 
 // ---- geometry
 const S = 797 / 866, X0 = 42, Y0 = 112 + 28 + 1;
-const sx = (x) => X0 + x * S, sy = (y) => Y0 + y * S;
+let VY = 0; // the view of the screenshot on screen
+const sx = (x) => X0 + x * S, sy = (y, vy = VY) => Y0 + (y - vy) * S;
+const frameAt = (t) => { let f = FRAMES[0]; for (const x of FRAMES) if (t >= x[0]) f = x; return f[1]; };
 const clamp = (v) => Math.max(0, Math.min(1, v));
 const ease = (p) => (p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2);
 const fadeIn = (t, a, d = 0.3) => clamp((t - a) / d);
@@ -116,14 +124,16 @@ for (const [, name] of FRAMES) {
   if (imgs[name]) continue;
   const im = document.createElement('img');
   im.src = `../out/demo/frames/${name}.png`;
+  im.style.top = -VIEW[name] * S + 'px';
   shot.append(im);
   imgs[name] = im;
 }
 const fx = document.getElementById('fx');
-const hls = HIGHLIGHTS.map(([, , x1, y1, x2, y2, label, where]) => {
+const hls = HIGHLIGHTS.map(([a, , x1, y1, x2, y2, label, where]) => {
+  const vy = VIEW[frameAt(a)];
   const d = document.createElement('div');
   d.className = 'hl' + (where === 'below' ? ' below' : '');
-  Object.assign(d.style, { left: sx(x1) - 6 + 'px', top: sy(y1) - 5 + 'px', width: (x2 - x1) * S + 12 + 'px', height: (y2 - y1) * S + 10 + 'px' });
+  Object.assign(d.style, { left: sx(x1) - 6 + 'px', top: sy(y1, vy) - 5 + 'px', width: (x2 - x1) * S + 12 + 'px', height: (y2 - y1) * S + 10 + 'px' });
   if (label) {
     const l = document.createElement('div');
     l.className = 'lab';
@@ -166,6 +176,7 @@ function render(t) {
   const p = fade && cur > 0 ? clamp((t - start) / XFADE) : 1;
   if (cur > 0 && p < 1) imgs[FRAMES[cur - 1][1]].style.opacity = 1;
   imgs[name].style.opacity = p;
+  VY = VIEW[name];
 
   // captions
   const c = CAPTIONS.find(([a, b]) => t >= a && t < b);
@@ -198,7 +209,7 @@ function render(t) {
   });
   cursor.style.left = sx(x) - 3 + 'px';
   cursor.style.top = sy(y) - 3 + 'px';
-  cursor.style.opacity = window01(t, CURSOR_SHOWN[0], CURSOR_SHOWN[1], 0.3);
+  cursor.style.opacity = Math.max(0, ...CURSOR_SHOWN.map(([a, b]) => window01(t, a, b, 0.15)));
   cursor.style.transform = `scale(${press})`;
 
   // title card at the start and the end (the loop goes from one to the other)

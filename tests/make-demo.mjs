@@ -17,7 +17,7 @@ fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(OUT, { recursive: true });
 
 const browser = await chromium.launch({ channel: 'chromium', headless: true });
-const page = await browser.newPage({ viewport: { width: 880, height: 1120 }, deviceScaleFactor: 1 });
+const page = await browser.newPage({ viewport: { width: 880, height: 800 }, deviceScaleFactor: 1 });
 // Local files only.
 await page.route('**/*', (r) => (r.request().url().startsWith('file:') ? r.continue() : r.abort()));
 await page.goto('file://' + path.join(DIR, 'demo', 'scene.html'));
