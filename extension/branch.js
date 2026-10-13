@@ -2,7 +2,8 @@
 // returns what the panel shows. State lives in this tab's memory only.
 //
 //   read()     the chat on screen: its messages (from the API, or from the page if the API
-//              fails), its title, and whether it is a branch still to be named
+//              fails), its title, whether it is a branch still to be named, and, for a chat
+//              of a tree, the other chats of that tree (from the conversation list)
 //   prepare()  "Branch": makes the chat a tree root first if needed (two dialogs and a
 //              rename), finds the next free address, builds the prompt for the preview
 //   open()     "Open new chat": clicks the app's own New chat link and puts the prompt in
@@ -49,6 +50,9 @@
   let chat = null; // the chat the panel shows
   let pending = null; // the prompt in the preview, until "Open new chat"
   let opened = null; // the branch this tab opened and has not named yet: { address, parent, own }
+  let list = null; // the conversation list last read [{ uuid, name }], for the tree after a rename
+
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
   function pageKind() {
     const p = location.pathname;
@@ -102,7 +106,31 @@
     if (opened && opened.address === `${head.tree}/${head.address}`) opened = null;
   }
 
-  async function read() {
+  // The chats of this chat's tree, for the panel (step 6c). The list is read on this click;
+  // right after a rename, the list already read is used again (`cached`), since only this
+  // chat's title changed and this chat's line comes from its own title. Only titles of this
+  // tree are kept. Each other chat is a link to its page.
+  async function readTree(c, cached) {
+    const t = T().parseTitle(c.title);
+    let here = null;
+    if (c.branch) here = { uuid: c.id, tree: c.branch.tree, address: c.branch.address, topic: c.named ? t.topic : '', unnamed: !c.named };
+    else if (t) here = { uuid: c.id, tree: t.tree, address: t.address, topic: t.topic };
+    if (!here) return null;
+    if (!(cached && list)) {
+      try {
+        list = await A().listConversations();
+      } catch (e) {
+        // One short line; the technical detail goes in its tooltip.
+        const why = e instanceof A().ApiError ? { http: `error ${e.details.status}`, shape: 'claude.ai changed', network: 'claude.ai not reached' }[e.kind] : null;
+        return { name: here.tree, error: { text: `The tree could not be read (${why || 'an error'}).`, detail: explain(e).detail } };
+      }
+    }
+    const entries = T().treeEntries(here.tree, list, here).map((e) => ({ ...e, href: !e.current && UUID_RE.test(e.uuid) ? `/chat/${e.uuid}` : null }));
+    return { name: here.tree, entries };
+  }
+
+  // opts.cached: right after a rename, build the tree from the list already read.
+  async function read(opts = {}) {
     chat = null;
     pending = null;
     const pk = pageKind();
@@ -125,6 +153,7 @@
     c.named = !!c.branch && !!P().namedTopic(c.title, c.branch);
     c.needsName = !!c.branch && !c.named;
     if (c.named && c.source === 'api') settle(c.branch);
+    c.tree = await readTree(c, opts.cached);
     const lastReply = c.messages.map((m) => m.role).lastIndexOf('assistant');
     c.selected = lastReply >= 0 ? lastReply : c.messages.length - 1;
     chat = c;
@@ -136,7 +165,8 @@
   // Every title, for the next free address: the API's full list, else the sidebar's.
   async function registry() {
     try {
-      return { titles: (await A().listConversations()).map((c) => c.name) };
+      list = await A().listConversations();
+      return { titles: list.map((c) => c.name) };
     } catch (e) {
       const titles = findAll('sidebarChats').map((a) => (a.querySelector('[data-row-label]') || a).textContent.replace(/\s+/g, ' ').trim());
       return { titles, fromSidebar: true };

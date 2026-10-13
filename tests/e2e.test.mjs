@@ -107,6 +107,17 @@ async function typeAtEnd(s) {
   });
   await page.keyboard.type(s);
 }
+// The tree's lines: address, topic, tags, link, current mark, indentation.
+const nodes = () => Z('tree-node').evaluateAll((els) => els.map((e) => ({
+  address: e.getAttribute('data-address'),
+  topic: e.querySelector('.topic').textContent,
+  tags: [...e.querySelectorAll('.tag')].map((t) => t.textContent).join(','),
+  href: e.getAttribute('href'),
+  current: e.getAttribute('aria-current') === 'page',
+  indent: e.style.paddingLeft,
+})));
+const node = async (address, topic) => (await nodes()).find((n) => n.address === address && (!topic || n.topic.includes(topic)));
+const listCalls = (from) => fake.apiLog.slice(from).filter((e) => e.path.includes('chat_conversations_v2')).length;
 const step = async (n) => ((await Z(`step-${n}`).locator('p').first().textContent()) || '').trim();
 const convNamed = (name) => [...fake.convs.values()].find((c) => c.name === name);
 // The message box's text, by the same rules as the extension's editorText.
@@ -212,6 +223,30 @@ test('the panel lists the messages, Claude\'s last reply chosen', async () => {
   await page.setViewportSize({ width: 1280, height: 860 });
 });
 
+test('the tree in the panel, on a root: every chat of the tree by address, indented, the current one marked, links to the others', async () => {
+  assert.equal(await text('tree-head'), 'Tree zbtest: 7 chats');
+  const ns = await nodes();
+  assert.deepEqual(ns.map((n) => n.address), ['1', '1a', '1a1', '1a1', '3', '4', '10']);
+  assert.deepEqual(ns[0], { address: '1', topic: '· Root topic', tags: 'you are here', href: null, current: true, indent: '8px' });
+  assert.deepEqual(ns[1], { address: '1a', topic: '· First branch', tags: '', href: `/chat/${fake.ids.branch}`, current: false, indent: '22px' });
+  const twice = ns.filter((n) => n.address === '1a1');
+  assert.deepEqual(twice.map((n) => [n.topic, n.tags, n.indent]).sort(), [['· Grandchild', 'used twice', '36px'], ['· Same address by hand', 'used twice', '36px']]);
+  assert.deepEqual(twice.map((n) => n.href).sort(), [`/chat/${fake.ids.dup}`, `/chat/${fake.ids.grand}`].sort());
+  assert.equal(await node('10').then((n) => n.href), `/chat/${fake.ids.ten}`);
+  const shown = await text('tree');
+  for (const other of ['zbmany', 'oulipo', 'Oulipo', 'Private', 'Long']) assert.ok(!shown.includes(other), `no title of another tree: ${other}`);
+  // Read again reads the chat and the list (in pages of 100), nothing else.
+  const before = apiCount();
+  await click('refresh');
+  assert.deepEqual(fake.apiLog.slice(before).map((e) => `${e.method} ${e.path.replace(/\?.*/, '').replace(/[0-9a-f-]{36}$/, '<id>')}`), [
+    'GET /api/organizations/<org>/chat_conversations/<id>',
+    'GET /api/organizations/<org>/chat_conversations_v2',
+    'GET /api/organizations/<org>/chat_conversations_v2',
+  ]);
+  await row(4).click();
+  await remember();
+});
+
 let previewText = '';
 test('branch from Claude\'s reply: next address by segments (1a exists; 1a1 and 10 are not children of 1)', async () => {
   const before = apiCount();
@@ -276,11 +311,16 @@ test('Name this branch: claude.ai named the branch after its parent, so the name
   assert.match(await text('name-box'), /^This chat is the branch zbtest\/1b, not named yet\.Name this branch$/);
   assert.equal(await text('chat-title'), 'Root topic');
   assert.equal(await Z('rename').count(), 0);
+  assert.deepEqual(await node('1b'), { address: '1b', topic: '(not named yet)', tags: 'you are here', href: null, current: true, indent: '22px' });
+  assert.equal(await Z('tree-node').count(), 8, 'the named chats, and this one at its address');
   await remember();
   await shots('name-box');
+  const before = apiCount();
   plan({});
   await click('name');
   allAnswered();
+  assert.equal(listCalls(before), 0, 'the list is not read again after a rename');
+  assert.deepEqual(await node('1b'), { address: '1b', topic: '· What about fish and birds', tags: 'you are here', href: null, current: true, indent: '22px' });
   const d = dialogs[dialogs.length - 1];
   assert.equal(d.type, 'prompt');
   assert.equal(d.defaultValue, 'zbtest/1b · What about fish and birds');
@@ -364,9 +404,31 @@ test('branch of a branch: the transcript is flattened, the summary dropped', asy
   await remember();
 });
 
+test('the tree on a branch; a link opens that chat in this tab, with a page load', async () => {
+  await goChat(fake.ids.branch);
+  await openPanel();
+  const ns = await nodes();
+  assert.deepEqual(ns.map((n) => n.address), ['1', '1a', '1a1', '1a1', '1b', '1c', '3', '4', '10']);
+  assert.deepEqual(ns.filter((n) => n.current).map((n) => `${n.address} ${n.topic} ${n.indent}`), ['1a · First branch 22px']);
+  assert.equal(ns[0].href, `/chat/${fake.ids.root}`);
+  await shots('tree-branch');
+  await Promise.all([page.waitForEvent('load'), page.locator(`#zettelbranch a[data-zb="tree-node"][href="/chat/${fake.ids.grand}"]`).click()]);
+  assert.equal(new URL(page.url()).pathname, `/chat/${fake.ids.grand}`);
+  await page.waitForFunction(() => document.querySelectorAll('[data-testid="transcript-row"]').length > 0);
+  assert.equal(await visible('panel'), false, 'a new page: the panel starts closed');
+  await openPanel();
+  assert.equal(await text('chat-title'), 'zbtest/1a1 · Grandchild');
+  const here = (await nodes()).filter((n) => n.current);
+  assert.deepEqual(here.map((n) => `${n.address} ${n.topic} ${n.tags}`), ['1a1 · Grandchild used twice,you are here']);
+  assert.equal((await node('1a1', 'Same address')).href, `/chat/${fake.ids.dup}`);
+});
+
 test('a chat not in a tree: tree name and confirm dialogs; cancelling changes nothing', async () => {
   await goChat(fake.ids.oulipo);
+  const opened = apiCount();
   await openPanel();
+  assert.equal(listCalls(opened), 0, 'no tree, so the list is not read');
+  assert.equal(await Z('tree').count(), 0);
   const putsBefore = puts().length;
   plan({ dismiss: true });
   await click('branch');
@@ -432,6 +494,7 @@ test('Pascal\'s case, after a reload: prompt sent as is, question in a second me
   await openPanel();
   assert.match(await text('name-box'), /^This chat is the branch zbtest\/10a, not named yet\./);
   assert.equal(await text('chat-title'), 'Sibling root', 'named after its parent');
+  assert.deepEqual((await nodes()).slice(-2).map((n) => `${n.address} ${n.topic} ${n.indent}${n.current ? ' here' : ''}`), ['10 · Sibling root 8px', '10a (not named yet) 22px here']);
   plan({});
   await click('name');
   allAnswered();
@@ -456,13 +519,60 @@ test('Rename this branch, once named: its current name proposed; unchanged, noth
   assert.equal(puts().length, putsBefore, 'no rename');
   await remember();
   await shots('rename');
+  assert.equal((await node('1c')).topic, '· My own topic');
+  const before = apiCount();
   plan({ value: 'zbtest/1c · Branching, revisited' });
   await click('rename');
   allAnswered();
+  assert.equal(listCalls(before), 0, 'the list is not read again after a rename');
+  assert.deepEqual(await node('1c'), { address: '1c', topic: '· Branching, revisited', tags: 'you are here', href: null, current: true, indent: '22px' });
   assert.equal(puts().at(-1).name, 'zbtest/1c · Branching, revisited');
   assert.match(await text('notice'), /^Named zbtest\/1c · Branching, revisited\./);
   assert.equal(await text('chat-title'), 'zbtest/1c · Branching, revisited');
   assert.equal(await Z('info').isVisible(), false);
+});
+
+test('the list cannot be read: one line instead of the tree, the rest works; Read again brings the tree back, fresh', async () => {
+  fake.fail.list = 'status';
+  try {
+    await goChat(fake.ids.root);
+    await openPanel();
+    assert.equal(await text('tree-note'), 'The tree could not be read (error 500).');
+    assert.match(await Z('tree-note').getAttribute('title'), /^claude\.ai answered 500; GET \/api\/organizations\/<org>\/chat_conversations_v2/);
+    assert.equal(await Z('tree-node').count(), 0);
+    assert.equal(await Z('error').isVisible(), false);
+    assert.equal(await Z('message').count(), 4);
+    assert.equal(await Z('branch').isVisible(), true);
+    await remember();
+    await shot('tree-error-light.png');
+  } finally {
+    fake.fail.list = null;
+  }
+  const added = fake.addChat('zbtest/5 · Made in another tab');
+  await click('refresh');
+  assert.equal(await Z('tree-note').count(), 0);
+  assert.equal((await node('5')).href, `/chat/${added}`);
+});
+
+test('a tree of 25 chats: in tree order, never string order; the section scrolls inside the panel', async () => {
+  await goChat(fake.manyIds['1b1']);
+  await openPanel();
+  assert.equal(await text('tree-head'), 'Tree zbmany: 25 chats');
+  const ns = await nodes();
+  assert.deepEqual(ns.map((n) => n.address), ['1', '1a', '1a1', '1a2', '1a9', '1a10', '1b', '1b1', '1b1a', '1b1b', '1b9', '1b10', '1c', '1d', '1e', '1y', '1z', '1aa', '1ab', '2', '2a', '2a1', '9', '10', '10a']);
+  assert.deepEqual(ns.filter((n) => n.current).map((n) => n.address), ['1b1']);
+  assert.equal((await node('1b1a')).indent, `${8 + 3 * 14}px`);
+  const box = await Z('tree-list').evaluate((e) => {
+    const cur = e.querySelector('[aria-current="page"]').getBoundingClientRect();
+    const r = e.getBoundingClientRect();
+    return { scrolls: e.scrollHeight > e.clientHeight + 20, height: r.height, shown: cur.top >= r.top && cur.bottom <= r.bottom };
+  });
+  assert.ok(box.scrolls, 'the section scrolls');
+  assert.ok(box.height <= 212, `at most about 210 px high: ${box.height}`);
+  assert.ok(box.shown, 'the current line is scrolled into view');
+  assert.ok((await Z('panel').boundingBox()).height <= 860 * 0.8 + 1, 'the panel fits the window');
+  assert.equal(await Z('message').count(), 2);
+  await shots('tree-many');
 });
 
 test('over 100,000 characters: a warning in the preview', async () => {
@@ -497,6 +607,7 @@ test('API failure: the page is read instead, with a clear note; the address come
     assert.match(err, /no chat_messages list/);
     assert.match(await text('note'), /Only the 4 messages on screen were read/);
     assert.equal(await Z('name-box').count(), 0);
+    assert.equal(await text('tree-note'), 'The tree could not be read (error 500).');
     await remember();
     await click('branch');
     assert.equal(await text('preview-title'), 'Preview: the first message of zbtest/1a2');

@@ -5,6 +5,7 @@
 // Addresses are split into number and letter segments (`1b10` = [1, 'b', 10]); a child has
 // its parent's segments plus exactly one more. Never compared as string prefixes.
 // After `z`, letters continue `aa`, `ab`… The registry is the list of every title.
+// The tree in the panel: the chats of one tree, ordered by address segments.
 (function (global) {
   'use strict';
 
@@ -83,6 +84,38 @@
     return segs.map((_, i) => formatAddress(segs.slice(0, i + 1)));
   }
 
+  // Addresses in tree order: numbers as numbers, letters by their index (z before aa), a
+  // parent before its children: 1, 1a, 1a1, 1a2, 1a10, 1b, 2. Segments alternate, so at each
+  // place both are numbers or both are letters.
+  function compareSegs(a, b) {
+    for (let i = 0; i < Math.min(a.length, b.length); i++) {
+      if (a[i] === b[i]) continue;
+      const x = typeof a[i] === 'number' ? a[i] : lettersToIndex(a[i]);
+      const y = typeof b[i] === 'number' ? b[i] : lettersToIndex(b[i]);
+      return x - y;
+    }
+    return a.length - b.length;
+  }
+
+  // The chats of one tree, in address order: [{ uuid, address, topic, depth, uses, current,
+  // unnamed }]. items: the conversation list [{ uuid, name }], of which only this tree's
+  // titles are kept. here: the chat on screen { uuid, address, topic, unnamed }, put at its
+  // address even if the list does not have it there (a branch not named yet). uses: how many
+  // chats have that address.
+  function treeEntries(tree, items, here) {
+    const entries = [];
+    for (const it of items) {
+      const t = parseTitle(it.name);
+      if (t && t.tree === tree && !(here && it.uuid === here.uuid)) entries.push({ uuid: it.uuid, address: t.address, segs: t.segs, topic: t.topic.trim() });
+    }
+    const hereSegs = here && parseAddress(here.address);
+    if (hereSegs) entries.push({ uuid: here.uuid, address: here.address, segs: hereSegs, topic: String(here.topic || '').trim(), current: true, unnamed: !!here.unnamed });
+    entries.sort((a, b) => compareSegs(a.segs, b.segs));
+    const uses = new Map();
+    for (const e of entries) uses.set(e.address, (uses.get(e.address) || 0) + 1);
+    return entries.map((e) => ({ ...e, depth: e.segs.length - 1, uses: uses.get(e.address), current: !!e.current, unnamed: !!e.unnamed }));
+  }
+
   const isTreeName = (s) => typeof s === 'string' && TREE_RE.test(s);
 
   // A tree name proposed from a title: its first word that has letters or digits,
@@ -97,6 +130,6 @@
 
   global.ZBTree = {
     parseAddress, formatAddress, lettersToIndex, indexToLetters, parseTitle, formatTitle,
-    isChild, nextChild, nextRoot, ancestry, isTreeName, proposeTreeName,
+    isChild, nextChild, nextRoot, ancestry, isTreeName, proposeTreeName, compareSegs, treeEntries,
   };
 })(globalThis);

@@ -71,6 +71,45 @@ describe('tree.js', () => {
     for (const bad of ['', 'Oulipo', 'a b', 'a/b', 'é']) assert.equal(T.isTreeName(bad), false, bad);
   });
 
+  test('the tree in the panel: ordered by segments, never as strings', () => {
+    const sorted = ['1', '1a', '1a1', '1a2', '1a10', '1b', '1b1', '1b1a', '1b1b', '1b9', '1b10', '1z', '1aa', '1ab', '2', '2a', '9', '10', '10a'];
+    // Reversed, and sorted as strings (1, 10, 10a, 1a, 1a1, 1a10, 1a2…): both come back in tree order.
+    for (const input of [[...sorted].reverse(), [...sorted].sort()]) {
+      const items = input.map((a, i) => ({ uuid: 'u' + i, name: `zb/${a} · Note ${a}` }));
+      assert.deepEqual([...T.treeEntries('zb', items).map((e) => e.address)], sorted);
+    }
+    assert.ok(T.compareSegs(T.parseAddress('1b10'), T.parseAddress('1b9')) > 0);
+    assert.ok(T.compareSegs(T.parseAddress('1b9'), T.parseAddress('1b1a')) > 0);
+    assert.ok(T.compareSegs(T.parseAddress('1aa'), T.parseAddress('1z')) > 0, 'letters past z');
+    assert.equal(T.compareSegs(T.parseAddress('1a'), T.parseAddress('1a')), 0);
+  });
+
+  test('the tree in the panel: depth, other trees and plain titles left out, typed separators, duplicates', () => {
+    const items = [
+      { uuid: 'r', name: 'zb/1 · Root' },
+      { uuid: 'a', name: 'zb/1a - Typed by hand' },
+      { uuid: 'g', name: 'zb/1a1 · Grandchild' },
+      { uuid: 'd', name: 'zb/1a1 . Same address' },
+      { uuid: 'o', name: 'other/1b · Other tree' },
+      { uuid: 'p', name: 'Private chat' },
+      { uuid: 'n', name: '' },
+    ];
+    const e = T.treeEntries('zb', items);
+    assert.deepEqual([...e.map((x) => `${x.address}|${x.topic}|${x.depth}|${x.uses}`)], ['1|Root|0|1', '1a|Typed by hand|1|1', '1a1|Grandchild|2|2', '1a1|Same address|2|2']);
+    assert.ok(e.every((x) => !x.current && !x.unnamed));
+    assert.ok(!JSON.stringify(e).includes('Other tree') && !JSON.stringify(e).includes('Private'));
+  });
+
+  test('the tree in the panel: the current chat marked, from its own title; a branch not named yet at its address', () => {
+    const items = [{ uuid: 'r', name: 'zb/1 · Root' }, { uuid: 'a', name: 'zb/1a · Old name in the list' }, { uuid: 'b', name: 'Root' }];
+    const named = T.treeEntries('zb', items, { uuid: 'a', address: '1a', topic: 'New name' });
+    assert.deepEqual([...named.map((x) => `${x.address}|${x.topic}|${x.current}`)], ['1|Root|false', '1a|New name|true']);
+    const unnamed = T.treeEntries('zb', items, { uuid: 'b', address: '1b', topic: '', unnamed: true });
+    assert.deepEqual([...unnamed.map((x) => `${x.address}|${x.current}|${x.unnamed}|${x.depth}`)], ['1|false|false|0', '1a|false|false|1', '1b|true|true|1']);
+    const clash = T.treeEntries('zb', items, { uuid: 'b', address: '1a', unnamed: true });
+    assert.deepEqual([...clash.map((x) => `${x.address}|${x.uses}|${x.current}`)], ['1|1|false', '1a|2|false', '1a|2|true'], 'an address claimed twice is flagged');
+  });
+
   test('tree name proposed from a title', () => {
     assert.equal(T.proposeTreeName('Oulipo and constraints'), 'oulipo');
     assert.equal(T.proposeTreeName('Écriture sous contrainte'), 'ecriture');

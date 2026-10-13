@@ -7,7 +7,8 @@
 //     60-message chat with a pasted attachment and an image;
 //   - a zbtest tree: zbtest/1 (with an edited message, so its tree has a branch point),
 //     zbtest/1a (a real branch, for flattening), zbtest/1a1 and zbtest/10 (to check that
-//     addresses are compared by segments);
+//     addresses are compared by segments), and a second zbtest/1a1 (an address used twice);
+//   - a zbmany tree of 25 chats, created out of order (the tree in the panel, scrolling);
 //   - zbtest/3 (thinking, an artifact, tool calls, a pasted text and a photo),
 //     zbtest/4 (over 100,000 characters), and "Oulipo and constraints" (not in a tree).
 //
@@ -84,6 +85,16 @@ export function createFakeClaude() {
     add(c, 'human', `Question ${i}`);
     add(c, 'assistant', `Answer ${i}`);
   }
+  // Older than the zbtest chats, so the sidebar's 30 recent chats stay the same.
+  const MANY = ['1b10', '2', '1a', '1z', '1', '1b1a', '10', '1a10', '1aa', '1b', '1a1', '9', '1b9', '2a', '1c', '1a2', '1ab', '1b1', '10a', '1d', '1a9', '1y', '2a1', '1e', '1b1b'];
+  const manyIds = {};
+  for (const a of MANY) {
+    const c = newConv(`zbmany/${a} · Note ${a}`);
+    add(c, 'human', `Question of zbmany/${a}`);
+    add(c, 'assistant', `Answer of zbmany/${a}`);
+    manyIds[a] = c.uuid;
+  }
+
   const long = newConv('Long private chat');
   for (let i = 1; i <= 60; i++) {
     if (i % 2) {
@@ -163,6 +174,17 @@ export function createFakeClaude() {
   const ten = newConv('zbtest/10 · Sibling root');
   add(ten, 'human', 'Root ten question');
   add(ten, 'assistant', 'Root ten answer');
+  const dup = newConv('zbtest/1a1 · Same address by hand');
+  add(dup, 'human', 'Second 1a1 question');
+  add(dup, 'assistant', 'Second 1a1 answer');
+
+  // A chat made meanwhile, as if in another tab.
+  function addChat(name) {
+    const c = newConv(name);
+    add(c, 'human', `Question of ${name}`);
+    add(c, 'assistant', `Answer of ${name}`);
+    return c.uuid;
+  }
 
   // ---------------------------------------------------------------- replies
 
@@ -290,6 +312,6 @@ export function createFakeClaude() {
     return 'aborted: unknown path';
   }
 
-  const ids = { priv: priv.uuid, long: long.uuid, oulipo: oulipo.uuid, big: big.uuid, mixed: mixed.uuid, root: root.uuid, branch: branch.uuid, grand: grand.uuid, ten: ten.uuid };
-  return { handle, apiLog, convs, ids, pathOf, fail, options };
+  const ids = { priv: priv.uuid, long: long.uuid, oulipo: oulipo.uuid, big: big.uuid, mixed: mixed.uuid, root: root.uuid, branch: branch.uuid, grand: grand.uuid, ten: ten.uuid, dup: dup.uuid };
+  return { handle, apiLog, convs, ids, manyIds, MANY, addChat, pathOf, fail, options };
 }

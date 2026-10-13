@@ -45,6 +45,20 @@
     .msg .n { color: var(--muted); min-width: 2em; text-align: right; font-variant-numeric: tabular-nums; }
     .msg .who { font-weight: 600; min-width: 3.4em; }
     .msg .text { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .tree { display: flex; flex-direction: column; gap: 4px; }
+    .tree-head { font-weight: 600; }
+    .tree-list { position: relative; box-sizing: border-box; max-height: min(24vh, 210px); overflow: auto; border: 1px solid var(--line); border-radius: 8px; padding: 3px 0; }
+    .node { display: flex; gap: 6px; align-items: baseline; padding: 2px 8px; color: var(--fg); text-decoration: none; white-space: nowrap; }
+    a.node:hover { background: var(--btn-hover); }
+    a.node:hover .topic { text-decoration: underline; }
+    a.node .addr { color: var(--accent); }
+    .node .addr { font-weight: 600; font-variant-numeric: tabular-nums; }
+    .node .topic { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+    .node .topic.muted { font-style: italic; }
+    .node.here { background: var(--sel); box-shadow: inset 3px 0 0 var(--accent); }
+    .tag { flex: none; font-size: 11px; border-radius: 999px; padding: 0 6px; }
+    .tag.here { background: var(--accent); color: var(--accent-fg); }
+    .tag.dup { background: var(--warn-bg); color: var(--warn-fg); }
     .steps { display: flex; flex-direction: column; gap: 8px; }
     .step { display: flex; gap: 6px; align-items: baseline; }
     .step .num { font-weight: 700; color: var(--accent); min-width: 1.1em; }
@@ -125,9 +139,10 @@
 
   // ---------------------------------------------------------------- views
 
-  async function refresh() {
+  // opts.cached: right after a rename, the tree from the list already read.
+  async function refresh(opts) {
     say('Reading this chat…');
-    const r = await B().read();
+    const r = await B().read(opts);
     if (r.steps) return show(el('p', { class: 'muted', 'data-zb': 'status', text: `You opened the branch ${r.steps.address} in a new chat.` }), steps(r.steps));
     if (!r.ok) {
       say(r.text);
@@ -151,6 +166,8 @@
       showError('', chat.apiError);
       parts.push(el('p', { class: 'box warn', 'data-zb': 'note', text: `claude.ai's API did not answer as expected, so Zettelbranch read the page instead. Only the ${chat.messages.length} messages on screen were read: in a long chat, earlier messages are missing. Naming branches is unavailable until the API answers.` }));
     }
+    const tree = chat.tree ? treeSection(chat.tree) : null;
+    if (tree) parts.push(tree.section);
     if (!chat.messages.length) {
       parts.push(el('p', { text: 'This chat has no messages yet.' }));
       return show(...parts);
@@ -177,6 +194,33 @@
     show(...parts);
     const sel = rows[chat.selected];
     list.scrollTop = sel.offsetTop - list.clientHeight / 2;
+    if (tree) tree.scroll();
+  }
+
+  // The chats of this tree, by address, indented by depth (step 6c). Each other chat is a
+  // plain link to its page; the current one is marked, not a link.
+  function treeSection(tree) {
+    if (tree.error) return { section: el('p', { class: 'box warn', 'data-zb': 'tree-note', title: tree.error.detail || '', text: tree.error.text }), scroll() {} };
+    const n = tree.entries.length;
+    let here = null;
+    const lines = tree.entries.map((e) => {
+      const kids = [
+        el('span', { class: 'addr', text: e.address }),
+        e.unnamed ? el('span', { class: 'topic muted', text: '(not named yet)' }) : el('span', { class: 'topic', text: e.topic ? `· ${e.topic}` : '' }),
+        e.uses > 1 ? el('span', { class: 'tag dup', text: e.uses === 2 ? 'used twice' : `used ${e.uses} times` }) : null,
+        e.current ? el('span', { class: 'tag here', text: 'you are here' }) : null,
+      ];
+      const attrs = { 'data-zb': 'tree-node', 'data-address': e.address };
+      const line = e.href
+        ? el('a', { ...attrs, class: 'node', href: e.href }, kids)
+        : el('div', { ...attrs, class: e.current ? 'node here' : 'node', ...(e.current ? { 'aria-current': 'page' } : {}) }, kids);
+      line.style.paddingLeft = `${8 + Math.min(e.depth, 8) * 14}px`;
+      if (e.current) here = line;
+      return line;
+    });
+    const box = el('div', { class: 'tree-list', 'data-zb': 'tree-list' }, lines);
+    const section = el('div', { class: 'tree', 'data-zb': 'tree' }, [el('p', { class: 'tree-head', 'data-zb': 'tree-head', text: `Tree ${tree.name}: ${n} chat${n === 1 ? '' : 's'}` }), box]);
+    return { section, scroll: () => here && (box.scrollTop = here.offsetTop - box.clientHeight / 2) };
   }
 
   // Claude's reply: continue after it. Your message: branch instead of it (FK-3).
@@ -271,7 +315,7 @@
     clearMessages();
     const r = await B().name();
     if (!r.ok) return showFailure(r);
-    await refresh();
+    await refresh({ cached: true });
     showRenamed(r.renamed);
   }
 
