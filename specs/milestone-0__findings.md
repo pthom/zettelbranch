@@ -37,7 +37,8 @@ Seen by Pascal on the real site, in his own test browser (no automation).
 - Test project "Zettelbranch tests" created. Its URL is kept in Claude's local memory,
   not in this public repo.
 - **Projects work differently on the "one Claude" layout.** The project's address is
-  `claude.ai/code/project/chan_…`, even in Chat and Cowork mode. The project page has
+  `claude.ai/code/project/chan_…`, even in Chat and Cowork mode, and the same project
+  shows in both modes (Chat and Cowork, and Code). The project page has
   its own conversation stream (a welcome message with "Set up from recent work",
   "Connect tools", "Make a plan", then normal messages) and a **Threads** panel: "Claude
   will track your threads here as they start: what's working, what's waiting on you, and
