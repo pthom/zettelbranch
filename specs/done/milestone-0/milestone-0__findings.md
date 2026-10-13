@@ -1,8 +1,6 @@
 # Milestone 0 findings
 
-Results of the Milestone 0 spike ([milestone-0__specs](milestone-0__specs.md)). Started and
-closed on 2026-10-13. The facts Milestone 1 needs are also in
-[claude-ai__findings](../../claude-ai__findings.md#9-checked-on-pascals-account-milestone-0).
+Results of the Milestone 0 spike ([milestone-0__specs](milestone-0__specs.md)). Started and closed on 2026-10-13. The facts Milestone 1 needs are also in [claude-ai__findings](../../claude-ai__findings.md#9-checked-on-pascals-account-milestone-0).
 
 ## In brief
 
@@ -18,8 +16,7 @@ closed on 2026-10-13. The facts Milestone 1 needs are also in
 | P7 | Stable selectors on a chat page? | Yes: test ids and attributes | The page is the fallback only |
 | P8 | Does Claude follow the branch prompt? | Yes: summary first, right parent, no re-answering | Keep the draft; no summary for a first-message branch |
 
-No bot check appeared in five sessions by hand. Test chats created: 7 (P1, P4, P8, P2),
-deleted by Pascal after the last session.
+No bot check appeared in five sessions by hand. Test chats created: 7 (P1, P4, P8, P2), deleted by Pascal after the last session.
 
 ## Run log
 
@@ -39,16 +36,11 @@ deleted by Pascal after the last session.
 
 ### Why offline
 
-P0 runs offline, from two files Pascal saves by hand in his own browser. The spike makes
-no automated access to claude.ai, not even one page load. The earlier plan of one or two
-headless page loads was dropped before any load.
+P0 runs offline, from two files Pascal saves by hand in his own browser. The spike makes no automated access to claude.ai, not even one page load. The earlier plan of one or two headless page loads was dropped before any load.
 
-Why: the Consumer Terms forbid accessing claude.ai "through automated or non-human means,
-whether through a bot, script, or otherwise" ([terms__findings](../../terms__findings.md)).
-Pascal chose manual saves (2026-10-13).
+Why: the Consumer Terms forbid accessing claude.ai "through automated or non-human means, whether through a bot, script, or otherwise" ([terms__findings](../../terms__findings.md)). Pascal chose manual saves (2026-10-13).
 
-So P0 no longer tests whether claude.ai loads in an automated browser, or whether bot
-checks appear. That question is still open.
+So P0 no longer tests whether claude.ai loads in an automated browser, or whether bot checks appear. That question is still open.
 
 ### Observations by hand
 
@@ -56,27 +48,10 @@ Seen by Pascal on the real site, in his own test browser (no automation).
 
 **2026-10-13, setup.**
 
-- Test browser: a separate Chrome profile, "Zettelbranch test", signed in to claude.ai.
-  Chrome added Google's default extensions (Drive launcher, Docs Offline) to the new
-  profile; Pascal is removing them. The spike extension loads unpacked without problems.
-- Test project "Zettelbranch tests" created, then dropped (Pascal deletes it): on his
-  account a new project is a **Claude Code project** (beta of 2026-09-17, "Projects
-  redesigned: from folder to conversation"). The project is one coordinator
-  conversation; Claude itself creates **threads**, each a Claude Code cloud session on its
-  own copy of a repository. The user cannot create a thread directly (the "+" in the
-  panel only picks views: Threads, Library, Routines). Not a place for test chats.
-  Decision: test conversations are ordinary chats in the test tree `zbtest`.
-- **Projects work differently on the "one Claude" layout.** The project's address is
-  `claude.ai/code/project/chan_…`, even in Chat and Cowork mode, and the same project
-  shows in both modes (Chat and Cowork, and Code). The project page has
-  its own conversation stream (a welcome message with "Set up from recent work",
-  "Connect tools", "Make a plan", then normal messages) and a **Threads** panel: "Claude
-  will track your threads here as they start: what's working, what's waiting on you, and
-  what's done." The sidebar shows New, Projects, Artifacts, Scheduled, Customize, More,
-  and pinned projects.
-- Open: inside a project, is a branch a "thread"? Does a thread have a title that can
-  be renamed? This decides whether addresses in titles work inside projects (AD-1,
-  FK-D2).
+- Test browser: a separate Chrome profile, "Zettelbranch test", signed in to claude.ai. Chrome added Google's default extensions (Drive launcher, Docs Offline) to the new profile; Pascal is removing them. The spike extension loads unpacked without problems.
+- Test project "Zettelbranch tests" created, then dropped (Pascal deletes it): on his account a new project is a **Claude Code project** (beta of 2026-09-17, "Projects redesigned: from folder to conversation"). The project is one coordinator conversation; Claude itself creates **threads**, each a Claude Code cloud session on its own copy of a repository. The user cannot create a thread directly (the "+" in the panel only picks views: Threads, Library, Routines). Not a place for test chats. Decision: test conversations are ordinary chats in the test tree `zbtest`.
+- **Projects work differently on the "one Claude" layout.** The project's address is `claude.ai/code/project/chan_…`, even in Chat and Cowork mode, and the same project shows in both modes (Chat and Cowork, and Code). The project page has its own conversation stream (a welcome message with "Set up from recent work", "Connect tools", "Make a plan", then normal messages) and a **Threads** panel: "Claude will track your threads here as they start: what's working, what's waiting on you, and what's done." The sidebar shows New, Projects, Artifacts, Scheduled, Customize, More, and pinned projects.
+- Open: inside a project, is a branch a "thread"? Does a thread have a title that can be renamed? This decides whether addresses in titles work inside projects (AD-1, FK-D2).
 
 ### Files Pascal saves
 
@@ -87,13 +62,9 @@ Both go into `spike/out/`, which git ignores.
 | `spike/out/share-page.html`, with its folder `spike/out/share-page_files/` | Open the share link. Wait until the conversation shows. Do not scroll. Cmd+S, format "Webpage, Complete", name `share-page`. |
 | `spike/out/snapshot.json` | The JSON the page loads. DevTools (Cmd+Opt+I), Network tab, filter `chat_snapshots`, reload the page. Right-click the request, Copy, Copy response. Paste into a new file `snapshot.json`. The request name comes from public notes *(to verify)*. If nothing matches, filter on `b6ff02e2`. |
 
-Firefox saves the page as `Claude.html` with a `Claude_files/` folder; the scripts take
-either name by default, or any name with `--html`.
+Firefox saves the page as `Claude.html` with a `Claude_files/` folder; the scripts take either name by default, or any name with `--html`.
 
-Not scrolling keeps the DOM as the page first renders it, which is what the
-virtualization check needs. If Pascal is logged in, the saved page may hold his sidebar
-and account name. Those stay in `spike/out/`. The extension in Pascal's own browser could
-also change the page, so the extensions that were active matter.
+Not scrolling keeps the DOM as the page first renders it, which is what the virtualization check needs. If Pascal is logged in, the saved page may hold his sidebar and account name. Those stay in `spike/out/`. The extension in Pascal's own browser could also change the page, so the extensions that were active matter.
 
 ### How it runs
 
@@ -105,27 +76,17 @@ also change the page, so the extensions that were active matter.
 | Describe the JSON | `node inspect-snapshot.mjs` | `snapshot-summary.json` |
 | Write the conversation | `node snapshot-to-md.mjs` | `specs/done/origin-conversation/zettelbranch__origin-conversation.md` |
 
-`npm run p0` runs the first four. `npm run sample` runs everything on the hand-made
-sample in `spike/fixtures/`.
+`npm run p0` runs the first four. `npm run sample` runs everything on the hand-made sample in `spike/fixtures/`.
 
 The browser run:
 
-- Playwright's own Chromium 156 (revision 1248) in the new headless mode
-  (`channel: 'chromium'`), on the dedicated profile `~/.cache/zettelbranch/chromium-profile`.
-  Never a window.
-- A route handler answers every request. It serves the saved page at the share URL with
-  its scripts, preload links and inline event handlers removed, so the saved app does not
-  run. It serves files from `share-page_files/` and aborts everything else. WebSockets are
-  closed without connecting. Service workers are blocked.
+- Playwright's own Chromium 156 (revision 1248) in the new headless mode (`channel: 'chromium'`), on the dedicated profile `~/.cache/zettelbranch/chromium-profile`. Never a window.
+- A route handler answers every request. It serves the saved page at the share URL with its scripts, preload links and inline event handlers removed, so the saved app does not run. It serves files from `share-page_files/` and aborts everything else. WebSockets are closed without connecting. Service workers are blocked.
 - `--host-resolver-rules=MAP * ~NOTFOUND`: no host name resolves, as a second guard.
 - The run fails if any request did not go through the route handler.
-- The content script does the extraction in the isolated world and writes the result to
-  `<html data-zb-p0-result>`. Playwright only reads that attribute.
+- The content script does the extraction in the isolated world and writes the result to `<html data-zb-p0-result>`. Playwright only reads that attribute.
 
-For P0 (version 0.0.1) the spike extension had no permissions, no background script, no
-network calls and no storage. Version 0.0.2 adds the probe panel and one network file,
-`claude-api.js`; the rules and their checks are under [Probe panel](#probe-panel-p1-to-p8).
-On share pages it still does only the P0 extraction.
+For P0 (version 0.0.1) the spike extension had no permissions, no background script, no network calls and no storage. Version 0.0.2 adds the probe panel and one network file, `claude-api.js`; the rules and their checks are under [Probe panel](#probe-panel-p1-to-p8). On share pages it still does only the P0 extraction.
 
 ### Setup checks
 
@@ -141,8 +102,7 @@ Done on the hand-made sample, 2026-10-13.
 | jsdom and browser agree | Same Markdown for all 4 messages. |
 | Error paths | Missing files: the scripts stop before launching anything. A saved "Just a moment..." page is detected. No selector match: the content script gives up after 30 s and returns its diagnostics. |
 
-The sample is made by hand from memory of claude.ai's class names. It tests the code, not
-the selectors.
+The sample is made by hand from memory of claude.ai's class names. It tests the code, not the selectors.
 
 ### Selectors
 
@@ -160,9 +120,7 @@ Candidates, tried in order. All *(to verify)* until the run on the saved page.
 
 ### Results
 
-Run on 2026-10-13, offline, on the page Pascal saved in Firefox while logged in as the
-chat's owner (the page shows "This is the read-only copy that you shared of your
-chat."). The saved name was `Claude.html`; the scripts take `--html out/Claude.html`.
+Run on 2026-10-13, offline, on the page Pascal saved in Firefox while logged in as the chat's owner (the page shows "This is the read-only copy that you shared of your chat."). The saved name was `Claude.html`; the scripts take `--html out/Claude.html`.
 
 **Extraction matches the JSON.**
 
@@ -176,54 +134,34 @@ chat."). The saved name was `Claude.html`; the scripts take `--html out/Claude.h
 | Network during the browser run | 14 requests: 8 served from disk, 6 aborted, 0 escaped |
 | Time | Extraction done 1.7 s after load (saved DOM, not claude.ai) |
 
-The conversation has no code blocks, tables or math, so those are still untested on a
-real page.
+The conversation has no code blocks, tables or math, so those are still untested on a real page.
 
-**Selectors that matched:** user turns `[data-testid="user-message"]`, assistant turns
-`.font-claude-response`. The list is `[data-testid="transcript-list"]`; each turn is a
-`div[data-test-render-count]`.
+**Selectors that matched:** user turns `[data-testid="user-message"]`, assistant turns `.font-claude-response`. The list is `[data-testid="transcript-list"]`; each turn is a `div[data-test-render-count]`.
 
 **What differed, and fixes:**
 
-- The page shows typographic apostrophes (’) where the source has straight ones ('). The
-  comparison now treats them as equal. For branching it does not matter.
-- Web-search source chips appear as links in the page (18 links in 5 messages); the JSON
-  keeps sources outside the text. Milestone 1 should drop them or turn them into
-  footnotes.
-- A file Claude created (message 42) shows as a card; the extractor took an icon glyph
-  (`\ue0b3`) for its name. To fix: read the file name, not the icon.
-- The bot-check detector flagged "hCaptcha" on a normal page: claude.ai's own script
-  preloads hcaptcha.com for its login page. Fixed: script and style code is ignored.
+- The page shows typographic apostrophes (’) where the source has straight ones ('). The comparison now treats them as equal. For branching it does not matter.
+- Web-search source chips appear as links in the page (18 links in 5 messages); the JSON keeps sources outside the text. Milestone 1 should drop them or turn them into footnotes.
+- A file Claude created (message 42) shows as a card; the extractor took an icon glyph (`\ue0b3`) for its name. To fix: read the file name, not the icon.
+- The bot-check detector flagged "hCaptcha" on a normal page: claude.ai's own script preloads hcaptcha.com for its login page. Fixed: script and style code is ignored.
 
-**Virtualization:** none on this share page. All 44 messages (35,000 characters) were in
-the saved DOM, with no virtual rows or spacers. Chat pages may still differ (P6).
+**Virtualization:** none on this share page. All 44 messages (35,000 characters) were in the saved DOM, with no virtual rows or spacers. Chat pages may still differ (P6).
 
 **The JSON** (`/api/chat_snapshots/<id>`):
 
-- `chat_messages` holds a single chain: every message has a `parent_message_uuid`, one
-  root, no branch points. So a share holds only the path that was shown, not the whole
-  tree.
-- Message `index` values run from 0 to 47 for 44 messages: four indexes are missing,
-  probably the hidden siblings of edits or retries *(to verify)*.
-- Each message has `text` plus `content` blocks: `text` (with `citations`), `tool_use`
-  and `tool_result`. Tools seen: `web_search`, `bash_tool`, `memory_read`, `visualize`,
-  `show_recommendation_cards`, `create_file`, `present_files`.
-- The file created in message 42 is in the `create_file` input (`file_text`). It is the
-  first version of the spec.
+- `chat_messages` holds a single chain: every message has a `parent_message_uuid`, one root, no branch points. So a share holds only the path that was shown, not the whole tree.
+- Message `index` values run from 0 to 47 for 44 messages: four indexes are missing, probably the hidden siblings of edits or retries *(to verify)*.
+- Each message has `text` plus `content` blocks: `text` (with `citations`), `tool_use` and `tool_result`. Tools seen: `web_search`, `bash_tool`, `memory_read`, `visualize`, `show_recommendation_cards`, `create_file`, `present_files`.
+- The file created in message 42 is in the `create_file` input (`file_text`). It is the first version of the spec.
 - `attachments`, `files` and `working_documents` are empty.
 
 ## Probe panel (P1 to P8)
 
-Built 2026-10-13, extension version 0.0.2; 0.0.3 and 0.0.4 after the first two
-sessions (see [P1](#first-probe-session-p5-and-p1) and [P4](#second-probe-session-p4)). Pascal runs the probes by hand on the real site:
-see [Running the probes](milestone-0__specs.md#running-the-probes-pascal). No script
-touches claude.ai.
+Built 2026-10-13, extension version 0.0.2; 0.0.3 and 0.0.4 after the first two sessions (see [P1](#first-probe-session-p5-and-p1) and [P4](#second-probe-session-p4)). Pascal runs the probes by hand on the real site: see [Running the probes](milestone-0__specs.md#running-the-probes-pascal). No script touches claude.ai.
 
 ### What it is
 
-A small panel at the bottom right of every claude.ai page except share pages. "ZB probes"
-opens it. One section per probe: plain instructions, buttons, and the result. "Copy
-results" copies every result of the tab as JSON.
+A small panel at the bottom right of every claude.ai page except share pages. "ZB probes" opens it. One section per probe: plain instructions, buttons, and the result. "Copy results" copies every result of the tab as JSON.
 
 | File in `spike/extension/` | What |
 |---|---|
@@ -245,46 +183,24 @@ results" copies every result of the tab as JSON.
   - `GET …/chat_conversations/<id>?tree=True&rendering_mode=messages&render_all_tools=true`;
   - `PUT …/chat_conversations/<id>` with `{"name": "zbtest/…"}`.
 
-  Any other request is refused before it is sent. Reads and renaming only: it never sends
-  a message and never deletes.
-- **No host permission needed.** Chrome makes content-script requests "on behalf of the
-  web origin that the content script has been injected into", under that page's
-  same-origin policy
-  ([Chrome docs](https://developer.chrome.com/docs/extensions/develop/concepts/network-requests)).
-  The browser attaches the login cookie by itself; the code never reads it.
-- No cookies, no web storage, no IndexedDB, no `innerHTML`, no keyboard or input
-  listeners. In P8 the fork point is set with − and + buttons, so nothing is typed into
-  the panel.
-- **Write probes** (P1 to P4, P8) run only on a new empty chat, on a chat whose title
-  starts with `zbtest/`, or on a chat the tab saw being started from a new chat. The last
-  case is needed for P4 (rename before the first reply ends) and to turn a new chat into
-  a P8 root. It lasts until the page reloads.
-- **Read-only probes** (P5 to P7) run anywhere and say "read-only, nothing is changed".
-  Their results hold counts and structure, never message text. P5 shows only `zbtest/`
-  titles, and from 0.0.5 the start of their `summary` field.
-- **Renames** go only to `zbtest/…` names, after a confirm dialog with the old and the new
-  title. `claude-api.js` enforces the prefix too.
-- **Unexpected answers** become a clear error: the status and the first 200 characters for
-  an HTTP error; for an answer of the wrong shape, only its keys and types, so no message
-  text leaks into a result.
+  Any other request is refused before it is sent. Reads and renaming only: it never sends a message and never deletes.
+- **No host permission needed.** Chrome makes content-script requests "on behalf of the web origin that the content script has been injected into", under that page's same-origin policy ([Chrome docs](https://developer.chrome.com/docs/extensions/develop/concepts/network-requests)). The browser attaches the login cookie by itself; the code never reads it.
+- No cookies, no web storage, no IndexedDB, no `innerHTML`, no keyboard or input listeners. In P8 the fork point is set with − and + buttons, so nothing is typed into the panel.
+- **Write probes** (P1 to P4, P8) run only on a new empty chat, on a chat whose title starts with `zbtest/`, or on a chat the tab saw being started from a new chat. The last case is needed for P4 (rename before the first reply ends) and to turn a new chat into a P8 root. It lasts until the page reloads.
+- **Read-only probes** (P5 to P7) run anywhere and say "read-only, nothing is changed". Their results hold counts and structure, never message text. P5 shows only `zbtest/` titles, and from 0.0.5 the start of their `summary` field.
+- **Renames** go only to `zbtest/…` names, after a confirm dialog with the old and the new title. `claude-api.js` enforces the prefix too.
+- **Unexpected answers** become a clear error: the status and the first 200 characters for an HTTP error; for an answer of the wrong shape, only its keys and types, so no message text leaks into a result.
 
 ### Offline tests
 
-`npm run test:probes` (`spike/probe-test.mjs`) runs headless Chromium with the extension
-against a fake claude.ai (`spike/fixtures/chat-app/`, `spike/fixtures/fake-claude.mjs`),
-answered from memory at claude.ai addresses. Every request is answered locally or
-aborted, and the run fails if one escapes. The fake has:
+`npm run test:probes` (`spike/probe-test.mjs`) runs headless Chromium with the extension against a fake claude.ai (`spike/fixtures/chat-app/`, `spike/fixtures/fake-claude.mjs`), answered from memory at claude.ai addresses. Every request is answered locally or aborted, and the run fails if one escapes. The fake has:
 
-- a message box that enables Send when it holds text, and turns long pastes into an
-  attachment chip;
+- a message box that enables Send when it holds text, and turns long pastes into an attachment chip;
 - a New chat link that changes the address without a reload, and a sidebar;
-- private chats with secret text, 118 more to force paging, and a 60-message chat that
-  shows only its last 30 messages;
+- private chats with secret text, 118 more to force paging, and a 60-message chat that shows only its last 30 messages;
 - a small `zbtest` tree with an edited message and a real branch.
 
-Result on 2026-10-13: **56 of 56 checks pass.** 86 requests, none escaped. The extension
-made 59 GET and 3 PUT calls, all of the four allowed kinds, and every rename went to a
-`zbtest/` name. Version 0.0.3: **59 of 59**, 88 requests, 60 GET and 4 PUT.
+Result on 2026-10-13: **56 of 56 checks pass.** 86 requests, none escaped. The extension made 59 GET and 3 PUT calls, all of the four allowed kinds, and every rename went to a `zbtest/` name. Version 0.0.3: **59 of 59**, 88 requests, 60 GET and 4 PUT.
 
 | Probe | Checked offline |
 |---|---|
@@ -299,17 +215,13 @@ made 59 GET and 3 PUT calls, all of the four allowed kinds, and every rename wen
 | P8 | Next address `1b`: `1a` exists, and `1a1` and `10` are not children of `1`. Header, transcript and escaping of `<zb-` are right; the old version of an edited message is left out. "From my own message" works; a fork point of the wrong kind is refused. Open and insert, summary check and rename work. A branch parent is flattened. A new chat becomes root `12`. |
 | Copy results | The test denies clipboard writes, so the panel shows the JSON instead. The whole log holds no private text. |
 
-Not tested offline: the real clipboard copy. Headless Chrome might share the macOS
-clipboard, so the test denies it.
+Not tested offline: the real clipboard copy. Headless Chrome might share the macOS clipboard, so the test denies it.
 
-The fake app imitates claude.ai from the saved share page and from public notes. It tests
-the code, not claude.ai.
+The fake app imitates claude.ai from the saved share page and from public notes. It tests the code, not claude.ai.
 
 ### Audit
 
-`npm run audit` (`spike/audit.mjs`): **12 of 12 checks pass** on 2026-10-13. Comments are
-ignored. A copy with six planted violations fails six checks, as it should. The audit
-also prints a plain `grep` for each check.
+`npm run audit` (`spike/audit.mjs`): **12 of 12 checks pass** on 2026-10-13. Comments are ignored. A copy with six planted violations fails six checks, as it should. The audit also prints a plain `grep` for each check.
 
 | Check | Result |
 |---|---|
@@ -338,11 +250,7 @@ also prints a plain `grep` for each check.
 | Reached the model | yes: Claude replied with line 3, exactly | yes, the same |
 | Renamed after the check | `zbtest/p2-20k · zbtest filler for P2` | `zbtest/p2-100k · zbtest filler for P2` |
 
-So a single `execCommand('insertText')` call keeps even 100,000 characters (about 25,000
-tokens) as inline text, and the model sees all of it. claude.ai's conversion into a
-"Pasted" attachment belongs to its paste handler, which the extension never triggers.
-The three-part insert ("Header + transcript") is not needed and was not run. Above
-100,000 characters is untested.
+So a single `execCommand('insertText')` call keeps even 100,000 characters (about 25,000 tokens) as inline text, and the model sees all of it. claude.ai's conversion into a "Pasted" attachment belongs to its paste handler, which the extension never triggers. The three-part insert ("Header + transcript") is not needed and was not run. Above 100,000 characters is untested.
 
 ## Fourth probe session: P8's check, P6, P7
 
@@ -357,10 +265,7 @@ The three-part insert ("Header + transcript") is not needed and was not run. Abo
 | Summary | first, right format and parent, 2 sentences, accurate | first, right format and parent, but about nothing: "The parent conversation had no exchanges before this fork point, since the transcript was copied up to message 0." |
 | Rest of the reply | nothing (no message followed, as instructed) | an answer to the pre-filled message |
 
-So the prompt works, and Claude did not re-answer the transcript. One flaw: a branch from
-a chat's first message has nothing to summarise. Fixed in 0.0.6 (spike 4b87d1f): such a
-branch asks for no summary, and the check expects none; the text is in
-[forking__prompt](../../forking__prompt.md#instructions). Tested offline only.
+So the prompt works, and Claude did not re-answer the transcript. One flaw: a branch from a chat's first message has nothing to summarise. Fixed in 0.0.6 (spike 4b87d1f): such a branch asks for no summary, and the check expects none; the text is in [forking__prompt](../../forking__prompt.md#instructions). Tested offline only.
 
 **P6 · Page versus API**, on one of Pascal's own long chats (counts only):
 
@@ -372,62 +277,36 @@ branch asks for no summary, and the check expects none; the text is in
 | Pasted text attachments | 2. Their text is in the API (`extracted_content`, 7,039 and 4,547 characters); on the page only when the row is drawn (one was, one was not) |
 | Files | images, a document, a "blob", in 9 user messages: files, not text |
 
-So the page is a virtualized list. Each row is a `[data-testid="transcript-row"]` with
-`data-index` (its position in the conversation) and `data-perf-row` (`human` or
-`assistant`), inside `[data-testid="transcript-sizer"]`. Extraction reads the API, as
-decided; the page is the fallback, and its rows say which messages it holds.
+So the page is a virtualized list. Each row is a `[data-testid="transcript-row"]` with `data-index` (its position in the conversation) and `data-perf-row` (`human` or `assistant`), inside `[data-testid="transcript-sizer"]`. Extraction reads the API, as decided; the page is the fallback, and its rows say which messages it holds.
 
-One gap in the page reading: the user message holding a pasted attachment (row 65) has a
-`human` row but no `[data-testid="user-message"]`, so the extractor missed it. With the
-API it does not matter; for the page fallback, the rows' `data-perf-row` is a better
-role marker.
+One gap in the page reading: the user message holding a pasted attachment (row 65) has a `human` row but no `[data-testid="user-message"]`, so the extractor missed it. With the API it does not matter; for the page fallback, the rows' `data-perf-row` is a better role marker.
 
 **P7 · Extraction on a real chat page** (English UI):
 
-- User turns `[data-testid="user-message"]`, Claude's `.font-claude-response`, as on the
-  share page. `[data-testid="assistant-message"]` matches the same 7: a test id, a better
-  choice than a class name.
+- User turns `[data-testid="user-message"]`, Claude's `.font-claude-response`, as on the share page. `[data-testid="assistant-message"]` matches the same 7: a test id, a better choice than a class name.
 - All lookups matched: message box, Send, New chat link, sidebar entries.
 - No code block, table or math among the drawn messages: still untested on a chat page.
 - The page's root carries `data-frame-mode="cowork"`: the merged layout.
 - French UI not run: the selectors are attributes and class names, never visible text.
 
-**P5:** the sidebar now shows all four `zbtest/` titles. The `summary` field needs 0.0.5
-or later.
+**P5:** the sidebar now shows all four `zbtest/` titles. The `summary` field needs 0.0.5 or later.
 
-**P2:** refused four times, nothing changed: the buttons were clicked on the P6/P7 chat,
-not a new one. Version 0.0.6 opens the new chat itself.
+**P2:** refused four times, nothing changed: the buttons were clicked on the P6/P7 chat, not a new one. Version 0.0.6 opens the new chat itself.
 
 ## Third probe session: P8, P3, P5
 
-2026-10-13, by Pascal, spike 0.0.4. The copied results hold only P3 and P5: the P8
-results were gone from the panel (a reload or "Clear" in between). What happened in P8
-comes from Pascal's notes, the screenshots, and P5.
+2026-10-13, by Pascal, spike 0.0.4. The copied results hold only P3 and P5: the P8 results were gone from the panel (a reload or "Clear" in between). What happened in P8 comes from Pascal's notes, the screenshots, and P5.
 
-**P4, after a reload:** Chrome's sidebar now shows `zbtest/1 · P4 early` and
-`zbtest/2 · …`. So the open tab only kept old titles in its own memory; the server had
-the new ones.
+**P4, after a reload:** Chrome's sidebar now shows `zbtest/1 · P4 early` and `zbtest/2 · …`. So the open tab only kept old titles in its own memory; the server had the new ones.
 
-**P8 · Branch prompt** (from `zbtest/2`, one branch from Claude's reply, one from
-Pascal's own message):
+**P8 · Branch prompt** (from `zbtest/2`, one branch from Claude's reply, one from Pascal's own message):
 
-- The preview was right: `Zettelbranch · zbtest/2a`, `Path: zbtest/2 › 2a`,
-  `Forked from: zbtest/2 · Renaming chat conversations, after message 2 (Claude): "Got
-  it: this chat now has a first exchange, so claude.ai…"`, then the transcript in
-  `<zb-turn>` tags.
+- The preview was right: `Zettelbranch · zbtest/2a`, `Path: zbtest/2 › 2a`, `Forked from: zbtest/2 · Renaming chat conversations, after message 2 (Claude): "Got it: this chat now has a first exchange, so claude.ai…"`, then the transcript in `<zb-turn>` tags.
 - Both branches opened in a new chat with the prompt in the box; Pascal sent them.
-- Both renames worked: the API list and the phone show `zbtest/2a · Testing automatic
-  chat title generation` and `zbtest/2b · Automatic chat title generation`, each with
-  claude.ai's automatic title as its topic.
-- **Pascal thought "Rename branch" had failed**: Chrome's sidebar kept 2b's automatic
-  title. It showed 2a's new title, probably because creating chat 2b made the page reload
-  its list. Evidence for Milestone 1: an API rename that the open tab does not show looks
-  like a failure to the user.
-- Still open: whether Claude followed the prompt (the summary at the start of its reply,
-  no re-answering of the transcript). "Check summary" in each branch tells, and works
-  after a reload.
-- Steps 1 and 2 show no output: step 1 is opening the chat, step 2 only changes the
-  "Branch point" line.
+- Both renames worked: the API list and the phone show `zbtest/2a · Testing automatic chat title generation` and `zbtest/2b · Automatic chat title generation`, each with claude.ai's automatic title as its topic.
+- **Pascal thought "Rename branch" had failed**: Chrome's sidebar kept 2b's automatic title. It showed 2a's new title, probably because creating chat 2b made the page reload its list. Evidence for Milestone 1: an API rename that the open tab does not show looks like a failure to the user.
+- Still open: whether Claude followed the prompt (the summary at the start of its reply, no re-answering of the transcript). "Check summary" in each branch tells, and works after a reload.
+- Steps 1 and 2 show no output: step 1 is opening the chat, step 2 only changes the "Branch point" line.
 
 **P3 · New chat without reload: passed.**
 
@@ -438,8 +317,7 @@ Pascal's own message):
 | Page load | none: same document, and the content script's variable survived |
 | Insertion in the new chat | the marker, exact (116 characters); Send enabled |
 
-So the handoff of DA-D1 works as decided: the prompt reaches the new chat in the
-extension's memory, with no storage.
+So the handoff of DA-D1 works as decided: the prompt reaches the new chat in the extension's memory, with no storage.
 
 **P5, again:**
 
@@ -452,15 +330,11 @@ extension's memory, with no storage.
 | Projects, Code or Cowork sessions | none: no `project_uuid`, `session_id` or `workspace_session_id` |
 | `summary` | filled for 49 of 67 conversations |
 
-So, on this account, the list holds chats (and one voice conversation), not Cowork or
-Code sessions. claude.ai keeps a summary for most chats; if it is good, it could feed the
-banner's one-line summaries of other branches. Version 0.0.5 shows it for `zbtest/`
-chats only (spike cf143d4).
+So, on this account, the list holds chats (and one voice conversation), not Cowork or Code sessions. claude.ai keeps a summary for most chats; if it is good, it could feed the banner's one-line summaries of other branches. Version 0.0.5 shows it for `zbtest/` chats only (spike cf143d4).
 
 ## Second probe session: P4
 
-2026-10-13, by Pascal, spike 0.0.3. Two new chats; the panel renamed each one through
-the API after a confirm dialog.
+2026-10-13, by Pascal, spike 0.0.3. Two new chats; the panel renamed each one through the API after a confirm dialog.
 
 | | Chat A: renamed at once | Chat B: renamed after the automatic title |
 |---|---|---|
@@ -474,37 +348,20 @@ the API after a confirm dialog.
 
 What it shows:
 
-- **Renaming through the API works**, before and after the automatic title. The PUT
-  answers with the whole conversation (`uuid`, `name`, `summary`, `model`, `settings`,
-  `platform`, `current_leaf_message_uuid`, `chat_messages`…), the new `name` included.
-- **The early rename survived the automatic title** on the server: the phone shows
-  `zbtest/1 · P4 early`, although claude.ai generated a title for chat A after the
-  rename ("Renaming chat immediately after fi…").
-- **The address survives truncation:** the phone cuts titles at about 20 characters, and
-  `zbtest/2` stays readable. This supports the address-first format (AD-1).
-- **The open tab does not learn about the rename.** Chrome's sidebar kept the old titles,
-  and showed chat A's automatic title. The tab had not been reloaded (the panel still
-  held both results). After a reload, the sidebar showed the new titles (third
-  session): it was only the page's own memory.
+- **Renaming through the API works**, before and after the automatic title. The PUT answers with the whole conversation (`uuid`, `name`, `summary`, `model`, `settings`, `platform`, `current_leaf_message_uuid`, `chat_messages`…), the new `name` included.
+- **The early rename survived the automatic title** on the server: the phone shows `zbtest/1 · P4 early`, although claude.ai generated a title for chat A after the rename ("Renaming chat immediately after fi…").
+- **The address survives truncation:** the phone cuts titles at about 20 characters, and `zbtest/2` stays readable. This supports the address-first format (AD-1).
+- **The open tab does not learn about the rename.** Chrome's sidebar kept the old titles, and showed chat A's automatic title. The tab had not been reloaded (the panel still held both results). After a reload, the sidebar showed the new titles (third session): it was only the page's own memory.
 
-For the extension: after a rename, the user's open tab shows the old title until it
-reloads. To decide in Milestone 1: rename through claude.ai's own
-menu (the page knows at once, but it means driving the UI), or rename through the API
-and tell the user, or reload the sidebar's data some other way.
+For the extension: after a rename, the user's open tab shows the old title until it reloads. To decide in Milestone 1: rename through claude.ai's own menu (the page knows at once, but it means driving the UI), or rename through the API and tell the user, or reload the sidebar's data some other way.
 
-**The P8 panel was unclear** (Pascal): five buttons in one row, no order, and "Make it a
-tree root" offered for chat B, which is already the root `zbtest/2`. Version 0.0.4 shows
-P4 and P8 as numbered steps, each with its own buttons, and says what the branch point
-is. Spike 1ef38f7.
+**The P8 panel was unclear** (Pascal): five buttons in one row, no order, and "Make it a tree root" offered for chat B, which is already the root `zbtest/2`. Version 0.0.4 shows P4 and P8 as numbered steps, each with its own buttons, and says what the branch point is. Spike 1ef38f7.
 
-**Results and reloads:** the panel keeps results in memory only (no storage, by rule),
-so a reload empties it. P4's step 4 needs a reload, so 0.0.4 says to copy the results
-first, and the status line repeats it after each result.
+**Results and reloads:** the panel keeps results in memory only (no storage, by rule), so a reload empties it. P4's step 4 needs a reload, so 0.0.4 says to copy the results first, and the status line repeats it after each result.
 
 ## First probe session: P5 and P1
 
-2026-10-13, by Pascal, in the Chrome profile "Zettelbranch test", spike 0.0.2. No bot
-check, no error. The panel showed with its styles, and "Copy results" worked.
+2026-10-13, by Pascal, in the Chrome profile "Zettelbranch test", spike 0.0.2. No bot check, no error. The panel showed with its styles, and "Copy results" worked.
 
 ### P5 · Conversation list (read-only)
 
@@ -515,30 +372,17 @@ check, no error. The panel showed with its styles, and "Copy results" worked.
 | Sidebar | 14 chat entries (`[data-testid="sidebar-recents"] a[href*="/chat/"]`). So the sidebar alone misses most of the tree: the registry reads the API list. |
 | `zbtest/` chats | 0, as expected before any test chat. |
 
-Fields of a list item: `created_at`, `current_leaf_message_uuid`,
-`effective_thinking_mode`, `has_assistant_outputs`, `is_archived`, `is_multiplayer`,
-`is_starred`, `is_temporary`, `is_wiggle_enabled`, `last_read_at`, `last_settled_at`,
-`latest_assistant_output_at`, `latest_assistant_output_kind`, `live_status`,
-`live_status_started_at`, `local_project_id`, `model`, `name`, `needs_input`,
-`needs_input_kind`, `platform`, `project`, `project_uuid`, `session_id`, `settings`,
-`summary`, `updated_at`, `user_uuid`, `uuid`, `workspace_session_id`,
-`workspace_upgraded`.
+Fields of a list item: `created_at`, `current_leaf_message_uuid`, `effective_thinking_mode`, `has_assistant_outputs`, `is_archived`, `is_multiplayer`, `is_starred`, `is_temporary`, `is_wiggle_enabled`, `last_read_at`, `last_settled_at`, `latest_assistant_output_at`, `latest_assistant_output_kind`, `live_status`, `live_status_started_at`, `local_project_id`, `model`, `name`, `needs_input`, `needs_input_kind`, `platform`, `project`, `project_uuid`, `session_id`, `settings`, `summary`, `updated_at`, `user_uuid`, `uuid`, `workspace_session_id`, `workspace_upgraded`.
 
 Worth knowing for Milestone 1:
 
-- `current_leaf_message_uuid`: the end of the branch the user is on, so the path to copy
-  can be read without guessing.
-- `platform`, `session_id`, `workspace_session_id`, `local_project_id`: the list may mix
-  ordinary chats with Cowork or Code sessions. Version 0.0.3 counts the values of these
-  fields (never free text), so the next P5 run shows the mix.
-- `summary`: a summary field exists. Whether claude.ai fills it, and for which chats, is
-  open; 0.0.3 counts how many are non-empty.
+- `current_leaf_message_uuid`: the end of the branch the user is on, so the path to copy can be read without guessing.
+- `platform`, `session_id`, `workspace_session_id`, `local_project_id`: the list may mix ordinary chats with Cowork or Code sessions. Version 0.0.3 counts the values of these fields (never free text), so the next P5 run shows the mix.
+- `summary`: a summary field exists. Whether claude.ai fills it, and for which chats, is open; 0.0.3 counts how many are non-empty.
 
 ### P1 · Insert text
 
-Inserted in a new chat with `execCommand('insertText')`, in one call (8 ms). The sample
-holds a header, a nested list and a fenced Python block with indentation: 199
-characters, 15 line breaks.
+Inserted in a new chat with `execCommand('insertText')`, in one call (8 ms). The sample holds a header, a nested list and a fenced Python block with indentation: 199 characters, 15 line breaks.
 
 | Measure | Result |
 |---|---|
@@ -549,20 +393,13 @@ characters, 15 line breaks.
 | Sent message (read back through the API) | **Identical** to the sample: line breaks, the 4 indented lines, both fences and the 3 list lines all kept. No attachment, no file. |
 | How it shows | claude.ai renders the sent message's code block as a code block; the list lines stay plain lines. |
 
-So the core of forking works on the real page for short text. The synthetic paste is
-not needed: "Try paste instead" was not run and stays only as a fallback. Long text is
-P2's question.
+So the core of forking works on the real page for short text. The synthetic paste is not needed: "Try paste instead" was not run and stays only as a fallback. Long text is P2's question.
 
-**Found:** P1's chat kept claude.ai's automatic title, so it was outside the `zbtest`
-tree (the panel did not rename it). Pascal deletes it by hand. Fixed in 0.0.3: P1's and
-P2's checks then offer to rename the chat to `zbtest/p1 · <automatic title>` or
-`zbtest/p2-<size> · …`, after the usual dialog. These names are not addresses, so the
-tree probes ignore them. Spike a2302f6.
+**Found:** P1's chat kept claude.ai's automatic title, so it was outside the `zbtest` tree (the panel did not rename it). Pascal deletes it by hand. Fixed in 0.0.3: P1's and P2's checks then offer to rename the chat to `zbtest/p1 · <automatic title>` or `zbtest/p2-<size> · …`, after the usual dialog. These names are not addresses, so the tree probes ignore them. Spike a2302f6.
 
 ### Left open at the close
 
-- **claude.ai's `summary` field:** what it holds. Not looked at (it needs a `zbtest/`
-  chat and P5 in 0.0.5 or later).
+- **claude.ai's `summary` field:** what it holds. Not looked at (it needs a `zbtest/` chat and P5 in 0.0.5 or later).
 - **Page title:** its format; P4 "Read title" was not run.
 - **An attachment made by a paste:** never seen, since no insertion became one.
 
@@ -586,5 +423,4 @@ tree probes ignore them. Spike a2302f6.
 | `spike/out/probe-test/panel.png` | The panel as the headless browser showed it |
 | `spike/out/probe-test/report.json`, `results-log.json` | Test checks, the extension's API calls, the panel's results log |
 
-`spike/out/` is ignored by git. Files there may hold account details from the saved page,
-so they stay local.
+`spike/out/` is ignored by git. Files there may hold account details from the saved page, so they stay local.

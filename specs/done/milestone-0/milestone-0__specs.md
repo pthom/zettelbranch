@@ -1,51 +1,29 @@
 # Milestone 0 spike
 
-A short spike before Milestone 1, to settle the unknowns that can change the design.
-Decided (ZB-2 = A). Context:
-[zettelbranch__findings](../first-review/zettelbranch__findings.md#milestone-order).
+A short spike before Milestone 1, to settle the unknowns that can change the design. Decided (ZB-2 = A). Context: [zettelbranch__findings](../first-review/zettelbranch__findings.md#milestone-order).
 
-Throwaway code in `spike/`, never shipped. Results go to
-[milestone-0__findings](milestone-0__findings.md), and each *(to verify)* tag in the vault
-is updated.
+Throwaway code in `spike/`, never shipped. Results go to [milestone-0__findings](milestone-0__findings.md), and each *(to verify)* tag in the vault is updated.
 
 ## No automation on claude.ai
 
-No script or automated browser touches claude.ai, not even for one page load: the
-Consumer Terms forbid it, and Anthropic support did not clear automated tests
-([terms__findings](../../terms__findings.md)). So:
+No script or automated browser touches claude.ai, not even for one page load: the Consumer Terms forbid it, and Anthropic support did not clear automated tests ([terms__findings](../../terms__findings.md)). So:
 
-- **Offline work** (Claude, in the background): the spike's code runs on pages Pascal
-  saved by hand, in a headless browser that serves the saved files with every network
-  request blocked.
-- **Real-page probes** (Pascal): the spike extension adds a small panel with one button
-  per probe. Pascal clicks, the panel shows the result and a "Copy results" button, and
-  he pastes the result into `spike/out/` or into the chat.
+- **Offline work** (Claude, in the background): the spike's code runs on pages Pascal saved by hand, in a headless browser that serves the saved files with every network request blocked.
+- **Real-page probes** (Pascal): the spike extension adds a small panel with one button per probe. Pascal clicks, the panel shows the result and a "Copy results" button, and he pastes the result into `spike/out/` or into the chat.
 
-The probes run in the extension's **content script**, as the real extension will. It
-lives in an isolated world: it cannot see page-side JavaScript objects such as the
-editor's internals. Testing from the page's own world would prove the wrong thing.
+The probes run in the extension's **content script**, as the real extension will. It lives in an isolated world: it cannot see page-side JavaScript objects such as the editor's internals. Testing from the page's own world would prove the wrong thing.
 
 ## Done
 
-Every probe, P0 to P8, on 2026-10-13: results in
-[milestone-0__findings](milestone-0__findings.md). Not run: P1's paste fallback and P2's
-three-part insert (not needed, since one `execCommand` call works), P7 in French (the
-selectors use no visible text), and a look at claude.ai's own `summary` field.
+Every probe, P0 to P8, on 2026-10-13: results in [milestone-0__findings](milestone-0__findings.md). Not run: P1's paste fallback and P2's three-part insert (not needed, since one `execCommand` call works), P7 in French (the selectors use no visible text), and a look at claude.ai's own `summary` field.
 
 ## Running the probes (Pascal)
 
-Everything happens on your clicks, in the "Zettelbranch test" profile. The panel never
-sends a message: you press Send yourself.
+Everything happens on your clicks, in the "Zettelbranch test" profile. The panel never sends a message: you press Send yourself.
 
-1. **Reload the extension.** Open `chrome://extensions`, find "Zettelbranch spike
-   (Milestone 0 probes)" and click its ⟳ button. The first time: turn on Developer mode,
-   click "Load unpacked", pick `spike/extension/`.
-2. **Open claude.ai** in the test profile. A small "ZB probes" button sits at the bottom
-   right. Click it to open the panel; "Hide" folds it away.
-3. **Run the probes in the panel's order.** Each section says what to do; P4 and P8 as
-   numbered steps. Stay in the same tab and do not reload between a probe and its check:
-   the panel keeps what it inserted, and its results, only in memory. Before any reload,
-   click "Copy results" and paste them to Claude.
+1. **Reload the extension.** Open `chrome://extensions`, find "Zettelbranch spike (Milestone 0 probes)" and click its ⟳ button. The first time: turn on Developer mode, click "Load unpacked", pick `spike/extension/`.
+2. **Open claude.ai** in the test profile. A small "ZB probes" button sits at the bottom right. Click it to open the panel; "Hide" folds it away.
+3. **Run the probes in the panel's order.** Each section says what to do; P4 and P8 as numbered steps. Stay in the same tab and do not reload between a probe and its check: the panel keeps what it inserted, and its results, only in memory. Before any reload, click "Copy results" and paste them to Claude.
 
 | Probe | What you do | New chats | Messages you send |
 |---|---|---|---|
@@ -54,30 +32,20 @@ sends a message: you press Send yourself.
 
 2 new chats and 2 sent messages, plus Claude's replies.
 
-4. **Naming.** Test chats get titles that start with `zbtest/`. The panel renames only
-   after a dialog that shows the old and the new title: read it, then click OK. The
-   probes that type or rename (P1 to P4, P8) refuse to run on any other chat. A chat you
-   start from New chat counts as a test chat until you reload, so it must join the test
-   tree before that: P1's and P2's checks offer it, as do P4 "Rename now" and P8 "Make
-   it a tree root".
-5. **Read-only probes** (P5, P6, P7) work on any chat and change nothing. They show
-   counts, never message text, and only `zbtest/` titles.
-6. **At the end,** click "Copy results" and paste them to Claude. If the copy fails, the
-   panel shows the text; select it and copy it by hand.
+4. **Naming.** Test chats get titles that start with `zbtest/`. The panel renames only after a dialog that shows the old and the new title: read it, then click OK. The probes that type or rename (P1 to P4, P8) refuse to run on any other chat. A chat you start from New chat counts as a test chat until you reload, so it must join the test tree before that: P1's and P2's checks offer it, as do P4 "Rename now" and P8 "Make it a tree root".
+5. **Read-only probes** (P5, P6, P7) work on any chat and change nothing. They show counts, never message text, and only `zbtest/` titles.
+6. **At the end,** click "Copy results" and paste them to Claude. If the copy fails, the panel shows the text; select it and copy it by hand.
 7. **Clean up:** delete every `zbtest/` chat (in the sidebar, the chat's ⋯ menu, Delete).
 
 If a bot check or an error from claude.ai appears, stop and tell Claude.
 
 ## Budget
 
-- Left after the third session: 2 conversations and 2 sent messages (P2's long texts),
-  all `zbtest/` chats.
-- Each session of probes is logged in [milestone-0__findings](milestone-0__findings.md):
-  date, what ran, conversations created.
+- Left after the third session: 2 conversations and 2 sent messages (P2's long texts), all `zbtest/` chats.
+- Each session of probes is logged in [milestone-0__findings](milestone-0__findings.md): date, what ran, conversations created.
 - Pascal deletes the `zbtest/` chats after each probe session.
 
 ## Out of scope
 
 - Firefox. One insertion check there, at the start of Milestone 1.
-- Any polished code: `spike/` is deleted when Milestone 1 starts. It stays in git
-  history for transparency.
+- Any polished code: `spike/` is deleted when Milestone 1 starts. It stays in git history for transparency.
