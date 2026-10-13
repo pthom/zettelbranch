@@ -70,11 +70,18 @@
 
   // ---------------------------------------------------------------- a branch's name
 
-  // The parent's title, from the header's third line: "Forked from: <title>, after message 4
-  // (Claude): …" or "…, instead of message 3 (me): …". '' if the line is not there.
-  function parseParentTitle(text) {
-    const m = /^Forked from: (.*?), (?:after|instead of) message \d+ \((?:Claude|me)\): "/.exec(String(text).split('\n')[2] || '');
-    return m ? m[1] : '';
+  // Where a branch comes from, from its header: { parentTitle, parent, how, n }, for example
+  // { parent: 'zbtest/1', how: 'after', n: 4 }. The parent's address from the "Path:" line,
+  // else from the parent's title in the "Forked from:" line. Null if that line is not there.
+  function parseForkedFrom(text) {
+    const lines = String(text).split('\n');
+    const m = /^Forked from: (.*?), (after|instead of) message (\d+) \((?:Claude|me)\): "/.exec(lines[2] || '');
+    if (!m) return null;
+    const path = /^Path: ([a-z0-9-]+)\/(.+)$/.exec(lines[1] || '');
+    const addrs = path ? path[2].split(' › ') : [];
+    const t = T().parseTitle(m[1]);
+    const parent = addrs.length >= 2 ? `${path[1]}/${addrs[addrs.length - 2]}` : t ? `${t.tree}/${t.address}` : m[1];
+    return { parentTitle: m[1], parent, how: m[2], n: Number(m[3]) };
   }
 
   // The topic of a title that already names this branch, `<tree>/<address> · <topic>` (with
@@ -82,12 +89,6 @@
   function namedTopic(title, head) {
     const t = T().parseTitle(title);
     return t && t.tree === head.tree && t.address === head.address ? t.topic.trim() : '';
-  }
-
-  // Titles compared loosely: without an address prefix, spaces or case.
-  function topicKey(title) {
-    const t = T().parseTitle(title);
-    return String(t ? t.topic : title).normalize('NFC').replace(/\s+/g, ' ').trim().toLowerCase();
   }
 
   // A message's first words, as a topic: at most 6 words and 50 characters, cut at a word.
@@ -116,10 +117,11 @@
 
   // The topic proposed when naming a branch, and where it comes from:
   //   'current'   the branch is named already: its topic, to change it
-  //   'title'     claude.ai's title, unless it is empty or repeats the parent's (claude.ai
-  //               names a chat from its first message, which holds the parent's conversation)
   //   'question'  else the first question asked in the branch: your text after the
   //               instructions in its first message, else your next message
+  //   'title'     else claude.ai's title. It describes the parent more than the branch:
+  //               claude.ai names a chat from its first message, which holds the parent's
+  //               conversation (seen twice on 2026-10-13)
   //   'reply'     else the first words of Claude's first reply
   // title: claude.ai's title; messages: the branch's path [{ n, role, text }]. Null if the
   // chat is not a branch, or if there is nothing to propose yet.
@@ -129,16 +131,15 @@
     if (!head) return null;
     const current = namedTopic(title, head);
     if (current) return { topic: current, from: 'current' };
-    const t = T().parseTitle(title);
-    const own = String(t ? t.topic : title || '').replace(/\s+/g, ' ').trim();
-    const parent = parseParentTitle(first.text);
-    if (own && !(parent && topicKey(own) === topicKey(parent))) return { topic: own, from: 'title' };
     const parsed = parseBranchMessage(first.text);
     const asked = [parsed ? parsed.ownText : '', ...messages.slice(1).filter((m) => m.role === 'user').map((m) => m.text)];
     for (const q of asked) {
       const topic = shortTopic(q);
       if (topic) return { topic, from: 'question' };
     }
+    const t = T().parseTitle(title);
+    const own = String(t ? t.topic : title || '').replace(/\s+/g, ' ').trim();
+    if (own) return { topic: own, from: 'title' };
     const reply = messages.find((m) => m.role === 'assistant');
     const words = reply ? firstWords(reply.text) : '';
     return words ? { topic: words, from: 'reply' } : null;
@@ -228,6 +229,6 @@
 
   global.ZBPrompt = {
     build, parseHeader, parseBranchMessage, stripSummary, parseSummary, quote, plain, escapeZb, unescapeZb,
-    parseParentTitle, namedTopic, shortTopic, firstWords, proposeTopic,
+    parseForkedFrom, namedTopic, shortTopic, firstWords, proposeTopic,
   };
 })(globalThis);

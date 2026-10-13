@@ -12,6 +12,9 @@
 //   - zbtest/3 (thinking, an artifact, tool calls, a pasted text and a photo),
 //     zbtest/4 (over 100,000 characters), and "Oulipo and constraints" (not in a tree).
 //
+// `options.delay` holds every API answer back that many milliseconds (to see reads overlap,
+// and the panel while it reads); each log entry has its arrival and answer times, t0 and t1.
+// `options.branchTitle` is the title claude.ai gives a branch, instead of the parent's topic.
 // `fail` makes the API misbehave on purpose: 'shape' (an answer claude.ai would give if it
 // changed, holding SECRET text) or 'status' (a 500 whose body holds SECRET text).
 import fs from 'node:fs';
@@ -38,7 +41,7 @@ export function createFakeClaude() {
   const convs = new Map();
   const apiLog = [];
   const fail = { conversation: null, list: null, rename: null };
-  const options = { autoTitle: true };
+  const options = { autoTitle: true, delay: 0, branchTitle: null };
 
   function newConv(name) {
     const c = { uuid: uuid(), name, created_at: now(), updated_at: null, messages: [], leaf: null };
@@ -201,7 +204,7 @@ export function createFakeClaude() {
   // branch after the parent (seen on 2026-10-13: "Poème en forme de chat" twice).
   function autoTitle(text) {
     const parent = /^Forked from: (.*?), (?:after|instead of) message/.exec(text.split('\n')[2] || '');
-    if (text.startsWith('Zettelbranch · ')) return parent ? parent[1].replace(/^[a-z0-9-]+\/[0-9a-z]+ · /, '') : 'Auto title of a branch';
+    if (text.startsWith('Zettelbranch · ')) return options.branchTitle || (parent ? parent[1].replace(/^[a-z0-9-]+\/[0-9a-z]+ · /, '') : 'Auto title of a branch');
     return 'Auto: ' + text.replace(/[^A-Za-z0-9 ]+/g, ' ').split(/\s+/).filter(Boolean).slice(0, 4).join(' ');
   }
 
@@ -220,10 +223,12 @@ export function createFakeClaude() {
 
   async function api(route, req, url) {
     const p = url.pathname;
-    const entry = { method: req.method(), path: p.replace(ORG_CHAT, '<org>') + url.search };
+    const entry = { method: req.method(), path: p.replace(ORG_CHAT, '<org>') + url.search, t0: Date.now() };
     apiLog.push(entry);
-    const done = (status, body) => {
+    const done = async (status, body) => {
+      if (options.delay) await new Promise((r) => setTimeout(r, options.delay));
       entry.status = status;
+      entry.t1 = Date.now();
       return json(route, status, body);
     };
     const broken = (what) => {
@@ -240,7 +245,8 @@ export function createFakeClaude() {
     if (!m) return done(404, { type: 'error', error: { type: 'not_found_error', message: 'Not found' } });
     if (m[1] !== ORG_CHAT) return done(403, { type: 'error', error: { type: 'permission_error', message: 'Invalid authorization' } });
     if (m[2] === 'chat_conversations_v2' && req.method() === 'GET') {
-      if (broken('list')) return;
+      const b = broken('list');
+      if (b) return b;
       if (fail.list === 'shape') return done(200, { conversations: [{ title: 'SECRET-PRIVATE-TEXT' }] });
       const limit = Number(url.searchParams.get('limit') || 1000);
       const offset = Number(url.searchParams.get('offset') || 0);
@@ -250,12 +256,14 @@ export function createFakeClaude() {
     const c = convs.get(m[3]);
     if (!c) return done(404, { type: 'error', error: { type: 'not_found_error', message: 'Conversation not found' } });
     if (req.method() === 'GET') {
-      if (broken('conversation')) return;
+      const b = broken('conversation');
+      if (b) return b;
       if (fail.conversation === 'shape') return done(200, { uuid: c.uuid, name: c.name, messages: c.messages.map((x) => ({ text: 'SECRET-PRIVATE-TEXT ' + x.pageText })) });
       return done(200, convJson(c));
     }
     if (req.method() === 'PUT') {
-      if (broken('rename')) return;
+      const b = broken('rename');
+      if (b) return b;
       const body = JSON.parse(req.postData() || '{}');
       entry.name = body.name;
       c.name = body.name;

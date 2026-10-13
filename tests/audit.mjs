@@ -31,8 +31,11 @@ check(`Network calls only in ${NET_FILE}`,
 const fetches = hits(/\bfetch\s*\(/, (f) => f === NET_FILE);
 check(`${NET_FILE} calls fetch in one place, behind its allowed list`, fetches.length === 1 ? [] : fetches.length ? fetches : [{ file: NET_FILE, n: 0, text: 'no fetch call found' }]);
 check('Only GET and PUT', hits(/['"](POST|DELETE|PATCH|HEAD|OPTIONS)['"]/i));
-check('No other host than claude.ai',
-  lines.filter((l) => (l.text.match(/(https?|wss?):\/\/[^\s'"`)]*/g) || []).some((u) => u !== 'https://claude.ai')));
+// SVG's namespace name, for createElementNS (the refresh icon), is a name, never fetched:
+// allowed on that one exact line only.
+const SVG_NS_LINE = "const NS = 'http://www.w3.org/2000/svg';";
+check('No other host than claude.ai (SVG\'s namespace name only on its one line)',
+  lines.filter((l) => l.text.trim() !== SVG_NS_LINE && (l.text.match(/(https?|wss?):\/\/[^\s'"`)]*/g) || []).some((u) => u !== 'https://claude.ai')));
 check('No cookies, no credentials or tokens (requests use credentials: same-origin only)',
   hits(/cookie|sessionKey|Authorization|bearer|credentials:\s*['"](?!same-origin['"])/i));
 check('No storage (web storage, IndexedDB, extension storage, caches)',

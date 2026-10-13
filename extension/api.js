@@ -32,6 +32,7 @@
   const MAX_PAGES = 100;
 
   let orgId = null;
+  let orgRead = null; // the organization being read: two reads at once ask for it once
 
   // kind: 'shape' (claude.ai changed), 'http', 'network', 'refused', 'origin'.
   class ApiError extends Error {
@@ -88,9 +89,9 @@
     if (!cond) throw new ApiError('shape', `unexpected answer: ${what}`, { shape: shapeOf(value).slice(0, 300) });
   }
 
-  // The organization whose capabilities include chat (not simply the first one).
-  async function org() {
-    if (orgId) return orgId;
+  // The organization whose capabilities include chat (not simply the first one). Read once
+  // per page load; kept in memory only.
+  async function readOrg() {
     const orgs = await request('GET', '/api/organizations');
     expect(Array.isArray(orgs) && orgs.length > 0, 'organizations is not a non-empty list', orgs);
     expect(orgs.every((o) => o && typeof o.uuid === 'string'), 'an organization has no uuid', orgs[0]);
@@ -98,6 +99,11 @@
     expect(chat.length > 0, 'no organization has the chat capability', orgs[0]);
     orgId = chat[0].uuid;
     return orgId;
+  }
+  function org() {
+    if (orgId) return Promise.resolve(orgId);
+    if (!orgRead) orgRead = readOrg().finally(() => (orgRead = null));
+    return orgRead;
   }
 
   // Every conversation (uuid and name), through offset paging.

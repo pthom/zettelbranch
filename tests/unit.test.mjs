@@ -172,6 +172,14 @@ describe('api.js', () => {
     assert.equal(calls.filter((c) => c.path === '/api/organizations').length, 1, 'the organization is asked once');
   });
 
+  test('two reads at once ask for the organization once', async () => {
+    const list = { method: 'GET', re: /chat_conversations_v2\?limit=100&offset=0$/, body: { data: [], has_more: false } };
+    const { api, calls } = stubApi([ORGS, convRoute(okConv), list]);
+    await Promise.all([api.getConversation(CONV), api.listConversations()]);
+    assert.equal(calls.filter((c) => c.path === '/api/organizations').length, 1);
+    assert.equal(calls.length, 3);
+  });
+
   test('lists every conversation through paging', async () => {
     let n = 0;
     const page = (p) => {
@@ -547,13 +555,16 @@ describe('prompt.js, the topic proposed for a branch\'s name', () => {
   ];
   const propose = (title, messages) => ({ ...P.proposeTopic(title, messages) });
 
-  test('the parent\'s title, from the header', () => {
-    assert.equal(P.parseParentTitle(header()), 'oulipo/1 · Poème en forme de chat');
-    assert.equal(P.parseParentTitle('Zettelbranch · zb/1a\nPath: zb/1 › 1a\nForked from: zb/1 · A, b, c, instead of message 3 (me): "x"'), 'zb/1 · A, b, c');
-    assert.equal(P.parseParentTitle('Hello'), '');
+  test('where a branch comes from, from its header', () => {
+    assert.deepEqual({ ...P.parseForkedFrom(header()) }, { parentTitle: 'oulipo/1 · Poème en forme de chat', parent: 'oulipo/1', how: 'after', n: 2 });
+    const own = 'Zettelbranch · zb/1a2b\nPath: zb/1 › 1a › 1a2 › 1a2b\nForked from: zb/1a2 · A, b, c, instead of message 3 (me): "x"';
+    assert.deepEqual({ ...P.parseForkedFrom(own) }, { parentTitle: 'zb/1a2 · A, b, c', parent: 'zb/1a2', how: 'instead of', n: 3 });
+    const noPath = 'Zettelbranch · zb/1a\nPath?\nForked from: zb/1 · Root, after message 4 (Claude): "x"';
+    assert.equal(P.parseForkedFrom(noPath).parent, 'zb/1', 'from the parent\'s title');
+    assert.equal(P.parseForkedFrom('Hello'), null);
   });
 
-  test('claude.ai\'s title repeats the parent\'s: the first question in the branch, typed after the instructions', () => {
+  test('a first question in the branch, typed after the instructions, wins over claude.ai\'s title', () => {
     const msgs = branch('Et si le chat parlait aux poissons et aux oiseaux ?');
     const want = { topic: 'Et si le chat parlait aux', from: 'question' };
     for (const title of ['Poème en forme de chat', '  poème en  forme de CHAT ', 'oulipo/1 · Poème en forme de chat', 'oulipo/1 . poème en forme de chat', 'oulipo/1a · Poème en forme de chat']) {
@@ -581,13 +592,16 @@ describe('prompt.js, the topic proposed for a branch\'s name', () => {
     assert.equal(P.shortTopic('  ?! '), '');
   });
 
-  test('claude.ai\'s title kept when it differs from the parent\'s', () => {
-    assert.deepEqual(propose('Poissons et oiseaux', branch('Et les poissons ?')), { topic: 'Poissons et oiseaux', from: 'title' });
-    assert.deepEqual(propose('zbtest/7 · Poissons', branch('Et les poissons ?')), { topic: 'Poissons', from: 'title' }, 'another address: its topic');
+  test('claude.ai\'s title describes the parent even when it differs from the parent\'s title: the question still wins', () => {
+    // Pascal's second real use: oulipo/1a1, named by claude.ai after oulipo/1a's conversation.
+    const msgs = branch('tentons notre chance avec un enfant qui joue au ballon');
+    assert.deepEqual(propose('Poèmes visuels d\'un chat et de deux amoureux', msgs), { topic: 'tentons notre chance avec un enfant', from: 'question' });
   });
 
-  test('nothing else to go on: the first words of Claude\'s reply; nothing at all: null', () => {
-    assert.deepEqual(propose('Poème en forme de chat', branch('')), { topic: 'We wrote a calligram of a cat', from: 'reply' });
+  test('no question: claude.ai\'s title (an address prefix dropped); no title either: Claude\'s reply; nothing: null', () => {
+    assert.deepEqual(propose('Poissons et oiseaux', branch('')), { topic: 'Poissons et oiseaux', from: 'title' });
+    assert.deepEqual(propose('zbtest/7 · Poissons', branch('')), { topic: 'Poissons', from: 'title' }, 'another address: its topic');
+    assert.deepEqual(propose('', branch('')), { topic: 'We wrote a calligram of a cat', from: 'reply' });
     assert.equal(P.proposeTopic('', [{ n: 1, role: 'user', text: header() }]), null);
     assert.equal(P.proposeTopic('Poème en forme de chat', [{ n: 1, role: 'user', text: 'Not a branch' }, ROOT[1]]), null, 'not a branch');
   });

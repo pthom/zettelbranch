@@ -23,6 +23,14 @@
     .panel { box-sizing: border-box; width: 410px; max-width: calc(100vw - 24px); max-height: 80vh; display: flex; flex-direction: column; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 8px 28px rgba(0,0,0,.22); overflow: hidden; }
     .top { display: flex; gap: 6px; align-items: center; padding: 8px 10px; border-bottom: 1px solid var(--line); }
     .top b { flex: 1; font-size: 13.5px; }
+    button.icon { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 26px; padding: 0; color: var(--accent); }
+    button.icon svg { width: 16px; height: 16px; }
+    button.icon[aria-busy="true"] svg { animation: zb-turn .9s linear infinite; }
+    @keyframes zb-turn { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { button.icon[aria-busy="true"] svg { animation: none; opacity: .45; } }
+    .identity { font-weight: 600; }
+    .section { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--line); padding-top: 8px; }
+    .section-head { font-weight: 600; }
     .main, .body { display: flex; flex-direction: column; gap: 8px; }
     .main { overflow: auto; padding: 10px; }
     p { margin: 0; }
@@ -84,14 +92,17 @@
     return b;
   }
 
-  let ui = null; // { wrap, pill, panel, notice, error, info, body }
+  let ui = null; // { wrap, pill, panel, refresh, notice, error, info, body }
   let busy = false;
+  let shown = null; // the chat the panel shows
+  let reading = null; // a read in the background, while the panel shows what was read before
 
   async function act(fn) {
     if (busy) return;
     busy = true;
     ui.wrap.classList.add('busy');
     try {
+      if (reading) await reading; // a click during a background read waits for it
       await fn();
     } catch (e) {
       showError('', B().explain(e));
@@ -112,11 +123,10 @@
     ui.info.hidden = true;
   }
 
-  // After each rename (M1-4). The open tab's title shows the new name after a reload; its
-  // sidebar can lag longer (seen on 2026-10-13, even after Shift+Reload). The phone at once.
+  // After each rename (M1-4). The open tab's sidebar shows the new name after a reload.
   function showRenamed(name) {
     ui.notice.replaceChildren(
-      el('p', { text: `Named ${name}. Your phone shows it now. Here, the title at the top shows it after a reload; the sidebar can take a few minutes more.` }),
+      el('p', { text: `Named ${name}. Reload to see the new name in the sidebar.` }),
       button('Reload now', 'reload', () => location.reload())
     );
     ui.notice.hidden = false;
@@ -139,27 +149,46 @@
 
   // ---------------------------------------------------------------- views
 
-  // opts.cached: right after a rename, the tree from the list already read.
+  // Reads the chat on screen, always the one on screen, and shows it. If this tab read that
+  // chat before, what it read shows at once and the read runs in the background, the refresh
+  // button turning until the panel shows the new read. opts.reuseList: see branch.js read().
   async function refresh(opts) {
-    say('Reading this chat…');
-    const r = await B().read(opts);
+    const before = B().cached();
+    ui.refresh.setAttribute('aria-busy', 'true');
+    if (before) showChat(before);
+    else say('Reading this chat…');
+    const run = B().read(opts).then(showRead).finally(() => {
+      ui.refresh.removeAttribute('aria-busy');
+      reading = null;
+    });
+    if (!before) return run;
+    reading = run.catch((e) => showError('', B().explain(e)));
+  }
+
+  function showRead(r) {
     if (r.steps) return show(el('p', { class: 'muted', 'data-zb': 'status', text: `You opened the branch ${r.steps.address} in a new chat.` }), steps(r.steps));
     if (!r.ok) {
       say(r.text);
       if (r.error) showError('', r.error);
       return;
     }
+    // A message you picked while the panel showed the earlier read stays picked.
+    if (shown && shown.picked && shown.id === r.chat.id) {
+      const n = shown.messages[shown.selected].n;
+      const i = r.chat.messages.findIndex((m) => m.n === n);
+      if (i >= 0) Object.assign(r.chat, { selected: i, picked: true });
+    }
     showChat(r.chat);
   }
 
   function showChat(chat) {
+    shown = chat;
     const parts = [];
-    // A branch still to be named, at the top: also after a reload, when the pill's reminder is gone.
-    if (chat.needsName && chat.source === 'api') {
-      parts.push(el('div', { class: 'box notice', 'data-zb': 'name-box' }, [
-        el('p', { text: `This chat is the branch ${chat.branch.tree}/${chat.branch.address}, not named yet.` }),
-        button('Name this branch', 'name', nameBranch, 'primary'),
-      ]));
+    // What this chat is, at the top. A branch still to be named comes with its button: also
+    // after a reload, when the pill's reminder is gone.
+    if (chat.identity) {
+      const who = el('p', { class: 'identity', 'data-zb': 'identity', text: chat.identity });
+      parts.push(chat.needsName && chat.source === 'api' ? el('div', { class: 'box notice', 'data-zb': 'name-box' }, [who, button('Name this branch', 'name', nameBranch, 'primary')]) : who);
     }
     parts.push(el('p', { class: 'title', 'data-zb': 'chat-title', text: chat.title || '(no title yet)' }));
     if (chat.source === 'page') {
@@ -181,6 +210,7 @@
       ]);
       row.addEventListener('click', () => {
         chat.selected = i;
+        chat.picked = true;
         rows.forEach((r, j) => r.setAttribute('aria-pressed', String(j === i)));
         hint.textContent = hintFor(m);
       });
@@ -190,7 +220,13 @@
     hint.textContent = hintFor(chat.messages[chat.selected]);
     // A branch already named can get another topic.
     const rename = chat.named && chat.source === 'api' ? button('Rename this branch', 'rename', nameBranch) : null;
-    parts.push(el('p', { text: 'Choose where the branch starts:' }), list, hint, el('div', { class: 'row' }, [button('Branch', 'branch', branch, 'primary'), rename]));
+    parts.push(el('div', { class: 'section', 'data-zb': 'branch-section' }, [
+      el('p', { class: 'section-head', 'data-zb': 'branch-head', text: 'New branch from this chat' }),
+      el('p', { text: 'Choose where the branch starts:' }),
+      list,
+      hint,
+      el('div', { class: 'row' }, [button('Branch', 'branch', branch, 'primary'), rename]),
+    ]));
     show(...parts);
     const sel = rows[chat.selected];
     list.scrollTop = sel.offsetTop - list.clientHeight / 2;
@@ -315,11 +351,35 @@
     clearMessages();
     const r = await B().name();
     if (!r.ok) return showFailure(r);
-    await refresh({ cached: true });
+    // What the panel read for this chat, with the new name; else read it (not the list again).
+    if (r.chat) showChat(r.chat);
+    else await refresh({ reuseList: true });
     showRenamed(r.renamed);
   }
 
   // ---------------------------------------------------------------- mount
+
+  // The refresh button: a circular arrow, drawn as SVG elements (no markup from strings).
+  function refreshButton() {
+    const NS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(NS, 'svg');
+    for (const [k, v] of Object.entries({ viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2.2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true', focusable: 'false' })) svg.setAttribute(k, v);
+    for (const d of ['M20.5 14.5A8.6 8.6 0 1 1 18.3 6.1L19.6 7.2', 'M19.6 2.6v4.6h-4.6']) {
+      const path = document.createElementNS(NS, 'path');
+      path.setAttribute('d', d);
+      svg.append(path);
+    }
+    const tip = 'Read this chat and its tree again';
+    const b = el('button', { type: 'button', class: 'icon', 'data-zb': 'refresh', title: tip, 'aria-label': tip }, [svg]);
+    b.addEventListener('click', () => {
+      if (reading) return; // it is reading already
+      act(() => {
+        clearMessages();
+        return refresh();
+      });
+    });
+    return b;
+  }
 
   function mount() {
     if (ui) return;
@@ -343,14 +403,10 @@
     ui.error = el('div', { class: 'box error', 'data-zb': 'error', hidden: '' });
     ui.info = el('p', { class: 'box warn', 'data-zb': 'info', hidden: '' });
     ui.body = el('div', { class: 'body', 'data-zb': 'body' });
-    const top = el('div', { class: 'top' }, [
-      el('b', { text: 'Zettelbranch' }),
-      button('Read again', 'refresh', () => {
-        clearMessages();
-        return refresh();
-      }),
-      button('Hide', 'hide', hide),
-    ]);
+    ui.refresh = refreshButton();
+    const hideButton = el('button', { type: 'button', 'data-zb': 'hide', text: 'Hide' });
+    hideButton.addEventListener('click', hide); // also during a background read
+    const top = el('div', { class: 'top' }, [el('b', { text: 'Zettelbranch' }), ui.refresh, hideButton]);
     ui.panel = el('div', { class: 'panel', 'data-zb': 'panel', hidden: '' }, [top, el('div', { class: 'main' }, [ui.notice, ui.error, ui.info, ui.body])]);
     ui.wrap = el('div', { class: 'wrap' }, [ui.pill, ui.panel]);
     shadow.append(ui.wrap);

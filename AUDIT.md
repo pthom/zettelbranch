@@ -51,10 +51,10 @@ grep -nE 'fetch *\(|XMLHttpRequest|sendBeacon|WebSocket|EventSource|importScript
 grep -niE "['\"](post|delete|patch|head|options)['\"]" extension/*.js | grep -vE '^[^:]+:[0-9]+: *//'
 ```
 
-**4. No other host than claude.ai.**
+**4. No other host than claude.ai.** One line holds another address: SVG's namespace name, `const NS = 'http://www.w3.org/2000/svg';` in `ui.js`, which `createElementNS` needs to draw the refresh icon. It is a name, never fetched; the command lets that exact line through and nothing else.
 
 ```sh
-grep -nE '(https?|wss?)://' extension/*.js | grep -vE '^[^:]+:[0-9]+: *//' | grep -oE "(https?|wss?)://[^ '\"\`)]*" | grep -v '^https://claude.ai$'
+grep -nE '(https?|wss?)://' extension/*.js | grep -vE '^[^:]+:[0-9]+: *//' | grep -vF "const NS = 'http://www.w3.org/2000/svg';" | grep -oE "(https?|wss?)://[^ '\"\`)]*" | grep -v '^https://claude.ai$'
 ```
 
 **5. No cookies, credentials or tokens.** The browser attaches your login to claude.ai's own requests by itself (`credentials: 'same-origin'`); the code never touches it.
