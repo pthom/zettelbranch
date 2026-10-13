@@ -1,13 +1,16 @@
 // Audit of the extension: checks that prove what the code never does. Comments are
-// ignored, so the files may say what they do not do. AUDIT.md lists the same checks as
-// plain grep commands a person can run by hand.
+// ignored, so the files may say what they do not do.
+//   Part 1: the checks, in JavaScript.
+//   Part 2: every `sh` command of AUDIT.md, run as a person would, from the folder that
+//           holds extension/. Each must print nothing.
 //
-//   node audit.mjs [--dir ../extension]
+//   node audit.mjs [--dir ../extension] [--root ..]
 import fs from 'node:fs';
 import path from 'node:path';
-import { args, EXT_DIR } from './lib.mjs';
+import { spawnSync } from 'node:child_process';
+import { args, EXT_DIR, ROOT_DIR } from './lib.mjs';
 
-const opt = args({ dir: EXT_DIR });
+const opt = args({ dir: EXT_DIR, root: ROOT_DIR });
 const NET_FILE = 'api.js';
 const files = fs.readdirSync(opt.dir).filter((f) => f.endsWith('.js')).sort();
 
@@ -44,6 +47,7 @@ check('No watching of the page (no MutationObserver or other observers)', hits(/
 check('Nothing runs on its own: no setInterval or frame callbacks; setTimeout only in the short wait helper',
   [...hits(/setInterval|requestAnimationFrame|requestIdleCallback/), ...hits(/setTimeout/).filter((l) => !/const sleep = \(ms\) => new Promise\(\(r\) => setTimeout\(r, ms\)\);/.test(l.text))]);
 check('No eval or code from strings', hits(/\beval\s*\(|new Function\s*\(|setTimeout\(\s*['"`]|setInterval\(\s*['"`]/));
+check('No hidden calls: no computed property access on global objects', hits(/\b(window|globalThis|self|document|global|location|navigator)\s*\[/));
 check('No extension APIs (no messaging, no background, no extension storage)', hits(/\b(chrome|browser)\.\w/));
 check('No messaging with page scripts or other windows', hits(/postMessage|BroadcastChannel|MessageChannel|dispatchEvent|CustomEvent/));
 check('No clipboard; execCommand only to insert text', [...hits(/clipboard/i), ...hits(/execCommand\(/).filter((l) => !/execCommand\('insertText', false, /.test(l.text))]);
@@ -67,6 +71,15 @@ for (const f of files) if (!listed.includes(f)) m(`${f} is not listed in content
 for (const f of listed) if (!files.includes(f)) m(`${f} is listed but does not exist`);
 check('Manifest: MV3, no permissions, no background, claude.ai only, every file listed', mProblems);
 
+// Part 2: the commands of AUDIT.md.
+const auditMd = fs.readFileSync(path.join(ROOT_DIR, 'AUDIT.md'), 'utf8');
+const commands = [...auditMd.matchAll(/```sh\n([\s\S]*?)```/g)].flatMap((m) => m[1].split('\n').filter((l) => l.trim()));
+for (const cmd of commands) {
+  const r = spawnSync('sh', ['-c', cmd], { cwd: opt.root, encoding: 'utf8' });
+  const out = `${r.stdout}${r.stderr}`.trim();
+  check(`AUDIT.md prints nothing: ${cmd.length > 90 ? cmd.slice(0, 90) + '…' : cmd}`, out ? out.split('\n').map((text) => ({ file: 'output', n: 0, text })) : []);
+}
+
 let failed = 0;
 for (const c of checks) {
   console.log(`${c.pass ? 'PASS' : 'FAIL'}  ${c.name}`);
@@ -75,5 +88,5 @@ for (const c of checks) {
     for (const o of c.offending.slice(0, 10)) console.log(`      ${o.file}:${o.n}: ${o.text.trim().slice(0, 160)}`);
   }
 }
-console.log(`\n${checks.length - failed} of ${checks.length} checks passed (${files.length} files: ${files.join(', ')}).`);
+console.log(`\n${checks.length - failed} of ${checks.length} checks passed: ${checks.length - commands.length} in JavaScript, ${commands.length} AUDIT.md commands (${files.length} files: ${files.join(', ')}).`);
 process.exitCode = failed ? 1 : 0;
