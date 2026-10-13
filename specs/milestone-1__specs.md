@@ -35,7 +35,7 @@ Plain files, no build, no dependencies; what is on GitHub is what runs.
 | File | What |
 |---|---|
 | `extension/manifest.json` | MV3, content script on `https://claude.ai/*`, no permissions; a `gecko.id` for Firefox |
-| `extension/api.js` | the only network file: the four calls, listed at its top, same-origin |
+| `extension/api.js` | the only network file: the five calls (step 6b added claude.ai's fork) and the one page load, listed at its top, same-origin |
 | `extension/tree.js` | addresses by segments, titles, the registry |
 | `extension/conversation.js` | the path, message text and placeholders, from the API; the page fallback |
 | `extension/prompt.js` | the branch prompt, and parsing it back |
@@ -56,7 +56,7 @@ Each step ends with offline tests passing and a commit. Steps 1 to 3 and 5 to 7 
 4. **Fixtures (Pascal, about 10 minutes).** One `zbtest/` chat with a code block, a table, a formula, an edited message and a pasted file; Pascal saves its API answer and the conversation list with the browser's developer tools (step-by-step guide then). Claude keeps only the `zbtest/` entries before committing. *Done: saved by Pascal on 2026-10-13, ids replaced by `tests/scrub-fixture.mjs`, 1 of 64 list entries kept; 5 unit tests on it.*
 5. **Prompt.** `prompt.js`, from the spike, with flattening and the first-message rule. *Done, faeb448.*
 6. **Branch flow and UI.** `branch.js`, `ui.js`: button, message picker, preview, new chat, fill; "Name this branch" with its dialog; the reload notice. *Done, bfd6867.*
-6b. **claude.ai's own fork from the last reply (NF-2 = A).** When the branch point is the conversation's last reply, "Open new chat" asks claude.ai to copy the conversation into a new chat (the action probed in P9), names the copy `<tree>/<address> · <topic>` at once, and opens it (a page load). There the panel opens by itself with "Start the branch": it fills the box with the header, the summary request and room for your question, without a transcript, since the messages are already there. Anywhere else, or if claude.ai's fork fails, today's copy. Details: `specs/native-fork__findings.md`.
+6b. **claude.ai's own fork from the last reply (NF-2 = A).** When the branch point is the conversation's last reply, "Open new chat" asks claude.ai to copy the conversation into a new chat (the action probed in P9), names the copy `<tree>/<address> · <topic>` at once, and opens it (a page load). There the panel opens by itself with "Start the branch": it fills the box with the header, the summary request and room for your question, without a transcript, since the messages are already there. Anywhere else, or if claude.ai's fork fails, today's copy. Details: `specs/native-fork__findings.md`. *Done offline, ba045c4: audit 51/51, unit tests 47/47, end-to-end tests 29/29; build notes in [milestone-1__findings](milestone-1__findings.md#claudeais-own-fork-step-6b). Next: Pascal's check on the real site.*
 7. **Audit.** `AUDIT.md` and its greps; the same checks as the spike's, adapted. *Done, 0c39e64.*
 8. **Real-page checklist (Pascal, by hand, about 15 minutes).** In the Chrome test profile, in `zbtest/` chats: a root, a branch from a reply, a branch from your own message, a branch of a branch, a long chat.
 9. **Firefox.** The same checklist in a separate Firefox profile, the extension loaded from `about:debugging`.
