@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Questions and ideas
+    url: https://github.com/pthom/zettelbranch/discussions
+    about: Ask a question or suggest an idea in the Discussions.
+  - name: A security problem
+    url: https://github.com/pthom/zettelbranch/security/advisories/new
+    about: Report it privately, not in a public issue.

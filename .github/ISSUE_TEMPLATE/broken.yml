@@ -1,0 +1,40 @@
+name: Something broke
+description: Zettelbranch stopped working, or does something wrong (often after a claude.ai update).
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. **Please do not paste your conversations**, their titles or screenshots showing them: describe what happened instead, or use a test chat.
+  - type: input
+    id: version
+    attributes:
+      label: Zettelbranch version
+      description: In `about:addons` (Firefox) or `chrome://extensions` (Chrome).
+      placeholder: "0.1.2"
+    validations:
+      required: true
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser
+      options: [Firefox, Chrome, Other]
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you clicked, what you expected, what you got.
+    validations:
+      required: true
+  - type: textarea
+    id: message
+    attributes:
+      label: The panel's message
+      description: If the Zettelbranch panel showed an error or a note, copy its text here (it holds no conversation text).
+  - type: input
+    id: language
+    attributes:
+      label: claude.ai's interface language
+      placeholder: "English, French…"

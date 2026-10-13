@@ -5,6 +5,7 @@
 //   node make-demo.mjs         ->  ../docs/images/demo.gif (12 frames a second)
 //   node make-demo.mjs --mp4   ->  out/demo/zettelbranch-demo.mp4 (30 frames a second, H.264, for
 //                                  social media; not committed)
+//   node make-demo.mjs --social ->  out/demo/social-preview.png (the repository's link preview)
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -12,6 +13,19 @@ import { chromium } from 'playwright';
 
 const DIR = path.dirname(new URL(import.meta.url).pathname);
 const MP4 = process.argv.includes('--mp4');
+// --social: the repository's link-preview image (1280 x 640), from demo/social.html.
+if (process.argv.includes('--social')) {
+  const out = path.join(DIR, 'out', 'demo', 'social-preview.png');
+  fs.mkdirSync(path.dirname(out), { recursive: true });
+  const b = await chromium.launch({ channel: 'chromium', headless: true });
+  const p = await b.newPage({ viewport: { width: 1280, height: 640 }, deviceScaleFactor: 1 });
+  await p.route('**/*', (r) => (r.request().url().startsWith('file:') ? r.continue() : r.abort()));
+  await p.goto('file://' + path.join(DIR, 'demo', 'social.html'));
+  await p.screenshot({ path: out });
+  await b.close();
+  console.log(`-> ${path.relative(process.cwd(), out)}`);
+  process.exit(0);
+}
 const FPS = MP4 ? 30 : 12;
 const OUT = path.join(DIR, 'out', 'demo', MP4 ? 'render-mp4' : 'render');
 const GIF = path.join(DIR, '..', 'docs', 'images', 'demo.gif');
