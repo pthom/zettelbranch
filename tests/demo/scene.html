@@ -1,0 +1,206 @@
+<!doctype html>
+<!-- The README's demo: Pascal's screenshots of one branch (tests/out/demo/frames, cropped,
+     not committed), with a drawn cursor, clicks, highlights and captions. make-demo.mjs
+     calls render(t) for each frame and takes a screenshot. Offline: nothing is fetched. -->
+<html><head><meta charset="utf-8"><title>Zettelbranch demo</title>
+<style>
+  :root { --ink: #2b2118; --muted: #6b5a4a; --accent: #9a5434; --accent-soft: rgba(201, 100, 66, 0.10); --glow: #d97757; }
+  html, body { margin: 0; width: 880px; height: 1120px; overflow: hidden; }
+  body { background: linear-gradient(160deg, #f6f1e7 0%, #ede4d4 100%); font-family: system-ui, -apple-system, "Helvetica Neue", sans-serif; color: var(--ink); position: relative; }
+
+  /* Caption band */
+  .cap { position: absolute; left: 42px; right: 42px; top: 30px; height: 64px; display: flex; align-items: center; gap: 16px; }
+  .badge { flex: none; width: 42px; height: 42px; border-radius: 50%; background: var(--accent); color: #fff; font: 600 21px/42px system-ui; text-align: center; box-shadow: 0 3px 10px rgba(154, 84, 52, 0.35); }
+  .cap .text { font-size: 22px; font-weight: 600; line-height: 1.25; letter-spacing: -0.01em; }
+
+  /* The window */
+  .win { position: absolute; left: 42px; top: 112px; width: 797px; height: 978px; border-radius: 14px; overflow: hidden; background: #fcfcfb; box-shadow: 0 18px 50px rgba(60, 40, 20, 0.22), 0 2px 6px rgba(60, 40, 20, 0.12); border: 1px solid rgba(60, 40, 20, 0.12); }
+  .bar { height: 28px; background: #efe9df; border-bottom: 1px solid rgba(60, 40, 20, 0.10); display: flex; align-items: center; padding-left: 12px; gap: 7px; }
+  .dot { width: 11px; height: 11px; border-radius: 50%; }
+  .url { margin-left: 18px; font-size: 12px; color: var(--muted); background: #faf7f1; border-radius: 6px; padding: 2px 12px; }
+  .shot { position: absolute; left: 0; top: 28px; width: 797px; height: 950px; }
+  .shot img { position: absolute; left: 0; top: 0; width: 797px; opacity: 0; }
+
+  /* Highlights, cursor, click ripples */
+  .hl { position: absolute; border: 2.5px solid var(--glow); background: var(--accent-soft); border-radius: 10px; opacity: 0; box-shadow: 0 0 0 4px rgba(217, 119, 87, 0.18); }
+  .hl .lab { position: absolute; left: -2px; top: -30px; white-space: nowrap; background: var(--glow); color: #fff; font: 600 13px/1 system-ui; padding: 6px 10px; border-radius: 8px; }
+  .hl.below .lab { top: auto; bottom: -30px; }
+  .ripple { position: absolute; border-radius: 50%; border: 2.5px solid var(--glow); opacity: 0; }
+  .cursor { position: absolute; width: 26px; height: 34px; opacity: 0; transform-origin: 3px 3px; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35)); }
+
+  /* Title card (start and end) */
+  .card { position: absolute; inset: 0; background: linear-gradient(160deg, #f6f1e7 0%, #ece2d0 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; }
+  .card h1 { margin: 0; font: 400 64px/1 Georgia, "Times New Roman", serif; letter-spacing: -0.01em; }
+  .card .sub { font-size: 23px; color: var(--muted); }
+  .tree { margin-top: 18px; background: #fffdf8; border: 1px solid rgba(60, 40, 20, 0.12); border-radius: 14px; padding: 22px 30px; font: 19px/1.75 Menlo, Monaco, monospace; box-shadow: 0 12px 34px rgba(60, 40, 20, 0.14); white-space: pre; }
+  .tree b { color: var(--accent); font-weight: 600; }
+  .tree i { color: #b9a894; font-style: normal; }
+  .card .gh { margin-top: 26px; font-size: 17px; color: var(--accent); font-weight: 600; }
+</style></head>
+<body>
+  <div class="cap" id="cap"><div class="badge" id="badge"></div><div class="text" id="captext"></div></div>
+  <div class="win" id="win">
+    <div class="bar"><span class="dot" style="background:#ec6a5e"></span><span class="dot" style="background:#f4bf4f"></span><span class="dot" style="background:#61c554"></span><span class="url">claude.ai</span></div>
+    <div class="shot" id="shot"></div>
+  </div>
+  <div id="fx"></div>
+  <svg class="cursor" id="cursor" viewBox="0 0 26 34"><path d="M3 3 L3 27 L9.2 21.2 L13.4 30.6 L17.3 28.9 L13.2 19.7 L21.4 19.7 Z" fill="#1d1d1f" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/></svg>
+  <div class="card" id="card">
+    <h1>Zettelbranch</h1>
+    <div class="sub">Branch your claude.ai conversations into a tree</div>
+    <div class="tree"><b>sky/1 </b>  · Why the sky is blue
+<i>├─ </i><b>sky/1a</b> · Why sunsets are red
+<i>└─ </i><b>sky/1b</b> · The sky on Mars</div>
+    <div class="gh">github.com/pthom/zettelbranch</div>
+  </div>
+
+<script>
+// ---- the timeline (seconds). Coordinates are in the screenshots' pixels (866 x 1033).
+const DURATION = 30;
+const XFADE = 0.17; // a quick dissolve between screenshots: every pixel changes, which a GIF pays for
+const FRAMES = [ // [start, image, crossfade]
+  [2.8, '01', true], [6.3, '02', true], [10.3, '03', true], [12.0, '04'], [12.4, '05'], [12.8, '06'], [13.2, '07'], [13.6, '08'],
+  [15.4, '09', true], [20.4, '10', true], [22.6, '11', true],
+];
+const CARD = [[0, 2.8], [27.4, 99]]; // title card shown (fades at the edges)
+const CAPTIONS = [ // [start, end, step, text]
+  [2.8, 6.3, 1, 'Open the Zettelbranch panel and choose where the branch starts'],
+  [6.3, 10.3, 2, 'Check the preview: a short header, then the conversation so far'],
+  [10.3, 13.9, 3, 'A new chat opens, already filled in. Type your question at the end…'],
+  [13.9, 15.4, 3, '…and press Send yourself'],
+  [15.4, 20.4, 4, 'Claude sums up where you were, answers, and suggests a name'],
+  [20.4, 22.6, 5, 'Keep the suggested name, or change the topic'],
+  [22.6, 27.4, 6, 'Done: the branch is named sky/1b, and the panel shows the tree'],
+];
+const HIGHLIGHTS = [ // [start, end, x1, y1, x2, y2, label]
+  [3.0, 4.6, 467, 832, 846, 952, 'where the branch starts'],
+  [6.8, 9.3, 468, 688, 846, 772, 'the header'],
+  [10.7, 11.5, 465, 900, 848, 1018, 'what to do next'],
+  [15.9, 17.9, 86, 401, 742, 503, 'a summary of the parent'],
+  [17.9, 19.6, 78, 754, 306, 786, 'a suggested name'],
+  [20.8, 21.8, 95, 96, 493, 132, ''],
+  [23.0, 24.7, 8, 8, 212, 42, 'the new name', 'below'],
+  [24.7, 27.0, 465, 746, 848, 823, 'the tree'],
+];
+const CURSOR = [ // [time, x, y]: eased moves between points
+  [2.8, 330, 560], [3.3, 330, 560], [4.2, 655, 936], [4.6, 655, 936], [5.5, 500, 998], [6.6, 500, 998],
+  [7.1, 640, 860], [8.8, 640, 860], [9.6, 524, 998], [10.6, 524, 998], [11.5, 140, 768], [11.9, 140, 768],
+  [12.4, 260, 860], [13.9, 260, 860], [14.8, 721, 800], [15.8, 721, 800], [16.6, 780, 640], [19.3, 780, 640],
+  [20.0, 708, 999], [20.9, 708, 999], [21.9, 454, 193], [23.0, 454, 193], [24.0, 300, 905], [99, 300, 905],
+];
+const CURSOR_SHOWN = [3.0, 26.8];
+const CLICKS = [4.35, 5.65, 9.75, 11.65, 14.95, 20.15, 22.05];
+
+// ---- geometry
+const S = 797 / 866, X0 = 42, Y0 = 112 + 28 + 1;
+const sx = (x) => X0 + x * S, sy = (y) => Y0 + y * S;
+const clamp = (v) => Math.max(0, Math.min(1, v));
+const ease = (p) => (p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2);
+const fadeIn = (t, a, d = 0.3) => clamp((t - a) / d);
+const window01 = (t, a, b, d = 0.3) => Math.min(fadeIn(t, a, d), clamp((b - t) / d));
+
+// ---- elements
+const shot = document.getElementById('shot');
+const imgs = {};
+for (const [, name] of FRAMES) {
+  if (imgs[name]) continue;
+  const im = document.createElement('img');
+  im.src = `../out/demo/frames/${name}.png`;
+  shot.append(im);
+  imgs[name] = im;
+}
+const fx = document.getElementById('fx');
+const hls = HIGHLIGHTS.map(([, , x1, y1, x2, y2, label, where]) => {
+  const d = document.createElement('div');
+  d.className = 'hl' + (where === 'below' ? ' below' : '');
+  Object.assign(d.style, { left: sx(x1) - 6 + 'px', top: sy(y1) - 5 + 'px', width: (x2 - x1) * S + 12 + 'px', height: (y2 - y1) * S + 10 + 'px' });
+  if (label) {
+    const l = document.createElement('div');
+    l.className = 'lab';
+    l.textContent = label;
+    d.append(l);
+  }
+  fx.append(d);
+  return d;
+});
+const ripples = CLICKS.map(() => {
+  const r = document.createElement('div');
+  r.className = 'ripple';
+  fx.append(r);
+  return r;
+});
+const cursor = document.getElementById('cursor');
+const card = document.getElementById('card');
+const cap = document.getElementById('cap');
+const badge = document.getElementById('badge');
+const captext = document.getElementById('captext');
+
+function cursorAt(t) {
+  for (let i = 0; i < CURSOR.length - 1; i++) {
+    const [t0, x0, y0] = CURSOR[i];
+    const [t1, x1, y1] = CURSOR[i + 1];
+    if (t <= t1) {
+      const p = t <= t0 ? 0 : ease((t - t0) / (t1 - t0));
+      return [x0 + (x1 - x0) * p, y0 + (y1 - y0) * p];
+    }
+  }
+  return CURSOR[CURSOR.length - 1].slice(1);
+}
+
+function render(t) {
+  // screenshots: the current one, cross-faded from the previous one when asked
+  let cur = 0;
+  for (let i = 0; i < FRAMES.length; i++) if (t >= FRAMES[i][0]) cur = i;
+  for (const im of Object.values(imgs)) im.style.opacity = 0;
+  const [start, name, fade] = FRAMES[cur];
+  const p = fade && cur > 0 ? clamp((t - start) / XFADE) : 1;
+  if (cur > 0 && p < 1) imgs[FRAMES[cur - 1][1]].style.opacity = 1;
+  imgs[name].style.opacity = p;
+
+  // captions
+  const c = CAPTIONS.find(([a, b]) => t >= a && t < b);
+  if (c) {
+    badge.textContent = c[2];
+    captext.textContent = c[3];
+    cap.style.opacity = window01(t, c[0], c[1], 0.25);
+    cap.style.transform = `translateY(${(1 - fadeIn(t, c[0], 0.25)) * 8}px)`;
+  } else cap.style.opacity = 0;
+
+  // highlights
+  HIGHLIGHTS.forEach(([a, b], i) => {
+    const o = window01(t, a, b, 0.25);
+    hls[i].style.opacity = o;
+    hls[i].style.transform = `scale(${1.03 - 0.03 * fadeIn(t, a, 0.25)})`;
+  });
+
+  // cursor and clicks
+  const [x, y] = cursorAt(t);
+  let press = 1;
+  CLICKS.forEach((ct, i) => {
+    const k = (t - ct) / 0.5;
+    const r = ripples[i];
+    if (k >= 0 && k <= 1) {
+      const rad = 6 + 26 * ease(k);
+      Object.assign(r.style, { left: sx(x) - rad + 'px', top: sy(y) - rad + 'px', width: 2 * rad + 'px', height: 2 * rad + 'px', opacity: 0.85 * (1 - k) });
+    } else r.style.opacity = 0;
+    const d = Math.abs(t - ct);
+    if (d < 0.12) press = Math.min(press, 0.82 + 0.18 * (d / 0.12));
+  });
+  cursor.style.left = sx(x) - 3 + 'px';
+  cursor.style.top = sy(y) - 3 + 'px';
+  cursor.style.opacity = window01(t, CURSOR_SHOWN[0], CURSOR_SHOWN[1], 0.3);
+  cursor.style.transform = `scale(${press})`;
+
+  // title card at the start and the end (the loop goes from one to the other)
+  let co = 0;
+  for (const [a, b] of CARD) if (t >= a - XFADE && t <= b + XFADE) co = Math.max(co, a === 0 ? clamp((b + XFADE - t) / XFADE) : clamp((t - a) / XFADE));
+  card.style.opacity = co;
+}
+
+window.ready = false;
+Promise.all(Object.values(imgs).map((im) => im.decode())).then(() => {
+  render(0);
+  window.ready = true;
+});
+</script>
+</body></html>

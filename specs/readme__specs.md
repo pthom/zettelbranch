@@ -41,3 +41,10 @@ In `sky/1`: open the panel, keep Claude's last reply, Branch, the preview, Open 
 ## Claude's part
 
 Crop and compress the pictures into `docs/images/`, make `docs/images/demo.gif` from the video (cut the waits, speed up, under about 5 MB), put them in the manual and the README, and show Pascal the result before committing.
+
+## The animated demo
+
+`docs/images/demo.gif` (30 s, 3.4 MB, 880 x 1120) is rendered offline from Pascal's screenshots: `tests/demo/scene.html` lays them out in a window card, with a title card at the start and the end, a caption for each step, a drawn cursor that moves and clicks (a small ripple), and labelled highlights ("where the branch starts", "the header", "a summary of the parent", "a suggested name", "the new name", "the tree"). `node tests/make-demo.mjs` renders it frame by frame in a headless browser (local files only) and makes the GIF with ffmpeg.
+
+To redo it for a later version: crop new screenshots to 866 x 1033 into `tests/out/demo/frames/01.png` … `11.png` (not committed: they come from a real account), adjust the timeline and the coordinates at the top of the scene's script, run the command.
+
