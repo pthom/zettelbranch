@@ -1002,6 +1002,35 @@
     };
   }
 
+  // ---------------------------------------------------------------- P10
+
+  // Renames this zbtest/ chat through claude.ai's newer API (as its own client does), or, for
+  // comparison, through the older one. Then look at the sidebar, without reloading.
+  async function p10Rename(how) {
+    const pk = pageKind();
+    if (pk.kind !== 'chat') return refuse('open a zbtest chat first');
+    const g = await writeGuard({ allowNew: false });
+    if (!g.ok) return g;
+    if (!C().isTestTitle(g.title)) return refuse('P10 renames only a chat whose title starts with zbtest/');
+    const mark = how === 'rpc' ? ' (new API)' : ' (old API)';
+    const base = g.title.replace(/ \((new|old) API\)$/, '');
+    const newTitle = base + mark;
+    const yes = window.confirm(`Zettelbranch spike: rename this chat through claude.ai's ${how === 'rpc' ? 'newer' : 'older'} API?\n\nOld title: ${g.title}\nNew title: ${newTitle}`);
+    if (!yes) return { ok: true, renamed: false, cancelled: true, changed: 'nothing' };
+    const t0 = performance.now();
+    const r = how === 'rpc' ? await A().renameViaRpc(pk.id, newTitle) : await A().renameConversation(pk.id, newTitle);
+    const back = await A().getConversation(pk.id);
+    return {
+      ok: back.name === newTitle,
+      how: how === 'rpc' ? 'newer API (renameConversation)' : 'older API (PUT)',
+      newTitle,
+      readBack: back.name,
+      answer: r.answer,
+      ms: Math.round(performance.now() - t0),
+      next: 'Without reloading, watch the sidebar and the title at the top for about 10 seconds: do they show the new name?',
+    };
+  }
+
   global.ZBProbes = {
     startWatching,
     pageKind,
@@ -1025,6 +1054,7 @@
     p8Rename,
     p9Fork,
     p9Read,
+    p10Rename,
     setForkAt,
     getForkAt,
     _state: state,

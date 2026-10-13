@@ -122,6 +122,8 @@ try {
   check('P2 check refuses on a private chat', r.refused === true, r);
   r = await probe('p9', "Fork through Claude's last reply");
   check('P9 refuses on a private chat', r.refused === true, r);
+  r = await probe('p10', 'Rename through the newer API');
+  check('P10 refuses on a private chat', r.refused === true, r);
   check('refusals hold no private text or title', noSecrets(checks.slice(-5).map((c) => c.detail)).length === 0);
 
   r = await probe('p5', 'List conversations');
@@ -278,8 +280,18 @@ try {
   r = await probe('p9', 'Read the new chat');
   check('P9 through Claude\'s first reply: 2 messages; settings compared by name', r.ok === true && r.copyMessages === 2 && r.throughWas === 2 && Array.isArray(r.settingsDiff), { copy: r.copyMessages, diff: r.settingsDiff });
 
+  // ------------------------------------------------ K2. P10, the rename through the newer API
+  await sidebar('zbtest/1 · Root topic');
+  await page.waitForTimeout(800);
+  r = await probe('p10', 'Rename through the newer API', { dialog: 'accept' });
+  check('P10 renames through the newer API, read back', r.ok === true && r.newTitle === 'zbtest/1 · Root topic (new API)' && r.readBack === r.newTitle, r);
+  r = await probe('p10', 'Rename through the older API', { dialog: 'accept' });
+  check('P10 renames through the older API, read back', r.ok === true && r.newTitle === 'zbtest/1 · Root topic (old API)' && r.readBack === r.newTitle, r);
+  r = await probe('p10', 'Rename through the newer API', { dialog: 'dismiss' });
+  check('P10 cancelled by the dialog changes nothing', r.cancelled === true, r);
+
   await page.screenshot({ path: path.join(opt.out, 'panel.png') });
-  for (const id of ['p2', 'p4', 'p8', 'p9']) {
+  for (const id of ['p2', 'p4', 'p8', 'p9', 'p10']) {
     const sec = page.locator(`${host} section[data-zb-section="${id}"]`);
     await sec.screenshot({ path: path.join(opt.out, `${id}.png`) });
     fs.writeFileSync(path.join(opt.out, `${id}-steps.txt`), (await sec.locator('ol.steps').innerText()) + '\n');
@@ -301,7 +313,7 @@ const allowed = [
 const bad = fake.apiLog.filter((e) => !allowed.some((re) => re.test(`${e.method} ${e.path}`)));
 check('the extension made only the five allowed API calls', bad.length === 0, bad.slice(0, 5));
 const rpcs = fake.apiLog.filter((e) => e.method === 'POST');
-check('every POST is claude.ai\'s own fork, nothing else', rpcs.length === 3 && rpcs.every((e) => e.action === 'continueBranchAsNewChat' && e.status === 200), rpcs);
+check('every POST is claude.ai\'s own fork or its rename (P10), to zbtest names', rpcs.length === 4 && rpcs.every((e) => (e.action === 'continueBranchAsNewChat' || (e.action === 'renameConversation' && e.name.startsWith('zbtest/'))) && e.status === 200), rpcs);
 const puts = fake.apiLog.filter((e) => e.method === 'PUT');
 check('every rename went to a zbtest/ name', puts.length > 0 && puts.every((e) => e.name.startsWith('zbtest/')), puts.map((e) => e.name));
 const passive = (u) => u.startsWith('data:') || u.startsWith('blob:') || u.startsWith('about:');

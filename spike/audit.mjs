@@ -32,8 +32,8 @@ check(
 );
 const posts = hits(/['"]POST['"]/);
 check(
-  `Only GET and PUT, plus one POST in ${NET_FILE} (P9, claude.ai's own fork)`,
-  [...hits(/['"](DELETE|PATCH)['"]/), ...posts.filter((l) => l.file !== NET_FILE), ...(posts.length > 2 ? posts : [])],
+  `Only GET and PUT, plus one POST address in ${NET_FILE} (P9 claude.ai's own fork, P10 its rename)`,
+  [...hits(/['"](DELETE|PATCH)['"]/), ...posts.filter((l) => l.file !== NET_FILE), ...(posts.length > 3 ? posts : [])],
   `grep -nE "'(POST|DELETE|PATCH)'" spike/extension/*.js`
 );
 check(

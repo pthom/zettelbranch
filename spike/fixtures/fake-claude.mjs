@@ -206,6 +206,16 @@ export function createFakeClaude() {
     const h = req.headers();
     if (h['connect-protocol-version'] !== '1' || h['x-organization-uuid'] !== ORG_CHAT) return done(400, { code: 'invalid_argument', message: 'missing headers' });
     const body = JSON.parse(req.postData() || '{}');
+    // P10: the rename, as the notes describe it (the chat's own id in the header).
+    if (body.renameConversation) {
+      entry.action = 'renameConversation';
+      const c = convs.get(body.header && body.header.conversationId);
+      if (!c) return done(404, { code: 'not_found', message: 'conversation not found' });
+      entry.name = body.renameConversation.title;
+      c.name = body.renameConversation.title;
+      c.updated_at = now();
+      return done(200, {});
+    }
     const act = body.continueBranchAsNewChat;
     const newId = body.header && body.header.conversationId;
     entry.action = act ? 'continueBranchAsNewChat' : Object.keys(body).join(',');

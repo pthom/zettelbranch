@@ -16,8 +16,9 @@ claude.ai's own fork was explored (NF-1 to NF-3): it only continues an earlier v
 
 ## Waiting on Pascal
 
-1. **Clean up:** delete the `zbtest/` chats.
-2. **Optional:** ask a person at Anthropic about automated tests (draft from Claude).
+1. **The rename probe (P10):** `specs/rename-api__findings.md`, section "Running it" (about 5 minutes).
+2. **Clean up:** delete the `zbtest/` chats.
+3. **Optional:** ask a person at Anthropic about automated tests (draft from Claude).
 
 ## Next for Claude
 

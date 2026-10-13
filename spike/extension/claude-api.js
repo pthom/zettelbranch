@@ -14,7 +14,8 @@
 //   GET  /api/organizations/<org>/chat_conversations/<id>?tree=True&rendering_mode=messages&render_all_tools=true
 //   PUT  /api/organizations/<org>/chat_conversations/<id>      body {"name": "zbtest/…"}
 //   POST /claudeai-rpc/anthropic.bard.api.v1alpha.ConversationService/PerformAction
-//        body: continueBranchAsNewChat only, from a zbtest/ chat (P9, NF-1)
+//        body: continueBranchAsNewChat only, from a zbtest/ chat (P9, NF-1), or
+//        renameConversation only, to a zbtest/ title (P10)
 //
 // The API is undocumented. Every answer is checked; anything unexpected becomes an error
 // with the status and the first 200 characters of the body.
@@ -187,6 +188,23 @@
     return { newId, answer: json === null ? 'empty' : shapeOf(json).slice(0, 200) };
   }
 
+  // P10: rename through claude.ai's newer API, the call its own client makes, to see whether
+  // the open tab's sidebar then shows the new name. Spike rule: only to zbtest/ titles.
+  async function renameViaRpc(id, title) {
+    if (typeof title !== 'string' || !title.startsWith(TEST_PREFIX)) {
+      throw new ApiError('refused: the spike only renames to names starting with zbtest/', {});
+    }
+    const o = await org();
+    const sessionId = 'sess_' + crypto.randomUUID().replace(/-/g, '').slice(0, 24);
+    const body = { header: { conversationId: id, mutationId: { sessionId, version: 1 } }, renameConversation: { title } };
+    const json = await request('POST', '/claudeai-rpc/anthropic.bard.api.v1alpha.ConversationService/PerformAction', body, {
+      'connect-protocol-version': '1',
+      'x-organization-uuid': o.id,
+      'anthropic-client-platform': 'web_claude_ai',
+    });
+    return { answer: json === null ? 'empty' : shapeOf(json).slice(0, 200) };
+  }
+
   function errorInfo(e) {
     return e instanceof ApiError ? { error: e.message, ...e.details } : { error: String((e && e.message) || e) };
   }
@@ -197,6 +215,7 @@
     getConversation,
     renameConversation,
     continueAsNewChat,
+    renameViaRpc,
     stats: () => ({ requests: stats.requests, ms: Math.round(stats.ms) }),
     errorInfo,
     ApiError,

@@ -5,7 +5,7 @@
 (function (global) {
   'use strict';
 
-  const VERSION = '0.0.8';
+  const VERSION = '0.0.9';
   const Z = () => global.ZBProbes;
   const log = [];
   let host = null;
@@ -273,7 +273,15 @@
         },
         { text: 'Wait about 5 seconds, then read the new chat (it compares it with this one).', buttons: [['Read the new chat', () => p.p9Read()]] },
         { text: 'Click "Copy results" at the top and paste them to Claude. Then open the new chat with the link below (a new tab) and look. Delete the copies afterwards: they keep the original\'s title.' },
-      ], { after: [p9Link], linkEl: p9Link })
+      ], { after: [p9Link], linkEl: p9Link }),
+      stepsSection('p10', "P10 · Rename through claude.ai's newer API", [
+        "Does the open tab's sidebar show a new name at once when the rename goes through claude.ai's newer API, the way its own interface renames?",
+      ], [
+        { text: 'Open a zbtest chat. Note its title in the sidebar.' },
+        { text: "Rename it through the newer API (a dialog shows both titles). Then, WITHOUT reloading, watch the sidebar and the title at the top for about 10 seconds.", buttons: [["Rename through the newer API", () => p.p10Rename('rpc')]] },
+        { text: 'For comparison, the older API (the one Zettelbranch uses today). Again, watch without reloading.', buttons: [['Rename through the older API', () => p.p10Rename('put')]] },
+        { text: 'Click "Copy results", paste them to Claude, and say what the sidebar and the top title showed after each rename.' },
+      ])
     );
     pre.style.margin = '6px 10px';
     panel.append(head, pre, body);
