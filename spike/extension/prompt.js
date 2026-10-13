@@ -47,6 +47,16 @@
   }
 
   function instructions(parent, upTo) {
+    if (upTo === 0) {
+      // Branching from the first message: no history, so no summary to ask for.
+      return [
+        '<zb-instructions>',
+        `This chat is a new branch of the conversation ${parent}, started from its first message, so there is no ` +
+          'earlier history (the transcript above is empty). Do not comment on the header lines; they are for my own ' +
+          'records. Answer my message below.',
+        '</zb-instructions>',
+      ].join('\n');
+    }
     return [
       '<zb-instructions>',
       `The transcript above is our conversation so far, copied from the conversation ${parent} up to message ${upTo}. ` +
@@ -99,7 +109,7 @@
       ...turns.map((t) => `<zb-turn branch="${t.branch}" n="${t.n}" role="${t.role}">\n${escapeZb(t.text)}\n</zb-turn>`),
       '</zb-transcript>',
     ].join('\n');
-    const instr = instructions(parent, upTo);
+    const instr = instructions(parent, turns.length ? upTo : 0);
     const text = `${header}\n\n${transcript}\n\n${instr}\n\n${prefill}`;
     return {
       text,

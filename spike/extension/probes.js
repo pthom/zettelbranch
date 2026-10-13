@@ -407,7 +407,24 @@
   }
   const P2_ASK = 'Reply only with the exact text of line 3.';
 
+  // P2 needs an empty new chat. Elsewhere, it opens one through the app's own New chat
+  // link, which P3 showed works without a page load.
+  async function ensureNewChat() {
+    const comp = find('composer');
+    if (pageKind().kind === 'new' && X().countMessages(document) === 0 && comp.el && !editorText(comp.el).trim()) return { opened: false };
+    const link = find('newChat');
+    if (!link.el) return { opened: false, error: 'New chat link not found', tried: link.tried };
+    const start = location.href;
+    link.el.click();
+    await waitFor(() => location.href !== start, 10000);
+    await sleep(300);
+    const box = await waitFor(() => find('composer').el, 10000);
+    return { opened: true, nowOn: pageKind().kind, composerFound: !!box };
+  }
+
   async function p2Insert(size, label) {
+    const nc = await ensureNewChat();
+    if (nc.error) return { ok: false, ...nc };
     const g = await writeGuard({ allowNew: true });
     if (!g.ok) return g;
     const lines = fillerLines(size - P2_ASK.length - 1, label);
@@ -420,6 +437,7 @@
     const ratio = r.ok ? r.editor.ratioToInserted : null;
     return {
       guard: g.page,
+      newChat: nc,
       size: label,
       verdict: !r.ok ? 'failed' : ratio >= 0.98 ? 'stayed inline' : r.attachmentChipLikely ? 'became an attachment (likely)' : 'unclear: partly inline?',
       ...r,
@@ -428,6 +446,8 @@
   }
 
   async function p2Parts(size, label) {
+    const nc = await ensureNewChat();
+    if (nc.error) return { ok: false, ...nc };
     const g = await writeGuard({ allowNew: true });
     if (!g.ok) return g;
     const header = 'Zettelbranch · zbtest/p2\nPath: zbtest/p2 (long text test, P2, inserted in three parts)\nForked from: nothing, this is a size test';
@@ -452,7 +472,7 @@
     const all = parts.map((p) => p.text).join('');
     state.lastInserted = { text: all, probe: 'P2 parts', how: 'insert x3' };
     state.p2 = { label: label + ' in parts', expectedLine3: lines[2], lines: lines.length, chars: all.length };
-    return { ok: true, guard: g.page, size: label, composerSelector: comp.selector, steps, partsStillInTheBox: inBox, send: sendState(), next: 'Press Send yourself. After the reply, click "Check after sending".' };
+    return { ok: true, guard: g.page, newChat: nc, size: label, composerSelector: comp.selector, steps, partsStillInTheBox: inBox, send: sendState(), next: 'Press Send yourself. After the reply, click "Check after sending".' };
   }
 
   async function p2Check() {
@@ -864,6 +884,8 @@
     const firstText = C().messageText(first, { placeholders: false });
     const info = branchInfo(firstText);
     const parsedBack = P().parseBranchMessage(firstText);
+    // A branch from a chat's first message has an empty transcript: no summary is asked for.
+    const summaryExpected = parsedBack ? parsedBack.turns.length > 0 : true;
     const pending = state.p8.pending;
     const out = {
       guard: g.page,
@@ -872,12 +894,13 @@
       sentDiff: pending ? diffSummary(pending.text, firstText) : undefined,
       firstMessageAttachments: C().attachmentFacts(first),
       turnsParsedBack: parsedBack ? parsedBack.turns.length : null,
+      summaryExpected,
     };
     if (!reply) return { ok: false, ...out, error: 'no reply from Claude yet' };
     const replyText = C().messageText(reply, { placeholders: false });
     const expectedParent = info ? info.parent : pending ? pending.parent : null;
     out.summary = P().parseSummary(replyText, expectedParent);
-    out.ok = out.summary.found && out.summary.formatOk && out.summary.parentMatches;
+    out.ok = summaryExpected ? out.summary.found && out.summary.formatOk && out.summary.parentMatches : !out.summary.found;
     out.replyChars = replyText.length;
     out.replyStart = replyText.slice(0, 300);
     return out;

@@ -5,7 +5,7 @@
 (function (global) {
   'use strict';
 
-  const VERSION = '0.0.5';
+  const VERSION = '0.0.6';
   const Z = () => global.ZBProbes;
   const log = [];
   let host = null;
@@ -190,15 +190,19 @@
         ['Try paste instead', () => p.p1Paste()],
         ['Check last sent message', () => p.p1Check()],
       ]),
-      section('p2', 'P2 · Long text', [
-        'In a new chat, click one size. See whether the text stays in the box or turns into an attachment.',
-        'Press Send, wait for the reply, then click "Check after sending": it then offers to rename the chat to zbtest/p2-… (click OK). One size per chat.',
-      ], [
-        ['5k', () => p.p2Insert(5000, '5k')],
-        ['20k', () => p.p2Insert(20000, '20k')],
-        ['100k', () => p.p2Insert(100000, '100k')],
-        ['Header + transcript (20k)', () => p.p2Parts(20000, '20k')],
-        ['Check after sending', () => p.p2Check()],
+      stepsSection('p2', 'P2 · Long text', ['One new chat per size: the panel opens it itself.'], [
+        {
+          text: 'Click a size. The panel opens a new chat and puts the text in the box. Look: does it stay in the box, or turn into an attachment?',
+          buttons: [
+            ['5k', () => p.p2Insert(5000, '5k')],
+            ['20k', () => p.p2Insert(20000, '20k')],
+            ['100k', () => p.p2Insert(100000, '100k')],
+            ['Header + transcript (20k)', () => p.p2Parts(20000, '20k')],
+          ],
+        },
+        { text: 'Press Send yourself and wait for the reply.' },
+        { text: 'Click "Check after sending", then OK in the rename dialog (the chat becomes zbtest/p2-…).', buttons: [['Check after sending', () => p.p2Check()]] },
+        { text: 'For the next size, back to step 1.' },
       ]),
       section('p3', 'P3 · New chat without reload', [
         'In a zbtest chat, click "Open new chat". The panel clicks New chat itself and types a marker. Do not send it.',

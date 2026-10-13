@@ -179,8 +179,10 @@ try {
   check('P1 paste: the app handles the paste event', r.ok === true && r.insertion.appHandledIt === true && r.editor.containsInserted === true, r.insertion);
 
   // ------------------------------------------------ E, F. P2
-  await newChat();
+  await sidebar('Long private chat');
+  await page.waitForTimeout(800);
   r = await probe('p2', '5k');
+  check('P2 opens its own new chat from a private chat', r.ok === true && r.newChat && r.newChat.opened === true && r.newChat.nowOn === 'new', r.newChat);
   check('P2 5k stays inline', r.verdict === 'stayed inline' && r.insertedChars <= 5000 && r.insertedChars > 4800, { verdict: r.verdict, chars: r.insertedChars });
   await pageSend();
   r = await probe('p2', 'Check after sending', { dialog: 'accept' });
@@ -213,6 +215,10 @@ try {
   await mode('own');
   r = await probe('p8', 'Build prompt');
   check('P8 from my own message: context before it, my message pre-filled', r.forkAt === 3 && r.turns === 2 && r.preview.endsWith('</zb-instructions>\n\nHow does branching work?') && r.preview.split('\n')[2].includes('instead of message 3 (me)'), { forkAt: r.forkAt, turns: r.turns });
+  for (let i = 0; i < 3; i++) await page.locator(`${host} button[data-zb="p8-minus"]`).click();
+  r = await probe('p8', 'Build prompt');
+  check('P8 from the first message: empty transcript, no summary asked', r.forkAt === 1 && r.turns === 0 && r.preview.includes('started from its first message') && !r.preview.includes('in brief') && r.preview.includes('<zb-transcript>\n</zb-transcript>'), { forkAt: r.forkAt, turns: r.turns });
+  await page.locator(`${host} button[data-zb="p8-auto"]`).click();
   await mode('reply');
   await page.locator(`${host} button[data-zb="p8-minus"]`).click();
   r = await probe('p8', 'Build prompt');
@@ -256,7 +262,7 @@ try {
   check('The whole results log holds no private text or title', noSecrets(copied).length === 0, noSecrets(copied));
   writeJson(path.join(opt.out, 'results-log.json'), copied);
   await page.screenshot({ path: path.join(opt.out, 'panel.png') });
-  for (const id of ['p4', 'p8']) {
+  for (const id of ['p2', 'p4', 'p8']) {
     const sec = page.locator(`${host} section[data-zb-section="${id}"]`);
     await sec.screenshot({ path: path.join(opt.out, `${id}.png`) });
     fs.writeFileSync(path.join(opt.out, `${id}-steps.txt`), (await sec.locator('ol.steps').innerText()) + '\n');
@@ -293,6 +299,6 @@ const summary = {
 };
 writeJson(path.join(opt.out, 'report.json'), { summary, checks, apiLog: fake.apiLog, dialogs, aborted });
 console.log(`\n${summary.passed} passed, ${summary.failed} failed. API calls: ${JSON.stringify(summary.apiCalls)}. Requests: ${JSON.stringify(summary.requests)}`);
-console.log(`wrote ${path.relative(process.cwd(), opt.out)}/{report.json, results-log.json, panel.png, p4.png, p8.png}`);
+console.log(`wrote ${path.relative(process.cwd(), opt.out)}/{report.json, results-log.json, panel.png, p2.png, p4.png, p8.png}`);
 if (summary.failed) exitCode = 1;
 process.exit(exitCode);
