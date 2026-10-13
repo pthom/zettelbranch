@@ -12,6 +12,8 @@
 //              the message box with one insertText call. Never presses Send.
 //   name()     "Name this branch": a dialog with the proposed name, then a rename. Also for a
 //              branch already named, to change its topic
+//   Renames go through claude.ai's own title menu (menu.js), so the open tab shows the new
+//   name at once; through the API (PUT) when the menu fails. Both are read back.
 (function (global) {
   'use strict';
 
@@ -19,6 +21,7 @@
   const T = () => global.ZBTree;
   const C = () => global.ZBConversation;
   const P = () => global.ZBPrompt;
+  const M = () => global.ZBMenu;
 
   const SIZE_WARNING = 100000; // the largest size tested (Milestone 0, P2)
 
@@ -213,11 +216,32 @@
     }
   }
 
-  // Renames, then reads the title back to check that it stuck.
+  // Renames the chat `id`, then reads the name back to check that it stuck. On the chat on
+  // screen, through claude.ai's own title menu first (menu.js): the open tab then shows the
+  // new name at once. If a step of the menu fails, or claude.ai did not keep the name within
+  // about 3 s, through the API (PUT), as in 0.1.0. Returns { via: 'menu' } or { via: 'api', why }.
   async function rename(id, name) {
+    let why = 'this chat is not the one on screen';
+    if (pageKind().id === id) {
+      const m = await M().rename(name);
+      if (m.ok && (await nameIs(id, name, 3000))) return { via: 'menu' };
+      why = m.ok ? 'claude.ai did not keep the name typed in its menu' : m.why;
+    }
     await A().renameConversation(id, name);
     const back = await A().getConversation(id);
     if (back.name !== name) throw new Error('the new title did not stick: claude.ai still shows another one');
+    return { via: 'api', why };
+  }
+
+  // Whether claude.ai holds the name, read back a few times within `ms`.
+  async function nameIs(id, name, ms) {
+    const t0 = Date.now();
+    await sleep(300);
+    for (;;) {
+      if ((await A().getConversation(id)).name === name) return true;
+      if (Date.now() - t0 > ms) return false;
+      await sleep(600);
+    }
   }
 
   // The tree name for a new root, asked in a browser dialog (what you type there never
@@ -240,6 +264,7 @@
     if (!chat.messages[index]) return { ok: false, text: 'Choose a message first.' };
     const notes = [];
     let renamed = null;
+    let via = null;
     let t = T().parseTitle(chat.title);
     let reg;
     try {
@@ -250,7 +275,7 @@
         const name = T().formatTitle(asked.tree, T().nextRoot(asked.tree, reg.titles), chat.title.trim() || 'Untitled');
         const yes = window.confirm(`Zettelbranch: rename this chat?\n\nOld title: ${chat.title || '(none yet)'}\nNew title: ${name}`);
         if (!yes) return { ok: false, text: 'Nothing changed.' };
-        await rename(chat.id, name);
+        via = await rename(chat.id, name);
         chat.title = name;
         if (!chat.listRead && list) chat.listRead = { items: list };
         describe(chat);
@@ -267,7 +292,7 @@
     if (chat.source === 'page') notes.push(`Only the ${chat.messages.length} messages on screen were read, because claude.ai's API did not answer as expected. Earlier messages are missing from this branch.`);
     if (reg.fromSidebar) notes.push(`The address ${t.tree}/${child.address} comes from the sidebar's recent chats only, because claude.ai's list did not load. Check that no other chat of the tree has it.`);
     pending = { ...built, address: `${t.tree}/${child.address}`, parent: chat.title, fork: chat.messages[index], tooLong: built.chars > SIZE_WARNING };
-    return { ok: true, pending, renamed, notes };
+    return { ok: true, pending, renamed, via, notes };
   }
 
   const cancel = () => (pending = null);
@@ -388,7 +413,7 @@
       }
       const before = T().parseTitle(conv.name);
       const wasNamed = !!before && before.tree === head.tree && before.address === head.address;
-      await rename(pk.id, asked.name);
+      const via = await rename(pk.id, asked.name);
       settle(head);
       // What the panel read for this chat, with its new name: shown without reading again.
       const mem = last && last.id === pk.id ? last : null;
@@ -397,7 +422,7 @@
         describe(mem);
         chat = mem;
       }
-      return { ok: true, renamed: asked.name, wasNamed, chat: mem };
+      return { ok: true, renamed: asked.name, wasNamed, via, chat: mem };
     } catch (e) {
       return { ok: false, text: 'Could not name this branch.', error: explain(e) };
     }

@@ -1,12 +1,12 @@
 {
   "manifest_version": 3,
   "name": "Zettelbranch",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Branch claude.ai conversations into new chats named with tree addresses (oulipo/1a). No permissions. Network: claude.ai's own API only, all in api.js.",
   "content_scripts": [
     {
       "matches": ["https://claude.ai/*"],
-      "js": ["tree.js", "conversation.js", "prompt.js", "api.js", "branch.js", "ui.js", "content.js"],
+      "js": ["tree.js", "conversation.js", "prompt.js", "api.js", "menu.js", "branch.js", "ui.js", "content.js"],
       "run_at": "document_idle"
     }
   ],

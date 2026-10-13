@@ -44,8 +44,10 @@ check('No HTML injection', hits(/innerHTML|outerHTML|insertAdjacentHTML|document
 check('No innerText (never document.body.innerText)', hits(/\.innerText\b/));
 check('Click listeners only (no keyboard, input or other listeners)',
   [...hits(/addEventListener\(\s*(?!['"]click['"])/), ...hits(/\.on[a-z]+\s*=/)]);
+// The key events menu.js sends (Enter or Escape) name their types on one exact line.
+const KEY_TYPES_LINE = "const types = k === 'Enter' ? ['keydown', 'keypress', 'keyup'] : ['keydown', 'keyup'];";
 check('No keyboard or input listeners',
-  hits(/['"](keydown|keyup|keypress|input|beforeinput|change|compositionstart|compositionupdate|compositionend|paste|copy)['"]/));
+  hits(/['"](keydown|keyup|keypress|input|beforeinput|change|compositionstart|compositionupdate|compositionend|paste|copy)['"]/).filter((l) => !(l.file === 'menu.js' && l.text.trim() === KEY_TYPES_LINE)));
 check('No watching of the page (no MutationObserver or other observers)', hits(/MutationObserver|IntersectionObserver|ResizeObserver/));
 // One interval (step 6e): while the panel is open, follow() compares the tab's address with
 // the page the panel shows and, on a change, reads as the refresh button does.
@@ -65,10 +67,46 @@ check('Nothing runs on its own but one check while the panel is open: one setInt
 check('No eval or code from strings', hits(/\beval\s*\(|new Function\s*\(|setTimeout\(\s*['"`]|setInterval\(\s*['"`]/));
 check('No hidden calls: no computed property access on global objects', hits(/\b(window|globalThis|self|document|global|location|navigator)\s*\[/));
 check('No extension APIs (no messaging, no background, no extension storage)', hits(/\b(chrome|browser)\.\w/));
-check('No messaging with page scripts or other windows', hits(/postMessage|BroadcastChannel|MessageChannel|dispatchEvent|CustomEvent/));
-check('No clipboard; execCommand only to insert text', [...hits(/clipboard/i), ...hits(/execCommand\(/).filter((l) => !/execCommand\('insertText', false, /.test(l.text))]);
-check('Never presses Send: no Send button, no key events, no form submit; the only click is on the New chat link',
-  [...hits(/chat-input-send|KeyboardEvent|requestSubmit|\.submit\s*\(/), ...hits(/\.click\s*\(/).filter((l) => !/\bnewChatLink\.click\(\)/.test(l.text))]);
+check('No messaging with page scripts or other windows', hits(/postMessage|BroadcastChannel|MessageChannel|CustomEvent/));
+const EXEC_LINES = { 'branch.js': "document.execCommand('insertText', false, p.text);", 'menu.js': "document.execCommand('insertText', false, name);" };
+check('No clipboard; execCommand only to insert the prompt (branch.js) and a name in claude.ai\'s rename field (menu.js)',
+  [...hits(/clipboard/i), ...hits(/execCommand/).filter((l) => l.text.trim() !== EXEC_LINES[l.file])]);
+const CLICK_LINES = { 'branch.js': 'newChatLink.click();', 'menu.js': 'if (el) el.click();' };
+check('Never presses Send: no Send button, no form submit; the only clicks are on the New chat link and (menu.js) the Rename item',
+  [...hits(/chat-input-send|requestSubmit|\.submit\s*\(/), ...hits(/\.click\s*\(/).filter((l) => !(l.text.trim().endsWith(CLICK_LINES[l.file] || '\0'))),
+    ...(hits(/\.click\s*\(/).filter((l) => l.file === 'menu.js').length > 1 ? [{ file: 'menu.js', n: 0, text: 'more than one click in menu.js' }] : [])]);
+
+// Events to the page (0.1.1): only in menu.js, only through pressOn, keyOn and clickOn, only
+// these six calls, only to the four TARGETS by their exact selectors.
+const DISPATCH_LINES = [
+  "el.dispatchEvent(new PointerEvent('pointerdown', o));",
+  "el.dispatchEvent(new MouseEvent('mousedown', o));",
+  "el.dispatchEvent(new PointerEvent('pointerup', { ...o, buttons: 0 }));",
+  "el.dispatchEvent(new MouseEvent('mouseup', { ...o, buttons: 0 }));",
+  'for (const type of types) el.dispatchEvent(new KeyboardEvent(type, { key: k, code: k, keyCode: code, which: code, bubbles: true, cancelable: true }));',
+];
+const EVENT_CALLS = ["pressOn('titleButton')", "pressOn('renameItem')", "clickOn('renameItem')", "keyOn('nameField', 'Enter')", "keyOn('nameField', 'Escape')", "keyOn('menu', 'Escape')"];
+const EVENT_DEFS = ['function pressOn(which) {', 'function keyOn(which, k) {', 'function clickOn(which) {'];
+const TARGET_LINES = [
+  'const TARGETS = {',
+  `titleButton: '[data-testid="chat-title-split"] button[aria-haspopup="menu"]',`,
+  `menu: '[role="menu"]',`,
+  `renameItem: '[role="menu"] [data-testid="rename-chat-trigger"]',`,
+  `nameField: 'input[data-testid="name-chat"]',`,
+  '};',
+];
+const LOOKUP_LINE = 'const target = (which) => document.querySelector(TARGETS[which]);';
+const menuCode = lines.filter((l) => l.file === 'menu.js');
+const menuAt = menuCode.findIndex((l) => l.text.trim() === TARGET_LINES[0]);
+check('Events only to claude.ai\'s title menu (menu.js): the title button, its menu (Escape), the exact Rename item, the rename field (Enter, Escape)', [
+  ...hits(/dispatchEvent|new (Pointer|Mouse|Keyboard|Input|Focus|Touch|Wheel|Composition|Drag|Clipboard)?Event\s*\(/).filter((l) => !(l.file === 'menu.js' && DISPATCH_LINES.includes(l.text.trim()))),
+  ...hits(/\b(pressOn|keyOn|clickOn)\s*\(/).filter((l) => l.file !== 'menu.js'),
+  ...menuCode.filter((l) => !EVENT_DEFS.includes(l.text.trim())).flatMap((l) => (l.text.match(/\b(pressOn|keyOn|clickOn)\s*\([^)]*\)/g) || []).filter((c) => !EVENT_CALLS.includes(c)).map((c) => ({ ...l, text: `not an allowed call: ${c}` }))),
+  ...(menuAt < 0 || menuCode.slice(menuAt, menuAt + TARGET_LINES.length).map((l) => l.text.trim()).join('\n') !== TARGET_LINES.join('\n') ? [{ file: 'menu.js', n: 0, text: 'TARGETS is not exactly the four selectors' }] : []),
+  ...menuCode.filter((l) => /querySelector|getElementBy|closest\s*\(|elementFromPoint/.test(l.text) && l.text.trim() !== LOOKUP_LINE),
+  ...menuCode.filter((l) => /textContent|innerText|aria-label|querySelectorAll|\[\d+\]|chat-input/.test(l.text)),
+  ...hits(/delete-chat-trigger|share-chat-trigger|star-chat-trigger/),
+]);
 
 // The manifest.
 const manifest = JSON.parse(fs.readFileSync(path.join(opt.dir, 'manifest.json'), 'utf8'));

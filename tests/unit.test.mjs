@@ -720,3 +720,115 @@ describe('a real conversation (fixtures/real-*.json)', () => {
     assert.deepEqual([...back.turns.map((t) => t.text)], [...msgs.map((m) => m.text)]);
   });
 });
+
+// ---------------------------------------------------------------- menu.js
+
+// A small page imitating claude.ai's title menu (as found in P11), in jsdom: every event that
+// reaches an element is recorded. jsdom has no layout and no execCommand: both are stubbed
+// (a connected element has a box; insertText replaces the focused field's value, unless it
+// is read-only).
+describe('menu.js: claude.ai\'s title menu', () => {
+  const PAGE = `<!doctype html><html><body>
+    <div data-testid="chat-title-split"><button aria-haspopup="menu">zbtest/1 · Old</button><button>Share</button></div>
+    <div data-testid="chat-input"><div contenteditable="true" class="ProseMirror"><p>draft</p></div></div>
+    <button data-testid="chat-input-send">Send</button>
+  </body></html>`;
+  function page({ menu = true, renameItem = true, field = true, readonly = false, closesOnEnter = true } = {}) {
+    const events = [];
+    const win = loadIntoWindow(['menu.js'], {
+      url: 'https://claude.ai/chat/aaaaaaaa-0000-4000-8000-000000000001',
+      html: PAGE,
+      before: (w) => {
+        w.Element.prototype.getClientRects = function () { return this.isConnected ? [{}] : []; };
+        w.document.execCommand = (cmd, _ui, value) => {
+          const f = w.document.activeElement;
+          if (cmd !== 'insertText' || !f || f.readOnly) return false;
+          f.value = value;
+          return true;
+        };
+      },
+    });
+    const d = win.document;
+    const who = (t) => (t.getAttribute && (t.getAttribute('data-testid') || t.getAttribute('role') || (t.closest('[data-testid]') && t.closest('[data-testid]').getAttribute('data-testid')))) || t.nodeName;
+    for (const type of ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click', 'keydown', 'keypress', 'keyup']) d.addEventListener(type, (e) => events.push(`${type} ${who(e.target)}${e.key ? ' ' + e.key : ''}`), true);
+    let open = null;
+    const title = d.querySelector('[aria-haspopup="menu"]');
+    title.addEventListener('pointerdown', () => {
+      if (!menu || open) return;
+      open = d.createElement('div');
+      open.setAttribute('role', 'menu');
+      for (const id of ['star', 'rename', 'share', 'delete']) {
+        if (id === 'rename' && !renameItem) continue;
+        const item = d.createElement('div');
+        item.setAttribute('role', 'menuitem');
+        item.setAttribute('data-testid', `${id}-chat-trigger`);
+        if (id === 'rename') item.addEventListener('click', () => {
+          open.remove();
+          open = null;
+          if (!field) return;
+          const input = d.createElement('input');
+          input.setAttribute('data-testid', 'name-chat');
+          input.readOnly = readonly;
+          input.value = 'zbtest/1 · Old';
+          input.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' || (e.key === 'Enter' && closesOnEnter)) input.replaceWith(title);
+          });
+          title.replaceWith(input);
+          input.focus();
+        });
+        open.append(item);
+      }
+      d.body.append(open);
+    });
+    d.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && open) {
+        open.remove();
+        open = null;
+      }
+    });
+    return { M: win.ZBMenu, d, events };
+  }
+  const NAME = 'zbtest/1 · New';
+  const never = (events) => events.filter((e) => /delete|share|star|chat-input|ProseMirror/.test(e));
+
+  test('the whole rename: the title button, the exact Rename item, the name typed, Enter in the field; nothing else', async () => {
+    const { M, d, events } = page();
+    assert.deepEqual({ ...(await M.rename(NAME)) }, { ok: true });
+    assert.deepEqual(events, [
+      'pointerdown chat-title-split', 'mousedown chat-title-split', 'pointerup chat-title-split', 'mouseup chat-title-split',
+      'pointerdown rename-chat-trigger', 'mousedown rename-chat-trigger', 'pointerup rename-chat-trigger', 'mouseup rename-chat-trigger', 'click rename-chat-trigger',
+      'keydown name-chat Enter',
+    ]);
+    assert.equal(d.querySelector('[contenteditable]').textContent, 'draft', 'the message box untouched');
+  });
+
+  test('each failing step closes what it opened, and never touches Delete or the message box', async () => {
+    const cases = [
+      [{ menu: false }, 'no menu opened', 0],
+      [{ renameItem: false }, 'no Rename item in the menu', 1],
+      [{ field: false }, 'no rename field appeared', 0],
+      [{ readonly: true }, 'the name could not be typed in the field', 1],
+      [{ closesOnEnter: false }, 'the rename field did not close on Enter', 1],
+    ];
+    for (const [opts, why, escapes] of cases) {
+      const { M, d, events } = page(opts);
+      assert.deepEqual({ ...(await M.rename(NAME)) }, { ok: false, why }, why);
+      assert.deepEqual(never(events), [], why);
+      assert.equal(events.filter((e) => e.startsWith('keydown') && e.endsWith('Escape')).length, escapes, `${why}: Escape sent`);
+      assert.equal(d.querySelector('[role="menu"]'), null, `${why}: no menu left open`);
+      assert.equal(d.querySelector('[data-testid="name-chat"]'), null, `${why}: no field left open`);
+    }
+    const none = loadIntoWindow(['menu.js'], { html: '<body><div data-testid="chat-input" contenteditable="true"></div></body>' }).ZBMenu;
+    assert.deepEqual({ ...(await none.rename(NAME)) }, { ok: false, why: 'no title button' }, 'no title button: nothing sent');
+  });
+
+  test('the four targets, by their exact selectors', () => {
+    const { M } = page();
+    assert.deepEqual({ ...M.TARGETS }, {
+      titleButton: '[data-testid="chat-title-split"] button[aria-haspopup="menu"]',
+      menu: '[role="menu"]',
+      renameItem: '[role="menu"] [data-testid="rename-chat-trigger"]',
+      nameField: 'input[data-testid="name-chat"]',
+    });
+  });
+});

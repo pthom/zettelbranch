@@ -20,6 +20,10 @@
 // such line; `options.titleStyle` 'bold': `**Branch title:** Lipograms.`).
 // `options.slowSend` { human, reply } (ms): a sent message is stored, and answered, that much
 // later, while the app already shows the new chat (as claude.ai may, right after Send).
+// `options.menu` switches parts of the app's title menu off: `title` (the button), `opens`
+// (the menu), `renameItem`, `field` (the rename field), `sticks` (the save keeps the name);
+// `readonly` makes the field refuse typing. `menuRenames` logs the app's own saves through
+// that menu, `synthetic` every synthetic event the page received, with its element.
 // `fail` makes the API misbehave on purpose: 'shape' (an answer claude.ai would give if it
 // changed, holding SECRET text) or 'status' (a 500 whose body holds SECRET text).
 import fs from 'node:fs';
@@ -46,7 +50,10 @@ export function createFakeClaude() {
   const convs = new Map();
   const apiLog = [];
   const fail = { conversation: null, list: null, rename: null };
-  const options = { autoTitle: true, delay: 0, branchTitle: null, claudeTitles: true, titleStyle: 'plain', slowSend: null };
+  const options = { autoTitle: true, delay: 0, branchTitle: null, claudeTitles: true, titleStyle: 'plain', slowSend: null, menu: null };
+  const MENU = { title: true, opens: true, renameItem: true, field: true, sticks: true, readonly: false };
+  const menuRenames = [];
+  const synthetic = [];
 
   function newConv(name) {
     const c = { uuid: uuid(), name, created_at: now(), updated_at: null, messages: [], leaf: null };
@@ -292,6 +299,22 @@ export function createFakeClaude() {
       if (!c) return json(route, 404, {});
       return json(route, 200, { name: c.name, messages: pathOf(c).map((x) => ({ role: x.sender === 'human' ? 'user' : 'assistant', text: x.pageText, attachments: x.attachments })) });
     }
+    if (p === '/fake/options') return json(route, 200, { ...MENU, ...(options.menu || {}) });
+    if (p === '/fake/synthetic' && req.method() === 'POST') {
+      synthetic.push({ ...JSON.parse(req.postData()), path: null });
+      return json(route, 200, {});
+    }
+    if (p === '/fake/rename' && req.method() === 'POST') {
+      const body = JSON.parse(req.postData());
+      const c = convs.get(body.id);
+      const sticks = { ...MENU, ...(options.menu || {}) }.sticks;
+      menuRenames.push({ name: body.name, kept: !!(c && sticks) });
+      if (c && sticks) {
+        c.name = body.name;
+        c.updated_at = now();
+      }
+      return json(route, 200, {});
+    }
     if (p === '/fake/send' && req.method() === 'POST') {
       const body = JSON.parse(req.postData());
       const c = body.conversationId ? convs.get(body.conversationId) : newConv('');
@@ -335,5 +358,5 @@ export function createFakeClaude() {
   }
 
   const ids = { priv: priv.uuid, long: long.uuid, oulipo: oulipo.uuid, big: big.uuid, mixed: mixed.uuid, root: root.uuid, branch: branch.uuid, grand: grand.uuid, ten: ten.uuid, dup: dup.uuid };
-  return { handle, apiLog, convs, ids, manyIds, MANY, addChat, pathOf, fail, options };
+  return { handle, apiLog, convs, ids, manyIds, MANY, addChat, pathOf, fail, options, menuRenames, synthetic };
 }

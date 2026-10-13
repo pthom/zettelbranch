@@ -4,6 +4,12 @@
 // the real page, it shows only the last messages of a long chat (a virtualized list), in
 // rows with data-index and data-perf-row. It uses its own /fake/ endpoints, so the tests
 // can tell its requests apart from the extension's /api/ calls.
+// Its title menu imitates claude.ai's, as found on 2026-10-13 (P11): a button in
+// chat-title-split that opens on pointerdown, four items with claude.ai's test ids, Rename
+// turning the title into the field name-chat, Enter saving through the app's own call
+// (/fake/rename) and the app updating its own title and sidebar. The fake server's
+// options.menu switches parts of it off. Every synthetic event (not from a real user) on a
+// pointer, mouse, click or key is reported to /fake/synthetic, with the element it reached.
 (function () {
   'use strict';
   const $ = (s) => document.querySelector(s);
@@ -11,6 +17,9 @@
   const send = $('[data-testid="chat-input-send"]');
   const list = $('[data-testid="transcript-list"]');
   const recents = $('[data-testid="sidebar-recents"]');
+  const split = $('[data-testid="chat-title-split"]');
+  const titleButton = split.querySelector('button[aria-haspopup="menu"]');
+  const titleText = $('[data-fake="title-text"]');
   const RENDER_LAST = 30;
 
   function mk(tag, attrs, text) {
@@ -99,16 +108,84 @@
     );
   }
 
+  // ---------------------------------------------------------------- the title menu
+
+  const options = async () => (await fetch('/fake/options')).json();
+  let menu = null;
+  let field = null;
+  function closeMenu() {
+    if (menu) menu.remove();
+    menu = null;
+    titleButton.setAttribute('aria-expanded', 'false');
+  }
+  function closeField() {
+    if (field) field.replaceWith(titleButton);
+    field = null;
+  }
+  titleButton.addEventListener('pointerdown', async (e) => {
+    if (e.button !== 0) return;
+    if (menu) return closeMenu();
+    const o = await options();
+    if (!o.opens) return;
+    menu = mk('div', { role: 'menu' });
+    for (const [id, label] of [['star', 'Star'], ['rename', 'Rename'], ['share', 'Share'], ['delete', 'Delete']]) {
+      if (id === 'rename' && !o.renameItem) continue;
+      const item = mk('div', { role: 'menuitem', 'data-testid': `${id}-chat-trigger` }, label);
+      if (id === 'rename') item.addEventListener('click', () => startRename(o));
+      menu.append(item);
+    }
+    document.body.append(menu);
+    titleButton.setAttribute('aria-expanded', 'true');
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeMenu();
+  });
+  function startRename(o) {
+    closeMenu();
+    if (!o.field) return;
+    const m = /^\/chat\/([0-9a-f-]{36})/.exec(location.pathname);
+    field = mk('input', { type: 'text', 'data-testid': 'name-chat', ...(o.readonly ? { readonly: '' } : {}) });
+    field.value = titleText.textContent;
+    titleButton.replaceWith(field);
+    field.focus();
+    field.addEventListener('keydown', async (e) => {
+      if (e.key === 'Escape') return closeField();
+      if (e.key !== 'Enter') return;
+      const name = field.value;
+      await fetch('/fake/rename', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: m[1], name }) });
+      titleText.textContent = name;
+      document.title = `${name} - Claude`;
+      closeField();
+      await loadSidebar();
+    });
+  }
+  // Synthetic events, reported with the element they reached.
+  for (const type of ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click', 'keydown', 'keypress', 'keyup']) {
+    document.addEventListener(type, (e) => {
+      if (e.isTrusted) return;
+      const t = e.target instanceof Element ? e.target : null;
+      const holder = t && t.closest('[data-testid]');
+      const report = { type, key: e.key || null, tag: t ? t.tagName.toLowerCase() : null, testid: holder ? holder.getAttribute('data-testid') : null, own: t ? t.getAttribute('data-testid') : null, href: t && t.closest('a') ? t.closest('a').getAttribute('href') : null, haspopup: t ? t.getAttribute('aria-haspopup') : null, role: t ? t.getAttribute('role') : null };
+      fetch('/fake/synthetic', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(report) });
+    }, true);
+  }
+
   async function route() {
     const m = /^\/chat\/([0-9a-f-]{36})/.exec(location.pathname);
     list.replaceChildren();
     clearComposer();
+    closeMenu();
+    closeField();
+    if (!(await options()).title) split.remove();
+    else if (!split.isConnected) $('[data-testid="chat-header"]').append(split);
     if (!m) {
       document.title = 'Claude';
+      titleText.textContent = '';
       return;
     }
     const conv = await (await fetch('/fake/conv/' + m[1])).json();
     document.title = conv.name ? `${conv.name} - Claude` : 'Claude';
+    titleText.textContent = conv.name;
     const first = Math.max(0, conv.messages.length - RENDER_LAST);
     conv.messages.forEach((msg, i) => {
       if (i < first) return;

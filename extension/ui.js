@@ -126,16 +126,21 @@
     ui.info.hidden = true;
   }
 
-  // After each rename (M1-4). The open tab's sidebar shows the new name after a reload.
-  // kind: 'root' (a chat made the root of a tree), 'branch' (a branch named for the first
-  // time), 'rename' (a named branch given another topic).
-  // A root is renamed in the middle of a branch: no reload offered there, since a reload
-  // would drop the preview below it (memory only; Pascal clicked it, 2026-10-13).
-  function showRenamed(name, kind) {
+  // After each rename (M1-4). kind: 'root' (a chat made the root of a tree), 'branch' (a
+  // branch named for the first time), 'rename' (a named branch given another topic).
+  // via: { via: 'menu' } when claude.ai's own title menu renamed it: the open tab shows the
+  // new name at once. { via: 'api', why } when the API did, after the menu failed: the open
+  // tab's sidebar shows the new name after a reload. A root is renamed in the middle of a
+  // branch: no reload offered there, since a reload would drop the preview below it.
+  function showRenamed(name, kind, via) {
     const what = { root: `This chat is now the tree root ${name}.`, branch: `You just created the branch ${name}.`, rename: `Renamed to ${name}.` }[kind];
+    const api = !via || via.via !== 'menu';
     ui.notice.replaceChildren(
-      el('p', { text: what }),
-      ...(kind === 'root' ? [] : [el('p', { text: 'Reload the page to see the new name.' }), button('Reload now', 'reload', () => location.reload(), 'primary')])
+      ...[
+        el('p', { text: what }),
+        ...(api && kind !== 'root' ? [el('p', { text: 'Reload the page to see the new name.' }), button('Reload now', 'reload', () => location.reload(), 'primary')] : []),
+        api && via ? el('p', { class: 'detail', 'data-zb': 'renamed-via', text: `Renamed through claude.ai's API: its title menu did not work (${via.why}).` }) : null,
+      ].filter(Boolean)
     );
     ui.notice.hidden = false;
   }
@@ -353,7 +358,7 @@
       return showFailure(r);
     }
     if (!r.ok) return showFailure(r);
-    if (r.renamed) showRenamed(r.renamed, 'root');
+    if (r.renamed) showRenamed(r.renamed, 'root', r.via);
     showPreview(r);
   }
 
@@ -395,7 +400,7 @@
     // What the panel read for this chat, with the new name; else read it (not the list again).
     if (r.chat) showChat(r.chat);
     else await refresh({ reuseList: true });
-    showRenamed(r.renamed, r.wasNamed ? 'rename' : 'branch');
+    showRenamed(r.renamed, r.wasNamed ? 'rename' : 'branch', r.via);
   }
 
   // ---------------------------------------------------------------- mount
