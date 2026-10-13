@@ -47,8 +47,21 @@ check('Click listeners only (no keyboard, input or other listeners)',
 check('No keyboard or input listeners',
   hits(/['"](keydown|keyup|keypress|input|beforeinput|change|compositionstart|compositionupdate|compositionend|paste|copy)['"]/));
 check('No watching of the page (no MutationObserver or other observers)', hits(/MutationObserver|IntersectionObserver|ResizeObserver/));
-check('Nothing runs on its own: no setInterval or frame callbacks; setTimeout only in the short wait helper',
-  [...hits(/setInterval|requestAnimationFrame|requestIdleCallback/), ...hits(/setTimeout/).filter((l) => !/const sleep = \(ms\) => new Promise\(\(r\) => setTimeout\(r, ms\)\);/.test(l.text))]);
+// One interval (step 6e): while the panel is open, follow() compares the tab's address with
+// the page the panel shows and, on a change, reads as the refresh button does.
+const INTERVAL_LINE = 'const startFollowing = () => (watch = watch || setInterval(follow, 400));';
+const FOLLOW = ['function follow() {', 'if (location.pathname !== seenPath) readOnScreen();', '}'];
+const uiLines = fs.readFileSync(path.join(opt.dir, 'ui.js'), 'utf8').split('\n').map((l) => l.trim());
+const followAt = uiLines.indexOf(FOLLOW[0]);
+const intervals = hits(/setInterval/);
+check('Nothing runs on its own but one check while the panel is open: one setInterval, whose callback only compares the tab\'s address and reads as the refresh button does; no frame callbacks; setTimeout only in the short wait helper', [
+  ...hits(/requestAnimationFrame|requestIdleCallback/),
+  ...intervals.filter((l) => !(l.file === 'ui.js' && l.text.trim() === INTERVAL_LINE)),
+  ...(intervals.length > 1 ? [{ file: 'ui.js', n: 0, text: `setInterval on ${intervals.length} lines` }] : []),
+  ...(followAt < 0 || uiLines.lastIndexOf(FOLLOW[0]) !== followAt || uiLines.slice(followAt, followAt + 3).join(' ') !== FOLLOW.join(' ') ? [{ file: 'ui.js', n: followAt + 1, text: `follow() is not exactly: ${FOLLOW.join(' ')}` }] : []),
+  ...(uiLines.includes("b.addEventListener('click', readOnScreen);") ? [] : [{ file: 'ui.js', n: 0, text: 'the refresh button does not call readOnScreen' }]),
+  ...hits(/setTimeout/).filter((l) => !/const sleep = \(ms\) => new Promise\(\(r\) => setTimeout\(r, ms\)\);/.test(l.text)),
+]);
 check('No eval or code from strings', hits(/\beval\s*\(|new Function\s*\(|setTimeout\(\s*['"`]|setInterval\(\s*['"`]/));
 check('No hidden calls: no computed property access on global objects', hits(/\b(window|globalThis|self|document|global|location|navigator)\s*\[/));
 check('No extension APIs (no messaging, no background, no extension storage)', hits(/\b(chrome|browser)\.\w/));

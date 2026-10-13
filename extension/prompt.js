@@ -56,6 +56,31 @@
     return lines.slice(i).join('\n');
   }
 
+  // Claude's suggestion for the branch's name: the last non-empty line of its first reply,
+  // "Branch title: <3 to 6 words>". Lenient: bold or italic marks, quotes and a final period
+  // are dropped. '' if that line is not there.
+  function parseBranchTitle(reply) {
+    const lines = String(reply).split('\n').filter((l) => l.trim());
+    const m = /^[*_\s]*branch title[*_\s]*:[*_\s]*(.*?)[*_\s]*$/i.exec(lines[lines.length - 1] || '');
+    if (!m) return '';
+    return m[1].replace(/^[\s"'«“‘`]+|[\s"'»”’`.]+$/g, '').replace(/\s+/g, ' ').slice(0, 80).trim();
+  }
+
+  // A reply without its "Branch title:" last line (and a rule or blank lines left above it).
+  function stripBranchTitle(text) {
+    const lines = String(text).split('\n');
+    let i = lines.length - 1;
+    while (i >= 0 && !lines[i].trim()) i--;
+    if (i < 0 || !parseBranchTitle(lines[i])) return text;
+    lines.length = i;
+    while (lines.length && (!lines[lines.length - 1].trim() || /^\s*([-*_])\1{2,}\s*$/.test(lines[lines.length - 1]))) lines.pop();
+    return lines.join('\n');
+  }
+
+  // A branch's first reply as copied or listed: without the summary on top and the branch
+  // title at the bottom.
+  const replyBody = (text) => stripBranchTitle(stripSummary(text));
+
   // The first blockquote of a reply, if it starts with "Parent" (for the banner, later).
   function parseSummary(reply) {
     const lines = String(reply).split('\n');
@@ -110,13 +135,14 @@
   // only that).
   function firstWords(reply) {
     const summary = parseSummary(reply);
-    const body = stripSummary(reply).trim() || (summary ? summary.text : reply);
+    const body = replyBody(reply).trim() || (summary ? summary.text : reply);
     const words = body.replace(/[#*_`>[\]]/g, ' ').split(/\s+/).filter(Boolean).slice(0, 8).join(' ');
     return words.slice(0, 60).replace(/[\s.,:;!?-]+$/, '');
   }
 
   // The topic proposed when naming a branch, and where it comes from:
   //   'current'   the branch is named already: its topic, to change it
+  //   'claude'    else Claude's suggestion, the "Branch title:" line ending its first reply
   //   'question'  else the first question asked in the branch: your text after the
   //               instructions in its first message, else your next message
   //   'title'     else claude.ai's title. It describes the parent more than the branch:
@@ -131,6 +157,8 @@
     if (!head) return null;
     const current = namedTopic(title, head);
     if (current) return { topic: current, from: 'current' };
+    const suggested = messages[1] && messages[1].role === 'assistant' ? parseBranchTitle(messages[1].text) : '';
+    if (suggested) return { topic: suggested, from: 'claude' };
     const parsed = parseBranchMessage(first.text);
     const asked = [parsed ? parsed.ownText : '', ...messages.slice(1).filter((m) => m.role === 'user').map((m) => m.text)];
     for (const q of asked) {
@@ -149,14 +177,21 @@
 
   // upTo: the parent's last message in the transcript (0 if the transcript holds only the
   // history the parent was itself branched from).
+  // Claude's suggestion for the branch's name, its first reply's last line (Pascal, 2026-10-13).
+  const TITLE_LINE = 'a separate last line: "Branch title:" followed by 3 to 6 words naming what this branch is ' +
+    'about, from my message below, in the language of the conversation.';
+
   function instructions(parent, upTo, hasTurns) {
     if (!hasTurns) {
-      // Branching from a chat's first message: no history, so no summary to ask for.
+      // Branching from a chat's first message: no history, so no summary to ask for; your
+      // message is pre-filled, so the branch title is always asked.
       return [
         '<zb-instructions>',
         `This chat is a new branch of the conversation ${parent}, started from its first message, so there is no ` +
           'earlier history (the transcript above is empty). Do not comment on the header lines; they are for my own ' +
           'records. Answer my message below.',
+        '',
+        `End your first reply with ${TITLE_LINE}`,
         '</zb-instructions>',
       ].join('\n');
     }
@@ -173,6 +208,8 @@
       `Start your first reply with a single blockquote paragraph that begins with "Parent ${parent} in brief:" and says in ` +
         '2 to 4 sentences where the conversation stood at that point, in the language of the conversation. Then answer my ' +
         'message below. If there is no message below, reply with the summary only.',
+      '',
+      `If there is a message below, end your first reply with ${TITLE_LINE}`,
       '</zb-instructions>',
     ].join('\n');
   }
@@ -181,7 +218,8 @@
   // From Claude's reply, the branch continues after it. From your own message, it replaces
   // it: the transcript stops before it, and your message is pre-filled at the end.
   // A parent that is itself a branch is flattened: its first message is parsed back into
-  // the earlier turns plus your text, and the summary atop its first reply is dropped.
+  // the earlier turns plus your text, and its first reply loses the summary on top and the
+  // branch title at the bottom.
   function build({ tree, parentTitle, parentAddress, newAddress, messages, fork }) {
     const forkMsg = messages[fork];
     if (!forkMsg) throw new Error(`there is no message at position ${fork}`);
@@ -201,12 +239,13 @@
         if (parsed.ownText) turns.push({ branch: parentAddress, n: 1, role: 'user', text: parsed.ownText });
         continue;
       }
-      const text = i === 1 && parsed && m.role === 'assistant' ? stripSummary(m.text) : m.text;
+      const text = i === 1 && parsed && m.role === 'assistant' ? replyBody(m.text) : m.text;
       if (text.trim()) turns.push({ branch: parentAddress, n: m.n, role: m.role, text });
     }
     const forkText = fork === 0 && parsed ? parsed.ownText : forkMsg.text;
-    // A branch's first reply is quoted without Claude's summary on top, if anything follows it.
-    const quoted = after && fork === 1 && parsed ? stripSummary(forkMsg.text).trim() || forkMsg.text : forkText;
+    // A branch's first reply is quoted without Claude's summary on top and its branch title at
+    // the bottom, if anything else is left.
+    const quoted = after && fork === 1 && parsed ? replyBody(forkMsg.text).trim() || forkMsg.text : forkText;
     const prefill = after ? '' : forkText;
 
     const parent = `${tree}/${parentAddress}`;
@@ -229,6 +268,6 @@
 
   global.ZBPrompt = {
     build, parseHeader, parseBranchMessage, stripSummary, parseSummary, quote, plain, escapeZb, unescapeZb,
-    parseForkedFrom, namedTopic, shortTopic, firstWords, proposeTopic,
+    parseForkedFrom, namedTopic, shortTopic, firstWords, proposeTopic, parseBranchTitle, stripBranchTitle, replyBody,
   };
 })(globalThis);

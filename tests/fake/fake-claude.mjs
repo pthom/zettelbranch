@@ -15,6 +15,11 @@
 // `options.delay` holds every API answer back that many milliseconds (to see reads overlap,
 // and the panel while it reads); each log entry has its arrival and answer times, t0 and t1.
 // `options.branchTitle` is the title claude.ai gives a branch, instead of the parent's topic.
+// Claude's reply to a branch's first message ends with a "Branch title:" line when that
+// message holds a question and its instructions ask for it (`options.claudeTitles` off: no
+// such line; `options.titleStyle` 'bold': `**Branch title:** Lipograms.`).
+// `options.slowSend` { human, reply } (ms): a sent message is stored, and answered, that much
+// later, while the app already shows the new chat (as claude.ai may, right after Send).
 // `fail` makes the API misbehave on purpose: 'shape' (an answer claude.ai would give if it
 // changed, holding SECRET text) or 'status' (a 500 whose body holds SECRET text).
 import fs from 'node:fs';
@@ -41,7 +46,7 @@ export function createFakeClaude() {
   const convs = new Map();
   const apiLog = [];
   const fail = { conversation: null, list: null, rename: null };
-  const options = { autoTitle: true, delay: 0, branchTitle: null };
+  const options = { autoTitle: true, delay: 0, branchTitle: null, claudeTitles: true, titleStyle: 'plain', slowSend: null };
 
   function newConv(name) {
     const c = { uuid: uuid(), name, created_at: now(), updated_at: null, messages: [], leaf: null };
@@ -191,12 +196,17 @@ export function createFakeClaude() {
 
   // ---------------------------------------------------------------- replies
 
+  // Claude's suggested names for the questions the tests type.
+  const TITLES = { 'What about fish and birds?': 'Fish and birds on one page', 'What is a lipogram?': 'Lipograms', 'How does branching work?': 'How branches work', 'Shall we name the cards?': 'Naming the cards' };
   function reply(text) {
     if (text.startsWith('Zettelbranch · ') && text.includes('<zb-instructions>')) {
       const parent = /"Parent (\S+) in brief:"/.exec(text);
       const own = text.slice(text.indexOf('</zb-instructions>') + '</zb-instructions>'.length).trim();
       const summary = parent ? `> Parent ${parent[1]} in brief: We talked about card boxes and their addresses.\n\n` : '';
-      return (summary + (own ? 'Here is my answer to your message.' : '')).trim() || 'Hello.';
+      const name = TITLES[own] || `About ${own.split(/\s+/).slice(0, 3).join(' ')}`;
+      const titled = own && options.claudeTitles && text.includes('a separate last line: "Branch title:"');
+      const line = titled ? (options.titleStyle === 'bold' ? `\n\n**Branch title:** ${name}.` : `\n\nBranch title: ${name}`) : '';
+      return ((summary + (own ? 'Here is my answer to your message.' : '')).trim() || 'Hello.') + line;
     }
     return 'ok';
   }
@@ -285,9 +295,13 @@ export function createFakeClaude() {
     if (p === '/fake/send' && req.method() === 'POST') {
       const body = JSON.parse(req.postData());
       const c = body.conversationId ? convs.get(body.conversationId) : newConv('');
-      add(c, 'human', body.text);
-      add(c, 'assistant', reply(body.text));
-      if (!c.name && options.autoTitle) c.name = autoTitle(body.text);
+      const later = (ms, fn) => (ms ? setTimeout(fn, ms) : fn());
+      const slow = options.slowSend || {};
+      later(slow.human, () => add(c, 'human', body.text));
+      later(slow.reply, () => {
+        add(c, 'assistant', reply(body.text));
+        if (!c.name && options.autoTitle) c.name = autoTitle(body.text);
+      });
       return json(route, 200, { id: c.uuid });
     }
     return json(route, 404, {});

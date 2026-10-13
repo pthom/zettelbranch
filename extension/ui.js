@@ -1,7 +1,8 @@
 // Zettelbranch: the panel. A small "Zettelbranch" button at the bottom right opens it.
 // Shadow DOM outside <body>, built with DOM nodes and textContent only. Click listeners
 // only: no keyboard or input listeners. Every action starts with a click; the flow itself
-// is in branch.js.
+// is in branch.js. While the panel is open, it follows the chat on screen: when the tab
+// moves to another chat, it reads that chat as its refresh button does (reads only).
 (function (global) {
   'use strict';
 
@@ -96,6 +97,8 @@
   let busy = false;
   let shown = null; // the chat the panel shows
   let reading = null; // a read in the background, while the panel shows what was read before
+  let seenPath = null; // the tab's address when the panel last read the page, or our own flow moved it
+  let watch = null; // the check that follows the chat on screen, only while the panel is open
 
   async function act(fn) {
     if (busy) return;
@@ -153,6 +156,7 @@
   // chat before, what it read shows at once and the read runs in the background, the refresh
   // button turning until the panel shows the new read. opts.reuseList: see branch.js read().
   async function refresh(opts) {
+    seen();
     const before = B().cached();
     ui.refresh.setAttribute('aria-busy', 'true');
     if (before) showChat(before);
@@ -188,7 +192,10 @@
     // after a reload, when the pill's reminder is gone.
     if (chat.identity) {
       const who = el('p', { class: 'identity', 'data-zb': 'identity', text: chat.identity });
-      parts.push(chat.needsName && chat.source === 'api' ? el('div', { class: 'box notice', 'data-zb': 'name-box' }, [who, button('Name this branch', 'name', nameBranch, 'primary')]) : who);
+      const nameIt = button('Name this branch', 'name', nameBranch, 'primary');
+      const replied = chat.messages.some((m) => m.role === 'assistant');
+      const named = replied ? nameIt : el('div', { class: 'row' }, [el('p', { text: 'When Claude has replied:' }), nameIt]);
+      parts.push(chat.needsName && chat.source === 'api' ? el('div', { class: 'box notice', 'data-zb': 'name-box' }, [who, named]) : who);
     }
     parts.push(el('p', { class: 'title', 'data-zb': 'chat-title', text: chat.title || '(no title yet)' }));
     if (chat.source === 'page') {
@@ -287,11 +294,38 @@
 
   // ---------------------------------------------------------------- actions
 
-  async function open() {
+  // The pill: the panel shows at once (also while an action finishes), then reads the chat.
+  function open() {
     ui.pill.hidden = true;
     ui.panel.hidden = false;
-    clearMessages();
-    await refresh();
+    startFollowing();
+    readOnScreen();
+  }
+
+  // The refresh button, and the panel following the chat on screen: read the chat on screen.
+  function readOnScreen() {
+    if (reading) return; // it is reading already
+    act(() => {
+      clearMessages();
+      return refresh();
+    });
+  }
+
+  // While the panel is open, every 0.4 s: has the tab moved to another page since the panel
+  // read it? Then read the page on screen, as the refresh button does. It only reads the
+  // tab's address; during an action it waits for the next turn. Stopped when the panel hides.
+  function follow() {
+    if (location.pathname !== seenPath) readOnScreen();
+  }
+  const startFollowing = () => (watch = watch || setInterval(follow, 400));
+  function stopFollowing() {
+    clearInterval(watch);
+    watch = null;
+  }
+  // The page the panel shows is this one (also after our own flow moved the tab).
+  function seen() {
+    seenPath = location.pathname;
+    ui.panel.setAttribute('data-shows', seenPath);
   }
 
   // The pill reminds you of a branch this tab opened and has not named yet (memory only).
@@ -300,6 +334,7 @@
     ui.pill.textContent = due ? 'Zettelbranch: name this branch' : 'Zettelbranch';
     if (due) ui.pill.setAttribute('title', `${due} is not named yet. Click, then Name this branch.`);
     else ui.pill.removeAttribute('title');
+    stopFollowing();
     ui.panel.hidden = true;
     ui.pill.hidden = false;
   }
@@ -339,6 +374,7 @@
   async function openChat() {
     clearMessages();
     const r = await B().open();
+    seen(); // the new chat this flow opened: not a move to follow
     if (!r.ok) return showFailure(r);
     show(
       el('p', { class: 'box notice', 'data-zb': 'opened', text: `The new chat holds the first message of ${r.address}.` }),
@@ -371,13 +407,7 @@
     }
     const tip = 'Read this chat and its tree again';
     const b = el('button', { type: 'button', class: 'icon', 'data-zb': 'refresh', title: tip, 'aria-label': tip }, [svg]);
-    b.addEventListener('click', () => {
-      if (reading) return; // it is reading already
-      act(() => {
-        clearMessages();
-        return refresh();
-      });
-    });
+    b.addEventListener('click', readOnScreen);
     return b;
   }
 
@@ -398,7 +428,7 @@
     }
     ui = {};
     ui.pill = el('button', { class: 'pill', type: 'button', 'data-zb': 'pill', text: 'Zettelbranch' });
-    ui.pill.addEventListener('click', () => act(open));
+    ui.pill.addEventListener('click', open);
     ui.notice = el('div', { class: 'box notice', 'data-zb': 'notice', hidden: '' });
     ui.error = el('div', { class: 'box error', 'data-zb': 'error', hidden: '' });
     ui.info = el('p', { class: 'box warn', 'data-zb': 'info', hidden: '' });

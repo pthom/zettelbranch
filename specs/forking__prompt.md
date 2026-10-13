@@ -56,7 +56,7 @@ Backlinks need every conversation of the tree. …
 
 - `branch` and `n` say which conversation and which message each turn comes from, so later references like `zb/1b#4` stay possible.
 - Message text is Markdown (FK-D3). Content that was not copied gets a placeholder (FK-D1).
-- **Flattening.** A branch's first message contains its own transcript. When you branch from a branch, the extension does not nest that transcript inside the new one. It parses the first message back into the earlier turns plus your own text, and lists them in one flat sequence from the root. Claude's summary at the top of the branch's first reply is dropped: with the full transcript it says nothing new. If parsing fails, the first message is copied as is, nested; worse, but still correct.
+- **Flattening.** A branch's first message contains its own transcript. When you branch from a branch, the extension does not nest that transcript inside the new one. It parses the first message back into the earlier turns plus your own text, and lists them in one flat sequence from the root. Claude's summary at the top of the branch's first reply is dropped: with the full transcript it says nothing new. So is the "Branch title:" line at its bottom ([below](#claudes-first-reply)). If parsing fails, the first message is copied as is, nested; worse, but still correct.
 - **Escaping.** Message text containing `<zb-` or `</zb-` (likely in conversations about this very prompt) has `<` written as `&lt;` there, in the transcript and in the header's quote. The extension reverses it when parsing back.
 
 ## Instructions
@@ -83,17 +83,23 @@ language of the conversation.
 </zb-instructions>
 ```
 
-The second paragraph exists only if FK-1 = A. With FK-1 = B the summary is in the header instead; with C it is gone.
+The second paragraph exists only if FK-1 = A. With FK-1 = B the summary is in the header instead; with C it is gone. The third asks for the branch's name (step 6e).
 
-When nothing comes before the fork point (a branch from a chat's first message), the transcript is empty and there is nothing to summarise. The instructions then say only:
+When nothing comes before the fork point (a branch from a chat's first message), the transcript is empty and there is nothing to summarise. Your message is always there, pre-filled, so the branch title is asked without a condition. The instructions then say only:
 
 ```
 <zb-instructions>
 This chat is a new branch of the conversation zb/1b, started from its first message, so
 there is no earlier history (the transcript above is empty). Do not comment on the
 header lines; they are for my own records. Answer my message below.
+
+End your first reply with a separate last line: "Branch title:" followed by 3 to 6 words
+naming what this branch is about, from my message below, in the language of the
+conversation.
 </zb-instructions>
 ```
+
+Each paragraph is one line in the message; the line breaks above are for reading only. The texts are those of `extension/prompt.js` (`instructions()`), word for word, and the unit tests hold them.
 
 Seen in Milestone 0 (P8): asked for a summary anyway, Claude summarised an empty transcript ("copied up to message 0").
 
@@ -107,6 +113,8 @@ The instructions are in English whatever the UI language, so the extension parse
 > message and build the links. The open point was cost and freshness.
 
 <the answer to your message>
+
+Branch title: Backlinks for option A
 ```
 
 Seen in Milestone 0 (P8, 2026-10-13): Claude followed it. The blockquote came first, with the right parent, in 2 sentences, and was the whole reply when no message followed.
@@ -116,7 +124,9 @@ The extension reads this blockquote for the banner's "where this came from". The
 Parsing is lenient. The extension takes the first blockquote of the first reply that starts with `Parent`. If there is none, the banner shows no summary; nothing else breaks.
 
 
-The last line, `Branch title: Un enfant au ballon`, is Claude's suggestion for the branch's name (Pascal, 2026-10-13): claude.ai's automatic title describes the parent, since the first message holds its transcript, and the first words of a question rarely make a good name. It is asked only when the first message holds a question; when the question comes in a later message, the proposal falls back to that question's first words.
+The last line, here `Branch title: Backlinks for option A` (on Pascal's `oulipo/1a1`, it would read `Branch title: Un enfant au ballon`), is Claude's suggestion for the branch's name (Pascal, 2026-10-13): claude.ai's automatic title describes the parent, since the first message holds its transcript, and the first words of a question rarely make a good name. It is asked only when the first message holds a question; when the question comes in a later message, the proposal falls back to that question's first words.
+
+Parsing is lenient here too. The extension takes the last non-empty line of the first reply after the header message; if it reads `Branch title:` and some words, those words are the suggestion. Bold or italic marks, quotes and a final period are dropped (`**Branch title:** "Un enfant au ballon".` gives `Un enfant au ballon`). Anywhere else in the reply, the line is not taken. "Name this branch" proposes, in order: the branch's current name if it has one, Claude's branch title, the first words of your first question in the branch, claude.ai's title, the first words of Claude's reply.
 
 ## What the extension parses
 
@@ -131,7 +141,7 @@ The header message is message 1 in a copy. In a branch claude.ai copied, it is t
 | Earlier turns | The header message of a copy | `<zb-turn>` elements inside `<zb-transcript>` |
 | Your own text | The header message | everything after `</zb-instructions>` |
 | Summary | The reply after the header message | first blockquote starting with `Parent` |
-| Branch title | The same reply, its last line | `^Branch title: (.+)$`: "Name this branch" proposes it first; dropped from the reply when it is copied into another branch |
+| Branch title | The same reply, its last non-empty line | `Branch title: (.+)`, bold or italic marks, quotes and a final period dropped: "Name this branch" proposes it first; dropped from the reply when it is copied into another branch |
 
 If the transcript became an attachment, reading it back needs the attachment's text. The API holds it (`extracted_content`); the page only while that message is on screen (Milestone 0, P6). So it is read through the API.
 

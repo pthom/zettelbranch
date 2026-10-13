@@ -21,7 +21,8 @@ Everything that runs is in `extension/`: `manifest.json` and seven scripts, abou
 
 What it does, and when:
 
-- **Nothing until you click** the "Zettelbranch" button at the bottom right. No timers, no watching of the page.
+- **Nothing until you click** the "Zettelbranch" button at the bottom right. No watching of the page's content.
+- **While the panel is open**, it follows the chat on screen: every 0.4 seconds it compares the tab's address with the page it shows, and when you move to another chat it reads that chat, exactly as its refresh button does (reads only, never a write). Hiding the panel stops it.
 - **Opening the panel**, and its refresh button, read the conversation on screen: `GET /api/organizations` (once per page load, to find your organization) and `GET …/chat_conversations/<id>?tree=True…`, and at the same time the list of your conversations (`GET …/chat_conversations_v2`, only `uuid` and `name` kept), to show the chat's tree as links.
 - **Branch** reads the list of your conversations (`GET …/chat_conversations_v2`, only `uuid` and `name` are kept) to find the next free address. If the chat is not in a tree yet, it asks for a tree name and a confirmation in browser dialogs, then renames the chat (`PUT …/chat_conversations/<id>` with `{"name": …}`).
 - **Open new chat** clicks claude.ai's own New chat link and types the prompt into the message box. You read it and press Send yourself; the extension never does.
@@ -96,11 +97,15 @@ grep -nE "['\"](keydown|keyup|keypress|input|beforeinput|change|composition[a-z]
 grep -nE 'MutationObserver|IntersectionObserver|ResizeObserver' extension/*.js | grep -vE '^[^:]+:[0-9]+: *//'
 ```
 
-**11. Nothing runs on its own.** No repeating timers or frame callbacks. `setTimeout` appears once, in a short wait helper used right after a click (for the new chat to appear, 10 seconds at most).
+**11. Nothing runs on its own, but one check while the panel is open.** No frame callbacks. `setTimeout` appears once, in a short wait helper used right after a click (for the new chat to appear, 10 seconds at most). `setInterval` appears once, in `ui.js`: while the panel is open, every 0.4 seconds, `follow()` compares the tab's address with the page the panel shows and, on a change, calls `readOnScreen()`, the same function as the refresh button, which only reads. Hiding the panel stops it (`stopFollowing()`). The commands check that line, the body of `follow()`, and that the refresh button calls `readOnScreen`.
 
 ```sh
-grep -nE 'setInterval|requestAnimationFrame|requestIdleCallback' extension/*.js | grep -vE '^[^:]+:[0-9]+: *//'
+grep -nE 'requestAnimationFrame|requestIdleCallback' extension/*.js | grep -vE '^[^:]+:[0-9]+: *//'
 grep -n 'setTimeout' extension/*.js | grep -vF 'const sleep = (ms) => new Promise((r) => setTimeout(r, ms));'
+[ "$(cat extension/*.js | grep -c 'setInterval')" = 1 ] || echo 'setInterval is not on exactly one line'
+grep -n 'setInterval' extension/*.js | grep -vF 'extension/ui.js:' ; grep -n 'setInterval' extension/ui.js | grep -vF 'const startFollowing = () => (watch = watch || setInterval(follow, 400));'
+[ "$(grep -A2 -xF '  function follow() {' extension/ui.js | tr -d ' \n')" = "functionfollow(){if(location.pathname!==seenPath)readOnScreen();}" ] || echo 'follow() is not exactly as described'
+grep -qF "b.addEventListener('click', readOnScreen);" extension/ui.js || echo 'the refresh button does not call readOnScreen'
 ```
 
 **12. No code from strings**: no `eval`, `new Function`, or timers given a string.
@@ -174,6 +179,6 @@ Then paste this prompt, followed by the files:
 > 5. The page: does it inject HTML, run code from strings, talk to the page's scripts, or press Send?
 > 6. The manifest: which permissions and sites does it ask for?
 > 7. Obfuscation: is there any code that hides what it does (string-built property names, encoded strings, unusual indirection)?
-> 8. Anything else surprising or risky, and whether the checks listed in AUDIT.md (summarized: network only in api.js, only GET and PUT, claude.ai only, no credentials, no storage, no HTML injection, click listeners only, no observers, no repeating timers, no eval, no extension APIs, never presses Send) hold.
+> 8. Anything else surprising or risky, and whether the checks listed in AUDIT.md (summarized: network only in api.js, only GET and PUT, claude.ai only, no credentials, no storage, no HTML injection, click listeners only, no observers, one repeating check only while the panel is open, which compares the tab's address and reads as the refresh button does, no eval, no extension APIs, never presses Send) hold.
 >
 > Quote file names and line numbers for every finding. End with a short verdict: safe to install, or not, and why.

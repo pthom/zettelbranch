@@ -422,6 +422,8 @@ describe('prompt.js', () => {
       'The transcript above is our conversation so far, copied from the conversation zbtest/1 up to message 4. The assistant turns are your own earlier replies. Treat it as shared history: do not comment on it, quote it back, or answer its questions again. Placeholders ending in "not copied", such as [file: photo.png, not copied], mark content that was not carried over; ask me if you need it. Text under a [pasted text: …] line is text I pasted, copied in full.',
       '',
       'Start your first reply with a single blockquote paragraph that begins with "Parent zbtest/1 in brief:" and says in 2 to 4 sentences where the conversation stood at that point, in the language of the conversation. Then answer my message below. If there is no message below, reply with the summary only.',
+      '',
+      'If there is a message below, end your first reply with a separate last line: "Branch title:" followed by 3 to 6 words naming what this branch is about, from my message below, in the language of the conversation.',
       '</zb-instructions>',
       '',
       '',
@@ -429,6 +431,17 @@ describe('prompt.js', () => {
     assert.equal(b.turns, 4);
     assert.equal(b.chars, b.text.length);
     assert.equal(b.tokens, Math.round(b.text.length / 4));
+  });
+
+  test('specs/forking__prompt.md shows the instructions word for word (its line breaks aside)', () => {
+    const doc = fs.readFileSync(new URL('../specs/forking__prompt.md', import.meta.url), 'utf8');
+    const blocks = [...doc.matchAll(/```\n(<zb-instructions>[\s\S]*?<\/zb-instructions>)\n```/g)].map((m) => m[1]);
+    const paragraphs = (t) => t.split(/\n\n/).map((p) => p.replace(/\s*\n\s*/g, ' ').trim());
+    const instr = (t) => '<zb-instructions>' + t.split('<zb-instructions>')[1].split('</zb-instructions>')[0] + '</zb-instructions>';
+    const zb = { tree: 'zb', parentTitle: 'zb/1b · T', parentAddress: '1b', newAddress: '1b1', messages: ROOT };
+    assert.equal(blocks.length, 2);
+    assert.deepEqual(paragraphs(blocks[0]), [...paragraphs(instr(P.build({ ...zb, fork: 3 }).text))], 'a branch with history');
+    assert.deepEqual(paragraphs(blocks[1]), [...paragraphs(instr(P.build({ ...zb, fork: 0 }).text))], 'a branch from the first message');
   });
 
   test('from your own message: the transcript stops before it, your message is pre-filled', () => {
@@ -439,11 +452,15 @@ describe('prompt.js', () => {
     assert.ok(b.text.endsWith('</zb-instructions>\n\nHow does branching work?'));
   });
 
-  test('from the first message: empty transcript, no summary asked', () => {
+  test('from the first message: empty transcript, no summary asked, the branch title always asked', () => {
     const b = P.build({ ...base, fork: 0 });
     assert.equal(b.turns, 0);
     assert.ok(b.text.includes('<zb-transcript>\n</zb-transcript>'));
-    assert.ok(b.text.includes('This chat is a new branch of the conversation zbtest/1, started from its first message, so there is no earlier history'));
+    assert.equal(b.text.split('<zb-instructions>\n')[1].split('\n</zb-instructions>')[0], [
+      'This chat is a new branch of the conversation zbtest/1, started from its first message, so there is no earlier history (the transcript above is empty). Do not comment on the header lines; they are for my own records. Answer my message below.',
+      '',
+      'End your first reply with a separate last line: "Branch title:" followed by 3 to 6 words naming what this branch is about, from my message below, in the language of the conversation.',
+    ].join('\n'));
     assert.ok(!b.text.includes('in brief'));
     assert.ok(b.text.endsWith('</zb-instructions>\n\n' + ROOT[0].text));
   });
@@ -474,6 +491,16 @@ describe('prompt.js', () => {
     assert.ok(!b.text.includes('Zettelbranch · zbtest/1a\n'), 'no nested header');
     assert.equal((b.text.match(/<zb-transcript>/g) || []).length, 1, 'no nested transcript');
     assert.ok(b.text.includes('literal &lt;zb-turn> tag'), 'escaping kept');
+  });
+
+  test('a branch\'s first reply is copied without its summary and its branch title line', () => {
+    const titled = [BRANCH[0], { ...BRANCH[1], text: BRANCH[1].text + '\n\n---\n\n**Branch title:** Addresses and letters.' }, ...BRANCH.slice(2)];
+    const b = P.build({ ...flat, messages: titled, fork: 3 });
+    assert.equal(P.parseBranchMessage(b.text).turns[3].text, 'Addresses look like 1, 1a, 1a1.');
+    assert.ok(!b.text.includes('Addresses and letters'));
+    const at2 = P.build({ ...flat, messages: titled, fork: 1 });
+    assert.match(at2.text.split('\n')[2], /after message 2 \(Claude\): "Addresses look like 1, 1a, 1a1\."$/, 'the quote too');
+    assert.equal(P.parseBranchMessage(at2.text).turns.at(-1).text, 'Addresses look like 1, 1a, 1a1.');
   });
 
   test('instead of a branch\'s first message: its inherited history, your text pre-filled', () => {
@@ -604,6 +631,37 @@ describe('prompt.js, the topic proposed for a branch\'s name', () => {
     assert.deepEqual(propose('', branch('')), { topic: 'We wrote a calligram of a cat', from: 'reply' });
     assert.equal(P.proposeTopic('', [{ n: 1, role: 'user', text: header() }]), null);
     assert.equal(P.proposeTopic('Poème en forme de chat', [{ n: 1, role: 'user', text: 'Not a branch' }, ROOT[1]]), null, 'not a branch');
+  });
+
+  test('Claude\'s branch title: the last non-empty line of its first reply, leniently', () => {
+    const t = (last) => P.parseBranchTitle(`Here is a calligram.\n\n${last}\n\n`);
+    assert.equal(t('Branch title: Un enfant au ballon'), 'Un enfant au ballon', 'plain');
+    assert.equal(t('**Branch title:** Un enfant au ballon'), 'Un enfant au ballon', 'bold label');
+    assert.equal(t('**Branch title: Un enfant au ballon**'), 'Un enfant au ballon', 'all bold');
+    assert.equal(t('*Branch title:* Un enfant au ballon.'), 'Un enfant au ballon', 'italics, a period');
+    assert.equal(t('Branch title: "Un enfant au ballon".'), 'Un enfant au ballon', 'quotes and a period');
+    assert.equal(t('Branch title: « Un enfant au ballon »'), 'Un enfant au ballon', 'French quotes');
+    assert.equal(t('branch Title : Un enfant au ballon'), 'Un enfant au ballon', 'case and spaces');
+    assert.equal(t('Branch title: Where do lipograms come from?'), 'Where do lipograms come from?', 'a question mark stays');
+    assert.equal(P.parseBranchTitle('Here is a calligram.'), '', 'absent');
+    assert.equal(P.parseBranchTitle('Branch title: Not last\n\nMore text after it.'), '', 'not on the last line');
+    assert.equal(P.parseBranchTitle('Done.\n\nBranch title:'), '', 'no words');
+    assert.equal(P.stripBranchTitle('Answer.\n\nBranch title: X'), 'Answer.');
+    assert.equal(P.stripBranchTitle('Answer.\n\n***\n\nBranch title: X\n'), 'Answer.', 'with a rule above it');
+    assert.equal(P.stripBranchTitle('Branch title: X\n\nAnswer.'), 'Branch title: X\n\nAnswer.', 'not the last line: kept');
+  });
+
+  test('the four sources in order: Claude\'s branch title, your question, claude.ai\'s title, Claude\'s reply', () => {
+    const titled = (msgs, last) => [msgs[0], { ...msgs[1], text: `${msgs[1].text}\n\n${last}` }, ...msgs.slice(2)];
+    const q = branch('tentons notre chance avec un enfant qui joue au ballon');
+    assert.deepEqual(propose('Poèmes visuels d\'un chat', titled(q, 'Branch title: Un enfant au ballon')), { topic: 'Un enfant au ballon', from: 'claude' });
+    assert.deepEqual(propose('Poèmes visuels d\'un chat', q), { topic: 'tentons notre chance avec un enfant', from: 'question' });
+    assert.deepEqual(propose('Poèmes visuels d\'un chat', branch('')), { topic: 'Poèmes visuels d\'un chat', from: 'title' });
+    assert.deepEqual(propose('', branch('')), { topic: 'We wrote a calligram of a cat', from: 'reply' });
+    assert.deepEqual(propose('oulipo/1a · Jeux d\'enfants', titled(q, 'Branch title: Un enfant au ballon')), { topic: 'Jeux d\'enfants', from: 'current' }, 'named already: its name first');
+    const later = [...branch(''), { n: 3, role: 'user', text: 'Et un enfant ?' }, { n: 4, role: 'assistant', text: 'Oui.\n\nBranch title: Not from the first reply' }];
+    assert.deepEqual(propose('', later), { topic: 'Et un enfant', from: 'question' }, 'only the first reply counts');
+    assert.equal(P.firstWords(`${summary}\n\nBranch title: X`), 'We wrote a calligram of a cat', 'the reply\'s words leave the title out');
   });
 
   test('a branch named already: its current name, typed by hand too', () => {

@@ -86,12 +86,12 @@
   // ---------------------------------------------------------------- reading
 
   // A message's first words for the list, without quote markers. A branch's first message
-  // shows only your text, and its first reply without the summary on top.
+  // shows only your text, and its first reply without the summary on top or the branch title.
   function label(m, i, messages) {
     let text = m.text;
     const branchStart = messages[0].n === 1 && P().parseBranchMessage(messages[0].text);
     if (i === 0 && branchStart) text = branchStart.ownText || '(copied history only)';
-    if (i === 1 && branchStart && m.role === 'assistant') text = P().stripSummary(text) || text;
+    if (i === 1 && branchStart && m.role === 'assistant') text = P().replyBody(text) || text;
     const flat = P().plain(text);
     return flat.length > 60 ? flat.slice(0, 60) + '…' : flat || '(empty)';
   }
@@ -179,6 +179,9 @@
       if (!page.messages.length) return { ok: false, text: 'Zettelbranch could not read this chat.', error: explain(e) };
       c = { id: pk.id, title: pageTitle(pk.id), messages: page.messages, source: 'page', apiError: explain(e) };
     }
+    // Right after Send, claude.ai may show the new chat before it holds your message: the
+    // branch this tab opened keeps its steps until then.
+    if (!c.messages.length && opened) return { ok: false, steps: { ...opened } };
     describe(c);
     if (placeOf(c)) {
       c.listRead = await listing;
@@ -347,6 +350,7 @@
   // Where the proposed topic comes from (prompt.js, proposeTopic), said in the dialog.
   const FROM = {
     current: 'Proposed: its current name.',
+    claude: 'Proposed by Claude in its first reply.',
     title: 'Proposed from claude.ai\'s title.',
     question: 'Proposed from your first question in this branch.',
     reply: 'Proposed from Claude\'s first reply.',
