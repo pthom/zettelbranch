@@ -51,4 +51,19 @@ Built in the spike's panel (version 0.0.7), the Milestone 0 tool kept for this (
 
 ## Results
 
-Not run yet.
+### First run, 2026-10-13 (spike 0.0.7)
+
+By Pascal, in `zbtest/1 . fixture`: 6 messages on the shown path, 8 in the tree (an edited message makes a hidden branch), an image in message 1.
+
+| | Through Claude's last reply (message 6) | Through your last message (message 5) |
+|---|---|---|
+| Answer | `{}` in 0.4 s | **refused**: 400 `failed_precondition`, "This version can't be continued in a new session." |
+| The copy, read 7 s later | 6 messages, the shown path only (the hidden branch is not copied); the through message included | none |
+| Text and roles | identical, message by message; new message ids | |
+| Image | kept (1 file in message 1, as in the source) | |
+| Title | the same, `zbtest/1 . fixture` | |
+| Model | not copied: the source has `claude-opus-5-5`, the copy none (the default) | |
+| Settings | not identical (which ones: 0.0.8 lists them) | |
+| In the open tab | not in the sidebar, as with renames: the page does not learn about it | |
+
+So it works, through the end of a branch at least, and keeps images. Forking through your own message is refused. Open: whether it works through an **earlier** reply (a branch usually starts mid-chat); spike 0.0.8 adds "Fork through Claude's first reply". Pascal also looks at the copy itself (the link, or the phone).

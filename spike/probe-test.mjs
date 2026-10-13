@@ -274,6 +274,9 @@ try {
   r = await probe('p9', 'Fork through my last message');
   r = await probe('p9', 'Read the new chat');
   check('P9 through your last message: 3 messages', r.ok === true && r.copyMessages === 3 && r.throughWas === 3 && r.throughIncluded === true, { copy: r.copyMessages, through: r.throughWas });
+  r = await probe('p9', "Fork through Claude's first reply");
+  r = await probe('p9', 'Read the new chat');
+  check('P9 through Claude\'s first reply: 2 messages; settings compared by name', r.ok === true && r.copyMessages === 2 && r.throughWas === 2 && Array.isArray(r.settingsDiff), { copy: r.copyMessages, diff: r.settingsDiff });
 
   await page.screenshot({ path: path.join(opt.out, 'panel.png') });
   for (const id of ['p2', 'p4', 'p8', 'p9']) {
@@ -298,7 +301,7 @@ const allowed = [
 const bad = fake.apiLog.filter((e) => !allowed.some((re) => re.test(`${e.method} ${e.path}`)));
 check('the extension made only the five allowed API calls', bad.length === 0, bad.slice(0, 5));
 const rpcs = fake.apiLog.filter((e) => e.method === 'POST');
-check('every POST is claude.ai\'s own fork, nothing else', rpcs.length === 2 && rpcs.every((e) => e.action === 'continueBranchAsNewChat' && e.status === 200), rpcs);
+check('every POST is claude.ai\'s own fork, nothing else', rpcs.length === 3 && rpcs.every((e) => e.action === 'continueBranchAsNewChat' && e.status === 200), rpcs);
 const puts = fake.apiLog.filter((e) => e.method === 'PUT');
 check('every rename went to a zbtest/ name', puts.length > 0 && puts.every((e) => e.name.startsWith('zbtest/')), puts.map((e) => e.name));
 const passive = (u) => u.startsWith('data:') || u.startsWith('blob:') || u.startsWith('about:');

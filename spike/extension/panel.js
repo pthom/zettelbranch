@@ -5,7 +5,7 @@
 (function (global) {
   'use strict';
 
-  const VERSION = '0.0.7';
+  const VERSION = '0.0.8';
   const Z = () => global.ZBProbes;
   const log = [];
   let host = null;
@@ -264,10 +264,11 @@
       ], [
         { text: 'Open a zbtest chat with a few messages, an image in one of them if you have one.' },
         {
-          text: "Fork it: through Claude's last reply, or through your last message (to see whether that message is included).",
+          text: "Fork it: through Claude's last reply, your last message, or Claude's first reply (an earlier point, as a branch usually is).",
           buttons: [
             ["Fork through Claude's last reply", () => p.p9Fork('assistant')],
             ['Fork through my last message', () => p.p9Fork('user')],
+            ["Fork through Claude's first reply", () => p.p9Fork('assistant', 'first')],
           ],
         },
         { text: 'Wait about 5 seconds, then read the new chat (it compares it with this one).', buttons: [['Read the new chat', () => p.p9Read()]] },

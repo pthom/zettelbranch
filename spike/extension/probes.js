@@ -926,7 +926,8 @@
 
   // claude.ai's own "continue branch as new chat" (NF-1): a new chat holding this one
   // through a message, as real messages. Only from a zbtest/ chat; the copy keeps the title.
-  async function p9Fork(role) {
+  // which: 'last' (the chat's last message of that role) or 'first' (its first one).
+  async function p9Fork(role, which = 'last') {
     const pk = pageKind();
     if (pk.kind !== 'chat') return refuse('open the zbtest conversation to fork');
     const g = await writeGuard({ allowNew: false });
@@ -934,7 +935,8 @@
     if (!C().isTestTitle(g.title)) return refuse('P9 forks only a chat whose title starts with zbtest/; rename it first (P4 or P8)');
     const conv = g.conv || (await A().getConversation(pk.id));
     const path = C().pathOf(conv).path;
-    const i = path.map((m) => C().roleOf(m)).lastIndexOf(role);
+    const roles = path.map((m) => C().roleOf(m));
+    const i = which === 'first' ? roles.indexOf(role) : roles.lastIndexOf(role);
     if (i < 0) return { ok: false, error: `no ${role === 'user' ? 'message of yours' : 'reply from Claude'} in this chat` };
     const t0 = performance.now();
     const r = await A().continueAsNewChat(pk.id, g.title, path[i].uuid);
@@ -990,6 +992,10 @@
       modelSource: src.model || null,
       modelCopy: copy.model || null,
       sameSettings: JSON.stringify(copy.settings || null) === JSON.stringify(src.settings || null),
+      // Setting names and values only (flags and levels, no text).
+      settingsDiff: Object.keys({ ...(src.settings || {}), ...(copy.settings || {}) })
+        .filter((k) => JSON.stringify((src.settings || {})[k]) !== JSON.stringify((copy.settings || {})[k]))
+        .map((k) => `${k}: ${JSON.stringify((src.settings || {})[k])} -> ${JSON.stringify((copy.settings || {})[k])}`.slice(0, 120)),
       perMessage,
       newChatPath: `/chat/${newId}`,
       next: 'Open the new chat (link below) and look: earlier messages shown as messages, the image there? Then delete it.',
