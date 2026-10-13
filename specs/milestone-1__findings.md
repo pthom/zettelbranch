@@ -133,5 +133,9 @@ in full.' Changed in `prompt.js`, its unit test and
 
 - In the page fallback, a user message shown as several paragraphs comes back with
   blank lines between them. Only when the API fails.
-- `conversation.js` is tested on hand-made API shapes and pages. The fixtures from a real
-  `zbtest/` chat (step 4) will test it on real ones.
+- `conversation.js` is tested on hand-made API shapes and pages, and since step 4 on a
+  real conversation (`tests/fixtures/real-*.json`): the shown branch only, text exact
+  with code, table and formula, the thinking left out, the image as a placeholder, the
+  prompt parsing back into the same messages. On Pascal's account the thinking block
+  holds no text (`thinking_hidden`), only a summary of it. Not in the fixture: a pasted
+  text attachment.

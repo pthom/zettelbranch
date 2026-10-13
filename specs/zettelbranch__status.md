@@ -12,8 +12,9 @@ Milestone 0 is closed: every probe passed
 builds on are in
 [claude-ai__findings](claude-ai__findings.md#9-checked-on-pascals-account-milestone-0).
 Milestone 1: the offline steps are built and tested (audit 45/45, unit 30/30,
-end-to-end 19/19; [build notes](milestone-1__findings.md)). Next: Pascal's session, in
-the [plan](milestone-1__specs.md#pascals-session-steps-4-and-8).
+end-to-end 19/19; [build notes](milestone-1__findings.md)). The fixture chat is saved and tested
+(step 4). Next: Pascal's checklist, part C of the
+[session](milestone-1__specs.md#pascals-session-steps-4-and-8).
 
 ## Waiting on Pascal
 
@@ -26,8 +27,7 @@ the [plan](milestone-1__specs.md#pascals-session-steps-4-and-8).
 
 ## Next for Claude
 
-1. After Pascal's session: turn his two saved answers into committed fixtures (only
-   `zbtest/` entries), test `conversation.js` on them, fix what the checklist found.
+1. After Pascal's checklist: fix what it found.
 2. Then Firefox (step 9) and the 0.1.0 release (step 10).
 
 ## Not checked, for later

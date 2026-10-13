@@ -1,0 +1,251 @@
+{
+  "uuid": "f0000000-0000-4000-8000-000000000001",
+  "name": "zbtest/1 . fixture",
+  "summary": "",
+  "model": "claude-opus-5-5",
+  "created_at": "2026-10-13T12:03:28.809184Z",
+  "updated_at": "2026-10-13T12:09:06.017106Z",
+  "settings": {
+    "enabled_web_search": true,
+    "enabled_monkeys_in_a_barrel": true,
+    "enabled_saffron": true,
+    "tool_search_mode": "auto",
+    "thinking_mode": "auto",
+    "effort_level": "high",
+    "chat_memory_mode": "enabled",
+    "preview_feature_uses_artifacts": true,
+    "enabled_turmeric": true
+  },
+  "is_starred": false,
+  "is_archived": false,
+  "is_temporary": false,
+  "workspace_upgraded": false,
+  "is_multiplayer": false,
+  "platform": "CLAUDE_AI",
+  "is_wiggle_enabled": true,
+  "effective_thinking_mode": "auto",
+  "current_leaf_message_uuid": "f0000000-0000-4000-8000-000000000002",
+  "chat_messages": [
+    {
+      "uuid": "f0000000-0000-4000-8000-000000000003",
+      "text": "",
+      "content": [
+        {
+          "start_timestamp": "2026-10-13T12:03:29.559072Z",
+          "stop_timestamp": "2026-10-13T12:03:29.559072Z",
+          "type": "text",
+          "text": "Subject: Testing zettelbranch v0.1\n\n\n```python\ndef main():\n    return 0\n\n```\n\n\nInline: $e^{i\\pi} + 1 = 0$\n\nDisplay:\n$$\nx = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}\n$$\n\nPasted text:\nA ```mermaid block is drawn natively, with ImDrawList and the colors of the ImGui style (no web view, no JavaScript): flowcharts, sequence diagrams and class diagrams. A diagram that cannot be parsed shows as code, with the line of the error. rich_md.render_mermaid(source) draws one outside of markdown. More diagrams, to edit, in the Mermaid tour.\n\n\n```mermaid\nflowchart LR\n    A[Markdown] --> B{Mermaid block?}\n    B -->|yes| C([Parse]) --> D[Layout] --> E[(ImDrawList)]\n    B -->|no| F[Code block]\n\n```\n\n\n| Continent      |   Population  | Countries |\n|----------------|--------------:|:---------:|\n| Africa         | 1300 million  |    54     |\n| Asia           | 4500 million  |    48     |",
+          "citations": []
+        }
+      ],
+      "sender": "human",
+      "index": 0,
+      "created_at": "2026-10-13T12:03:29.559447Z",
+      "updated_at": "2026-10-13T12:03:29.559447Z",
+      "truncated": false,
+      "attachments": [],
+      "files": [
+        {
+          "success": true,
+          "file_kind": "image",
+          "file_uuid": "f0000000-0000-4000-8000-000000000004",
+          "file_name": "1791892880457_image.png",
+          "created_at": "2026-10-13T12:01:21.427190Z",
+          "size_bytes": 254833,
+          "thumbnail_url": "/api/f0000000-0000-4000-8000-000000000005/files/f0000000-0000-4000-8000-000000000004/thumbnail",
+          "preview_url": "/api/f0000000-0000-4000-8000-000000000005/files/f0000000-0000-4000-8000-000000000004/preview",
+          "thumbnail_asset": {
+            "url": "/api/f0000000-0000-4000-8000-000000000005/files/f0000000-0000-4000-8000-000000000004/thumbnail",
+            "file_variant": "thumbnail",
+            "primary_color": "ececec",
+            "image_width": 400,
+            "image_height": 256
+          },
+          "preview_asset": {
+            "url": "/api/f0000000-0000-4000-8000-000000000005/files/f0000000-0000-4000-8000-000000000004/preview",
+            "file_variant": "preview",
+            "primary_color": "ececec",
+            "image_width": 598,
+            "image_height": 382
+          },
+          "uuid": "f0000000-0000-4000-8000-000000000004"
+        }
+      ],
+      "sync_sources": [],
+      "parent_message_uuid": "f0000000-0000-4000-8000-000000000006"
+    },
+    {
+      "uuid": "f0000000-0000-4000-8000-000000000007",
+      "text": "",
+      "content": [
+        {
+          "start_timestamp": "2026-10-13T12:03:29.547036Z",
+          "stop_timestamp": "2026-10-13T12:03:34.494454Z",
+          "type": "thinking",
+          "thinking": "",
+          "summaries": [
+            {
+              "summary": "Reviewing a test payload for a conversation-branching extension."
+            }
+          ],
+          "cut_off": false,
+          "truncated": false,
+          "hidden": false,
+          "thinking_hidden": true
+        },
+        {
+          "start_timestamp": "2026-10-13T12:03:34.494485Z",
+          "stop_timestamp": "2026-10-13T12:03:39.954000Z",
+          "type": "text",
+          "text": "Everything arrived intact on my side. Here's what I received, so you can check it against what you sent:\n\n**Image:** a misty green escarpment with a winding road running along its base, which looks like the Quiraing on the Isle of Skye. It came through as a 598×382-ish PNG, clearly visible.\n\n**Code block:** Python fence with language tag preserved, `def main(): return 0`.\n\n**Math:** inline $e^{i\\pi} + 1 = 0$ and the display quadratic formula, with delimiters intact (`$…$` and `$$…$$` on their own lines).\n\n**Pasted text:** the paragraph about ```` ```mermaid ```` blocks being drawn natively with ImDrawList, including the inline code `rich_md.render_mermaid(source)`.\n\n**Mermaid:** `flowchart LR` with all node shapes intact: rectangle `[ ]`, rhombus `{ }`, stadium `([ ])`, cylinder `[( )]`, plus the labeled edge `-->|yes|` and the chained `C --> D --> E` on one line.\n\n**Table:** two data rows, with alignment markers preserved (left `|---|`, right `---:|`, center `:---:|`).\n\nIf you also want to test capture of assistant output, here's the same mix coming back the other way:\n\n```python\ndef branch(conversation_id: str, at_message: int) -> str:\n    return f\"{conversation_id}#{at_message}\"\n```\n\n$$\n\\int_{-\\infty}^{\\infty} e^{-x^2}\\,dx = \\sqrt{\\pi}\n$$\n\n| Element | Status | Alignment |\n|:--------|-------:|:---------:|\n| Image   | ok     | n/a       |\n| Table   | ok     | mixed     |\n\nHow does the branch look in the extension?",
+          "citations": []
+        }
+      ],
+      "sender": "assistant",
+      "index": 1,
+      "created_at": "2026-10-13T12:03:39.972993Z",
+      "updated_at": "2026-10-13T12:03:39.972993Z",
+      "truncated": false,
+      "stop_reason": "end_turn",
+      "attachments": [],
+      "files": [],
+      "sync_sources": [],
+      "parent_message_uuid": "f0000000-0000-4000-8000-000000000003"
+    },
+    {
+      "uuid": "f0000000-0000-4000-8000-000000000008",
+      "text": "",
+      "content": [
+        {
+          "start_timestamp": "2026-10-13T12:04:14.920697Z",
+          "stop_timestamp": "2026-10-13T12:04:14.920697Z",
+          "type": "text",
+          "text": "This is a message I will edit later.",
+          "citations": []
+        }
+      ],
+      "sender": "human",
+      "index": 2,
+      "created_at": "2026-10-13T12:04:14.921139Z",
+      "updated_at": "2026-10-13T12:04:14.921139Z",
+      "truncated": false,
+      "attachments": [],
+      "files": [],
+      "sync_sources": [],
+      "parent_message_uuid": "f0000000-0000-4000-8000-000000000007"
+    },
+    {
+      "uuid": "f0000000-0000-4000-8000-000000000009",
+      "text": "",
+      "content": [
+        {
+          "start_timestamp": "2026-10-13T12:04:15.099630Z",
+          "stop_timestamp": "2026-10-13T12:04:15.966659Z",
+          "type": "text",
+          "text": "Got it. Edit away whenever you're ready; I'll respond to whatever version you send.",
+          "citations": []
+        }
+      ],
+      "sender": "assistant",
+      "index": 3,
+      "created_at": "2026-10-13T12:04:15.976833Z",
+      "updated_at": "2026-10-13T12:04:15.976833Z",
+      "truncated": false,
+      "stop_reason": "end_turn",
+      "attachments": [],
+      "files": [],
+      "sync_sources": [],
+      "parent_message_uuid": "f0000000-0000-4000-8000-000000000008"
+    },
+    {
+      "uuid": "f0000000-0000-4000-8000-000000000010",
+      "text": "",
+      "content": [
+        {
+          "start_timestamp": "2026-10-13T12:04:43.670992Z",
+          "stop_timestamp": "2026-10-13T12:04:43.670992Z",
+          "type": "text",
+          "text": "And this is a 3rd message before I edit the second",
+          "citations": []
+        }
+      ],
+      "sender": "human",
+      "index": 4,
+      "created_at": "2026-10-13T12:04:43.671404Z",
+      "updated_at": "2026-10-13T12:04:43.671404Z",
+      "truncated": false,
+      "attachments": [],
+      "files": [],
+      "sync_sources": [],
+      "parent_message_uuid": "f0000000-0000-4000-8000-000000000009"
+    },
+    {
+      "uuid": "f0000000-0000-4000-8000-000000000002",
+      "text": "",
+      "content": [
+        {
+          "start_timestamp": "2026-10-13T12:04:44.228669Z",
+          "stop_timestamp": "2026-10-13T12:04:45.327068Z",
+          "type": "text",
+          "text": "Noted. When you edit the second message, claude.ai will fork at that point: this third message and my reply will stay on the original branch, and the edited version starts a new one without them. Good case for checking that Zettelbranch keeps both branches linked.",
+          "citations": []
+        }
+      ],
+      "sender": "assistant",
+      "index": 5,
+      "created_at": "2026-10-13T12:04:45.337911Z",
+      "updated_at": "2026-10-13T12:04:45.337911Z",
+      "truncated": false,
+      "stop_reason": "end_turn",
+      "attachments": [],
+      "files": [],
+      "sync_sources": [],
+      "parent_message_uuid": "f0000000-0000-4000-8000-000000000010"
+    },
+    {
+      "uuid": "f0000000-0000-4000-8000-000000000011",
+      "text": "",
+      "content": [
+        {
+          "start_timestamp": "2026-10-13T12:05:04.487342Z",
+          "stop_timestamp": "2026-10-13T12:05:04.487342Z",
+          "type": "text",
+          "text": "This is the edited version of the second message. ",
+          "citations": []
+        }
+      ],
+      "sender": "human",
+      "index": 6,
+      "created_at": "2026-10-13T12:05:04.487763Z",
+      "updated_at": "2026-10-13T12:05:04.487763Z",
+      "truncated": false,
+      "attachments": [],
+      "files": [],
+      "sync_sources": [],
+      "parent_message_uuid": "f0000000-0000-4000-8000-000000000007"
+    },
+    {
+      "uuid": "f0000000-0000-4000-8000-000000000012",
+      "text": "",
+      "content": [
+        {
+          "start_timestamp": "2026-10-13T12:05:04.769410Z",
+          "stop_timestamp": "2026-10-13T12:05:06.873089Z",
+          "type": "text",
+          "text": "Got it, the edited version came through. On my side, this message replaces the previous one in the thread: I see your original test message, my reply, and then just this line, with no trace of what it said before the edit.\n\nSo if Zettelbranch is tracking edits as forks, this is a good spot to check that the earlier version is still reachable as a sibling branch, and that my previous reply stays attached to it rather than to this one.",
+          "citations": []
+        }
+      ],
+      "sender": "assistant",
+      "index": 7,
+      "created_at": "2026-10-13T12:05:06.884793Z",
+      "updated_at": "2026-10-13T12:05:06.884793Z",
+      "truncated": false,
+      "stop_reason": "end_turn",
+      "attachments": [],
+      "files": [],
+      "sync_sources": [],
+      "parent_message_uuid": "f0000000-0000-4000-8000-000000000011"
+    }
+  ]
+}

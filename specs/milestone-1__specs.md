@@ -67,8 +67,8 @@ its probe panel is at hand if claude.ai changes meanwhile (M1-D5).
 
 Each step ends with offline tests passing and a commit. Steps 1 to 3 and 5 to 7 are done
 (2026-10-13): audit 45/45, unit tests 30/30, end-to-end tests 19/19; build notes in
-[milestone-1__findings](milestone-1__findings.md). Next: Pascal's session below (steps 4
-and 8).
+[milestone-1__findings](milestone-1__findings.md). Step 4 (fixtures) is done too. Next: the
+checklist (step 8, part C below).
 
 1. **Start.** *Done, 98f98e9.* Claude sets up `extension/`, `tests/`, `AUDIT.md`. Before loading the new
    extension, Pascal turns the spike extension off (not removed) in the Chrome test
@@ -80,7 +80,9 @@ and 8).
 4. **Fixtures (Pascal, about 10 minutes).** One `zbtest/` chat with a code block, a
    table, a formula, an edited message and a pasted file; Pascal saves its API answer
    and the conversation list with the browser's developer tools (step-by-step guide
-   then). Claude keeps only the `zbtest/` entries before committing.
+   then). Claude keeps only the `zbtest/` entries before committing. *Done: saved by
+   Pascal on 2026-10-13, ids replaced by `tests/scrub-fixture.mjs`, 1 of 64 list entries
+   kept; 5 unit tests on it.*
 5. **Prompt.** `prompt.js`, from the spike, with flattening and the first-message rule.
    *Done, faeb448.*
 6. **Branch flow and UI.** `branch.js`, `ui.js`: button, message picker, preview, new

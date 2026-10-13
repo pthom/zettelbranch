@@ -1,0 +1,53 @@
+{
+  "data": [
+    {
+      "created_at": "2026-10-13T12:03:28.809184Z",
+      "current_leaf_message_uuid": "f0000000-0000-4000-8000-000000000002",
+      "is_archived": false,
+      "is_multiplayer": false,
+      "is_starred": false,
+      "is_temporary": false,
+      "model": "claude-opus-5-5",
+      "name": "zbtest/1 . fixture",
+      "platform": "CLAUDE_AI",
+      "project": null,
+      "settings": {
+        "auto_mode": null,
+        "chat_memory_mode": "enabled",
+        "compass_mode": null,
+        "create_mode": null,
+        "design_systems": null,
+        "effort_level": "high",
+        "enabled_artifacts_attachments": null,
+        "enabled_bananagrams": null,
+        "enabled_compass": null,
+        "enabled_drive_search": null,
+        "enabled_foccacia": null,
+        "enabled_mcp_tools": null,
+        "enabled_megaminds": null,
+        "enabled_monkeys_in_a_barrel": true,
+        "enabled_saffron": true,
+        "enabled_sourdough": null,
+        "enabled_turmeric": true,
+        "enabled_web_search": true,
+        "guided_mode": null,
+        "has_sensitive_data": null,
+        "paprika_mode": null,
+        "preview_feature_uses_artifacts": true,
+        "preview_feature_uses_citations": null,
+        "preview_feature_uses_latex": null,
+        "safeguard_fallback": null,
+        "started_as_artifact_type_id": null,
+        "started_with_artifact": null,
+        "thinking_mode": "auto",
+        "tool_isolation_mode": null,
+        "tool_search_mode": "auto"
+      },
+      "summary": "",
+      "updated_at": "2026-10-13T12:09:06.017106Z",
+      "uuid": "f0000000-0000-4000-8000-000000000001",
+      "workspace_upgraded": false
+    }
+  ],
+  "has_more": false
+}

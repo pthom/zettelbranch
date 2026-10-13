@@ -2,6 +2,7 @@
 // browser runs content scripts. No network: api.js gets a stub `fetch`.
 //
 //   node --test unit.test.mjs
+import fs from 'node:fs';
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadIntoWindow } from './lib.mjs';
@@ -470,5 +471,53 @@ describe('prompt.js', () => {
   test('refuses a bad address or a missing message', () => {
     assert.throws(() => P.build({ ...base, newAddress: 'b1', fork: 3 }), /bad address/);
     assert.throws(() => P.build({ ...base, fork: 9 }), /no message/);
+  });
+});
+
+// ---------------------------------------------------------------- a real conversation
+
+// `zbtest/1 . fixture`, made and saved by hand by Pascal on 2026-10-13, ids replaced
+// (scrub-fixture.mjs). A code block, a table and a formula; an edited message, so two
+// branches, the page showing the original; a thinking block; an image.
+describe('a real conversation (fixtures/real-*.json)', () => {
+  const W = loadIntoWindow(['tree.js', 'conversation.js', 'prompt.js']);
+  const T = W.ZBTree;
+  const C = W.ZBConversation;
+  const P = W.ZBPrompt;
+  const read = (f) => JSON.parse(fs.readFileSync(new URL(`./fixtures/${f}`, import.meta.url), 'utf8'));
+  const conv = read('real-conversation.json');
+  const list = read('real-list.json');
+  const msgs = C.fromApi(conv);
+  const byIndex = (i) => conv.chat_messages.find((m) => m.index === i);
+  const blocks = (m, type) => m.content.filter((b) => b.type === type).map((b) => (type === 'thinking' ? b.thinking : b.text)).join('\n');
+
+  test('the path is the branch the page shows: 6 of 8 messages, the edited version left out', () => {
+    assert.deepEqual([...msgs.map((m) => m.role)], ['user', 'assistant', 'user', 'assistant', 'user', 'assistant']);
+    const edited = blocks(byIndex(6), 'text').trim().slice(0, 40);
+    assert.ok(edited.length > 10 && !msgs.some((m) => m.text.includes(edited)));
+  });
+
+  test('text kept exactly, with its code block, table and formula', () => {
+    for (const i of [0, 1]) assert.ok(msgs[i].text.includes(blocks(byIndex(i), 'text').trim()), `message ${i + 1}`);
+    assert.match(msgs[0].text, /```python/);
+  });
+
+  test('the thinking block is left out; the image becomes a placeholder', () => {
+    // claude.ai sends no thinking text here (`thinking_hidden`), only a summary of it.
+    assert.ok(byIndex(1).content.some((b) => b.type === 'thinking'));
+    assert.equal(msgs[1].text, blocks(byIndex(1), 'text').trim());
+    assert.match(msgs[0].text, /\[file: 1791892880457_image\.png, not copied\]$/);
+  });
+
+  test('the hand-typed title is a tree title, and the next branch is 1a', () => {
+    const t = T.parseTitle(list.data[0].name);
+    assert.deepEqual({ tree: t.tree, address: t.address }, { tree: 'zbtest', address: '1' });
+    assert.equal(T.nextChild('zbtest', t.segs, [...list.data.map((c) => c.name)]).address, '1a');
+  });
+
+  test('the branch prompt parses back into exactly these messages', () => {
+    const b = P.build({ tree: 'zbtest', parentTitle: list.data[0].name, parentAddress: '1', newAddress: '1a', messages: msgs, fork: 5 });
+    const back = P.parseBranchMessage(b.text);
+    assert.deepEqual([...back.turns.map((t) => t.text)], [...msgs.map((m) => m.text)]);
   });
 });
