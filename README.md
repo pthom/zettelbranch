@@ -66,7 +66,7 @@ Firefox then keeps it up to date by itself.
 
 1. Download **[zettelbranch.zip](https://github.com/pthom/zettelbranch/releases/latest/download/zettelbranch.zip)** and unzip it into a folder you keep.
 2. Open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked** and pick that folder.
-3. To update later: replace the folder's files with a newer zip, then click ⟳ on Zettelbranch in `chrome://extensions`.
+3. To update later: replace the folder's files with a newer zip, then click ⟳ on Zettelbranch in `chrome://extensions`. Chrome does not check for new versions by itself: to hear about them, click **Watch** at the top of this page, then **Custom**, then **Releases**, and GitHub emails you at each release.
 
 Then open claude.ai: a **Zettelbranch** button sits at the bottom right.
 
