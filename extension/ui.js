@@ -251,7 +251,9 @@
   }
 
   // The chats of this tree, by address, indented by depth (step 6c). Each other chat is a
-  // plain link to its page; the current one is marked, not a link.
+  // plain link to its page, a page load; the current one is marked, not a link. The link
+  // ends with FROM_TREE, so the panel opens again on the page it loads (see content.js).
+  const FROM_TREE = '#zettelbranch';
   function treeSection(tree) {
     if (tree.error) return { section: el('p', { class: 'box warn', 'data-zb': 'tree-note', title: tree.error.detail || '', text: tree.error.text }), scroll() {} };
     const n = tree.entries.length;
@@ -265,7 +267,7 @@
       ];
       const attrs = { 'data-zb': 'tree-node', 'data-address': e.address };
       const line = e.href
-        ? el('a', { ...attrs, class: 'node', href: e.href }, kids)
+        ? el('a', { ...attrs, class: 'node', href: e.href + FROM_TREE }, kids)
         : el('div', { ...attrs, class: e.current ? 'node here' : 'node', ...(e.current ? { 'aria-current': 'page' } : {}) }, kids);
       line.style.paddingLeft = `${8 + Math.min(e.depth, 8) * 14}px`;
       if (e.current) here = line;
@@ -454,5 +456,5 @@
     document.documentElement.append(host);
   }
 
-  global.ZBUi = { mount };
+  global.ZBUi = { mount, open, FROM_TREE };
 })(globalThis);

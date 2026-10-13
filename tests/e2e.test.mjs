@@ -259,11 +259,11 @@ test('the tree in the panel, on a root: every chat of the tree by address, inden
   const ns = await nodes();
   assert.deepEqual(ns.map((n) => n.address), ['1', '1a', '1a1', '1a1', '3', '4', '10']);
   assert.deepEqual(ns[0], { address: '1', topic: '· Root topic', tags: 'you are here', href: null, current: true, indent: '8px' });
-  assert.deepEqual(ns[1], { address: '1a', topic: '· First branch', tags: '', href: `/chat/${fake.ids.branch}`, current: false, indent: '22px' });
+  assert.deepEqual(ns[1], { address: '1a', topic: '· First branch', tags: '', href: `/chat/${fake.ids.branch}#zettelbranch`, current: false, indent: '22px' });
   const twice = ns.filter((n) => n.address === '1a1');
   assert.deepEqual(twice.map((n) => [n.topic, n.tags, n.indent]).sort(), [['· Grandchild', 'used twice', '36px'], ['· Same address by hand', 'used twice', '36px']]);
-  assert.deepEqual(twice.map((n) => n.href).sort(), [`/chat/${fake.ids.dup}`, `/chat/${fake.ids.grand}`].sort());
-  assert.equal(await node('10').then((n) => n.href), `/chat/${fake.ids.ten}`);
+  assert.deepEqual(twice.map((n) => n.href).sort(), [`/chat/${fake.ids.dup}#zettelbranch`, `/chat/${fake.ids.grand}#zettelbranch`].sort());
+  assert.equal(await node('10').then((n) => n.href), `/chat/${fake.ids.ten}#zettelbranch`);
   const shown = await text('tree');
   for (const other of ['zbmany', 'oulipo', 'Oulipo', 'Private', 'Long']) assert.ok(!shown.includes(other), `no title of another tree: ${other}`);
   // The refresh button reads the chat and the list (in pages of 100) again, nothing else.
@@ -455,25 +455,25 @@ test('branch of a branch: the transcript is flattened, the summary dropped', asy
   await remember();
 });
 
-test('the tree on a branch; a link opens that chat in this tab, with a page load', async () => {
+test('the tree on a branch; a link opens that chat in this tab, with a page load, the panel open there', async () => {
   await goChat(fake.ids.branch);
   await openPanel();
   const ns = await nodes();
   assert.deepEqual(ns.map((n) => n.address), ['1', '1a', '1a1', '1a1', '1b', '1c', '3', '4', '10']);
   assert.deepEqual(ns.filter((n) => n.current).map((n) => `${n.address} ${n.topic} ${n.indent}`), ['1a · First branch 22px']);
   assert.equal(await text('identity'), 'Branch zbtest/1a, from zbtest/1 after message 2');
-  assert.equal(ns[0].href, `/chat/${fake.ids.root}`);
+  assert.equal(ns[0].href, `/chat/${fake.ids.root}#zettelbranch`);
   await shots('tree-branch');
-  await Promise.all([page.waitForEvent('load'), page.locator(`#zettelbranch a[data-zb="tree-node"][href="/chat/${fake.ids.grand}"]`).click()]);
+  await Promise.all([page.waitForEvent('load'), page.locator(`#zettelbranch a[data-zb="tree-node"][href="/chat/${fake.ids.grand}#zettelbranch"]`).click()]);
   assert.equal(new URL(page.url()).pathname, `/chat/${fake.ids.grand}`);
   await page.waitForFunction(() => document.querySelectorAll('[data-testid="transcript-row"]').length > 0);
-  assert.equal(await visible('panel'), false, 'a new page: the panel starts closed');
-  await openPanel();
+  await idle();
+  assert.equal(await visible('panel'), true, 'opened from the tree: the panel opens by itself there');
   assert.equal(await text('chat-title'), 'zbtest/1a1 · Grandchild');
   assert.equal(await text('identity'), 'Chat zbtest/1a1 of the tree zbtest', 'named by hand, without a header');
   const here = (await nodes()).filter((n) => n.current);
   assert.deepEqual(here.map((n) => `${n.address} ${n.topic} ${n.tags}`), ['1a1 · Grandchild used twice,you are here']);
-  assert.equal((await node('1a1', 'Same address')).href, `/chat/${fake.ids.dup}`);
+  assert.equal((await node('1a1', 'Same address')).href, `/chat/${fake.ids.dup}#zettelbranch`);
 });
 
 test('speed: the chat and the list are read at the same time, the organization once per page load', async (t) => {
@@ -514,7 +514,7 @@ test('opened again on the same chat: what was read shows at once while the refre
     fake.options.delay = 0;
   }
   assert.equal(await Z('refresh').getAttribute('aria-busy'), null);
-  assert.equal((await node('6')).href, `/chat/${added}`, 'the new read');
+  assert.equal((await node('6')).href, `/chat/${added}#zettelbranch`, 'the new read');
   await shots('refresh', '.top');
 });
 
@@ -682,7 +682,7 @@ test('the list cannot be read: one line instead of the tree, the rest works; Rea
   const added = fake.addChat('zbtest/5 · Made in another tab');
   await click('refresh');
   assert.equal(await Z('tree-note').count(), 0);
-  assert.equal((await node('5')).href, `/chat/${added}`);
+  assert.equal((await node('5')).href, `/chat/${added}#zettelbranch`);
 });
 
 test('a tree of 25 chats: in tree order, never string order; the section scrolls inside the panel', async () => {

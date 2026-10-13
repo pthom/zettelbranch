@@ -67,7 +67,7 @@ The extension must be easy to audit:
 - No permissions, no background script, claude.ai only.
 - Network: only claude.ai's own API, all in one file, `extension/api.js`, which lists the four calls it makes: finding your organization, reading your conversation list, reading one conversation, renaming a conversation. It never sends a message and never deletes.
 - It never reads, stores or sends your login or session tokens, and stores no conversation content.
-- Nothing is sent automatically. It writes (renames a chat, fills the message box) only when you click, and you press Send yourself. To rename, it uses claude.ai's own title menu on the chat on screen: the only page elements it sends events to are that menu's title button, its Rename item and its rename field (plus a click on the New chat link). It reads only when you open its panel or click, and while the panel is open, when you move to another chat.
+- Nothing is sent automatically. It writes (renames a chat, fills the message box) only when you click, and you press Send yourself. To rename, it uses claude.ai's own title menu on the chat on screen: the only page elements it sends events to are that menu's title button, its Rename item and its rename field (plus a click on the New chat link). It reads only when you open its panel or click (a chat opened from the panel's tree opens with the panel), and while the panel is open, when you move to another chat.
 - [AUDIT.md](AUDIT.md) lists what the code never does, with the `grep` commands that prove it.
 
 ## Developers

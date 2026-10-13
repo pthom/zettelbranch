@@ -50,7 +50,7 @@ A self-audit proves nothing (malicious code can lie about itself), so make exter
 - Never read, store or send claude.ai credentials or session tokens: no `cookies` permission, no `document.cookie`. Anthropic support named this as the line not to cross ([terms__findings](terms__findings.md)).
 - No persistent storage of conversation content.
 - Never inject conversation text with `innerHTML`; use `textContent` or DOM nodes.
-- Nothing is sent automatically. The extension writes (renames a chat, fills the message box) only on a click. It reads only when you open its panel or click, and, while the panel is open, when you move to another chat, so the panel follows you (Pascal, 2026-10-13).
+- Nothing is sent automatically. The extension writes (renames a chat, fills the message box) only on a click. It reads only when you open its panel or click (a chat opened from the panel's tree opens with the panel), and, while the panel is open, when you move to another chat, so the panel follows you (Pascal, 2026-10-13).
 - It reads messages once they are part of the conversation, never while you type: no keyboard or input listeners. It writes into the message box only when you branch.
 - `AUDIT.md`: lists what the code never does, with the `grep` commands that prove it, plus a ready-to-use prompt for asking an LLM to audit the code.
 - Before each branch, show a preview of the exact text that will be pasted.

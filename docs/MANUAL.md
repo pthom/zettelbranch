@@ -88,7 +88,7 @@ Several trees can live side by side: `sky/1`, `trip/1`, `rust/1`. A second root 
 
 ### The tree in the panel
 
-When the panel opens on a chat of a tree, it lists every chat of that tree, ordered and indented by address. The chat you are in is marked **you are here**; every other line is a link to that chat.
+When the panel opens on a chat of a tree, it lists every chat of that tree, ordered and indented by address. The chat you are in is marked **you are here**; every other line is a link to that chat, which opens with the panel already showing the tree.
 
 ![The tree in the panel](images/tree.png)
 
