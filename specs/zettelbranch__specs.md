@@ -36,7 +36,8 @@ point (any message). From one of Claude's replies, the new chat continues after 
 From the user's own message, the new chat is an alternative to it: the context is
 everything before it, and the message is pre-filled for the user to change (sent
 unchanged, it gets a fresh answer). The extension extracts the conversation up to that point,
-opens a new chat in the parent's project, and pre-fills a prompt containing that
+opens a new chat (in the parent's project, if the parent is in an old-style chat
+project), and pre-fills a prompt containing that
 context. The user reviews and sends it. The prompt reaches the new chat inside the same
 page, held in the extension's memory. If a real page load turns out to be needed, it is
 parked in the browser's memory-only session storage, erased when the browser closes.
@@ -154,6 +155,10 @@ has readable addresses, cross-references, or code short enough to audit.
 - claude.ai exists in two versions during the rollout, with different internal APIs.
   Everything that talks to claude.ai lives in one file; fixtures record which version
   they come from.
+- claude.ai projects are being redesigned. On Pascal's account a new project is a
+  Claude Code project: one coordinator conversation, with "threads" that Claude starts as
+  cloud coding sessions. Zettelbranch targets ordinary chats; chat projects will be
+  "upgraded" later, and branching inside them must be looked at then.
 - The app trigger needs the conversation's URL: check the simplest way to get it from
   the Claude apps, on desktop and on a phone.
 - Chrome and Firefox MV3 differences (host permission grants, `browser` vs `chrome`
@@ -165,7 +170,8 @@ No script or automated browser ever touches claude.ai: Anthropic's Consumer Term
 forbid automated access, and support did not clear automated tests
 ([terms__findings](terms__findings.md)).
 
-1. **Fixtures first.** Throwaway conversations in a dedicated claude.ai test project,
+1. **Fixtures first.** Throwaway ordinary chats in the test tree `zbtest` (titles start
+   with `zbtest/`, deleted after each test session),
    saved by hand (Cmd+S, plus the API response when useful), scrubbed of account details
    and sidebar titles, committed in `tests/fixtures/`: a simple conversation, one with
    an edited message, the conversation list. Build and unit-test extraction offline with

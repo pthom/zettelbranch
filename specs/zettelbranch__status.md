@@ -33,8 +33,9 @@ Current state of the work and next steps. Updated by Claude at the end of each s
 
 ## Waiting on Pascal
 
-1. **Before P1:** create the claude.ai test project and a separate browser profile, see
-   [milestone-0__specs](milestone-0__specs.md#what-pascal-does-first-p1-onwards).
+1. Nothing right now. Test profile ready (Chrome, "Zettelbranch test"); test
+   conversations will be ordinary `zbtest/` chats, deleted by Pascal after each probe
+   session.
 
 ## Next for Claude
 

@@ -34,8 +34,13 @@ Seen by Pascal on the real site, in his own test browser (no automation).
 - Test browser: a separate Chrome profile, "Zettelbranch test", signed in to claude.ai.
   Chrome added Google's default extensions (Drive launcher, Docs Offline) to the new
   profile; Pascal is removing them. The spike extension loads unpacked without problems.
-- Test project "Zettelbranch tests" created. Its URL is kept in Claude's local memory,
-  not in this public repo.
+- Test project "Zettelbranch tests" created, then dropped (Pascal deletes it): on his
+  account a new project is a **Claude Code project** (beta of 2026-09-17, "Projects
+  redesigned: from folder to conversation"). The project is one coordinator
+  conversation; Claude itself creates **threads**, each a Claude Code cloud session on its
+  own copy of a repository. The user cannot create a thread directly (the "+" in the
+  panel only picks views: Threads, Library, Routines). Not a place for test chats.
+  Decision: test conversations are ordinary chats in the test tree `zbtest`.
 - **Projects work differently on the "one Claude" layout.** The project's address is
   `claude.ai/code/project/chan_…`, even in Chat and Cowork mode, and the same project
   shows in both modes (Chat and Cowork, and Code). The project page has

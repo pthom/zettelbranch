@@ -36,8 +36,10 @@ on how to work with Pascal go in its project memory.
   `cookies` permission, no `document.cookie`.
 - Never search or list the home folder (`find ~`…): it triggers macOS privacy prompts.
 - Real-page tests only in a dedicated browser profile, never Pascal's main browser.
-- On claude.ai, work only inside the dedicated test project. Ask before doing anything
-  else on Pascal's account.
+- On claude.ai, test conversations are ordinary chats in the test tree `zbtest`: every
+  test title starts with `zbtest/`, and Pascal deletes them after each probe session.
+  Ask before doing anything else on Pascal's account. (The new claude.ai projects are
+  Claude Code projects whose threads are cloud coding sessions, not chats.)
 - If a CAPTCHA or bot check appears, stop and tell Pascal. Never bypass it. For now this
   includes checks that would clear by themselves ("Just a moment..."): save a screenshot
   and the page, stop, and show them to Pascal. Never fake the user agent, hide

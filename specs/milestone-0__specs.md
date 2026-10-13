@@ -42,26 +42,27 @@ renaming or the conversation list.
 
 ## What Pascal does first (P1 onwards)
 
-1. **Create the test project** on claude.ai, for example "Zettelbranch tests". Everything
-   the probes create stays inside it.
+1. ~~Create the test project.~~ Done, then dropped: new projects are Claude Code
+   projects, not folders of chats. Test conversations are ordinary chats in the test tree
+   `zbtest` (titles start with `zbtest/`).
 2. **Create a separate browser profile,** for example a Chrome profile named
-   "Zettelbranch test", and sign in to claude.ai there, any way you like.
+   "Zettelbranch test", and sign in to claude.ai there, any way you like. Done.
 3. **Load the spike extension** in that profile: `chrome://extensions`, turn on
    Developer mode, "Load unpacked", pick `spike/extension/`.
 4. **DA-1:** the API probes run only if DA-1 = A.
 
 ## Probes
 
-Ordered by how much the answer can change the design. All run by Pascal's clicks, in the
-test project.
+Ordered by how much the answer can change the design. All run by Pascal's clicks, in
+ordinary chats of the `zbtest` tree.
 
 | # | Question | Pass means | Affects |
 |---|---|---|---|
 | P1 | Can text be inserted into the message box so the app takes it? Try `execCommand('insertText')` first, a synthetic `paste` only as a fallback (a paste may trigger the attachment conversion). | Send button enables; the sent message holds the full text. | Forking core |
 | P2 | What happens with long text? Try 5k, 20k, 100k characters. | Know whether and when text becomes an attachment, and whether it stays in the model's context. | [forking__prompt](forking__prompt.md) layout, FK-2 |
-| P3 | Can the content script open a new chat inside the project without a full page load, and keep its variables? | The prompt reaches the new chat with no storage (DA-D1). | Handoff, DA-D1 |
+| P3 | Can the content script open a new chat without a full page load, and keep its variables? | The prompt reaches the new chat with no storage (DA-D1). | Handoff, DA-D1 |
 | P4 | Can a title be renamed, and when? Rename before and after claude.ai's automatic title, then reload and check from the mobile app. | The address survives automatic naming. | Addressing, AD-D6 |
-| P5 | Can the full conversation list be read? Sidebar, the full list page, and the API if DA-1 = A. | Every conversation of the test project is found. | Registry, DA-1 |
+| P5 | Can the full conversation list be read? Sidebar, the full list page, and the API if DA-1 = A. | Every `zbtest/` conversation is found. | Registry, DA-1 |
 | P6 | Does the page hold the text of a pasted attachment, and every message of a long chat? | It can be read from the page, or the API is needed. | Flattening in [forking__prompt](forking__prompt.md), DA-1 |
 | P7 | Which DOM containers separate user and assistant turns, independent of UI language? Check with the UI in French and in English. | Stable selectors found; fixtures saved (TS-1). | Milestone 1 extraction |
 | P8 | Does Claude follow the draft branch prompt? Two real branches: one from a reply, one from your own message. | Summary in the expected format; no re-answering of the transcript. | [forking__prompt](forking__prompt.md) |
@@ -71,11 +72,11 @@ but not good replies.
 
 ## Budget
 
-- About 6 conversations and 15 sent messages, all in the test project, with short
-  prompts, except P2's long pastes and P8.
+- About 6 conversations and 15 sent messages, all `zbtest/` chats, with short prompts,
+  except P2's long pastes and P8.
 - Each session of probes is logged in [milestone-0__findings](milestone-0__findings.md):
   date, what ran, conversations created.
-- The spike's conversations are deleted at the end, inside the test project only.
+- Pascal deletes the `zbtest/` chats after each probe session.
 
 ## Out of scope
 

@@ -40,7 +40,9 @@ Context: [forking__findings](forking__findings.md).
 
 - **FK-D1** · Content that cannot be copied gets a placeholder (`[artifact: <title>, not
   copied]`, file names for attachments). Thinking and tool blocks are left out.
-- **FK-D2** · The new chat opens inside the parent's project.
+- **FK-D2** · The new chat opens inside the parent's project. *Update 2026-10-13: applies
+  to old-style chat projects only. New projects are Claude Code projects, out of scope
+  for now (see the spec's risks).*
 - **FK-D3** · Messages are extracted as Markdown (lists, tables, code with language,
   LaTeX source for math).
 - **FK-D4** · The header and the instructions to Claude are in English whatever the UI
