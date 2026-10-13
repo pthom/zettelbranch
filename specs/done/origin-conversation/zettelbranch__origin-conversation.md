@@ -9,7 +9,7 @@ Message text is exactly as in the JSON. Non-text parts (thinking, tool use, arti
 attachments) are one-line placeholders.
 
 The file Claude creates in message 42 (`CLAUDE.md`) is the first version of
-[zettelbranch__specs](zettelbranch__specs.md), identical to commit `44f5494`. Messages 43
+[zettelbranch__specs](../../zettelbranch__specs.md), identical to commit `44f5494`. Messages 43
 and 44 come after it.
 
 ## 1 · Pascal

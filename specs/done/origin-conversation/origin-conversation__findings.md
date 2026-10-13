@@ -16,7 +16,7 @@ have yet. One of them reopens a decided question (AD-3 below).
 | Topic | Conversation | Vault now | Why |
 |---|---|---|---|
 | Several trees | Message 44: "reserve the top-level numbers (1, 2, 3…) for independent trees", so `2a1` is in tree 2 | AD-1 = A: a tree name, `oulipo/1a` | The numbers option was not offered when AD-1 was decided. Reopened as AD-3 |
-| Tests on the real site | Message 40: Playwright or `web-ext run` on claude.ai, logged in once, in a test profile | No script ever touches claude.ai | Consumer Terms, and Anthropic support did not clear it ([terms__findings](terms__findings.md)) |
+| Tests on the real site | Message 40: Playwright or `web-ext run` on claude.ai, logged in once, in a test profile | No script ever touches claude.ai | Consumer Terms, and Anthropic support did not clear it ([terms__findings](../../terms__findings.md)) |
 | Distribution | Message 18: "publication on the stores from tagged versions" | TA-1 = A: GitHub only for now | A store listing makes it a product for others; stores maybe later |
 | Code size | Message 18: "a single short file", a few hundred lines | Short code in a few small modules (selectors, API calls, UI) | Each risky part isolated in one file, which also makes it easier to audit |
 
@@ -56,7 +56,7 @@ Checked by Pascal, 2026-10-13: the original conversation shows `< 2/2 >` under m
 (with retry, edit and copy buttons); the shared copy does not, since a share holds only
 the chosen path. So on his merged account, a new edit is still visible as a native
 branch. This contradicts the third-party claim that merged accounts hide new forks
-([claude-ai__findings](claude-ai__findings.md#1-native-branching)). It does not change
+([claude-ai__findings](../../claude-ai__findings.md#1-native-branching)). It does not change
 the project: the native tree stays unnamed, unlinked and reachable only through the
 arrows.
 
@@ -80,4 +80,4 @@ context a branch carries (FK-2).
 ## Question raised
 
 AD-3, tree identity: names or numbers? See
-[addressing__questions](addressing__questions.md#ad-3--tree-identity-names-or-numbers).
+[addressing__questions](../first-review/addressing__questions.md#ad-3--tree-identity-names-or-numbers).

@@ -1,61 +1,32 @@
 # Status
 
-Current state of the work and next steps. Updated by Claude at the end of each session.
+What is open, and the next steps. Updated by Claude at the end of each session. Finished
+work leaves this file for the [done log](done/README.md).
 
 **Last update:** 2026-10-13
 
-## Done
+## Where things are
 
-- First review of [zettelbranch__specs](zettelbranch__specs.md); vault set up
-  ([README](README.md)).
-- First answers folded into the spec: ZB-1 (files renamed to `zettelbranch__`), ZB-2,
-  ZB-3, AD-1, AD-2, FK-1, FK-2, DA-2 (if DA-1 = A), TS-1. The spec's "Why" now covers
-  the "one Claude" merge, and its prior art lists Claude QoL.
-- Branch prompt draft: [forking__prompt](forking__prompt.md).
-- Milestone 0 plan: [milestone-0__specs](milestone-0__specs.md).
-- Public research on claude.ai, its internal API and the extension platforms:
-  [claude-ai__findings](claude-ai__findings.md).
-- Anthropic support asked about the extension; answer and resulting rules in
-  [terms__findings](terms__findings.md). Decided: no script or automated browser ever
-  touches claude.ai; the extension never touches credentials.
-- Pascal's account is most likely already on the "one Claude" experience; it is the
-  target.
-- Spike P0 done, offline, on the share page Pascal saved by hand: 44 of 44 messages
-  extracted, roles right, text 99.9% identical to the JSON. Results in
-  [milestone-0__findings](milestone-0__findings.md#results). The original conversation is
-  in [zettelbranch__origin-conversation](zettelbranch__origin-conversation.md).
-- The vault checked against the original conversation:
-  [origin-conversation__findings](origin-conversation__findings.md). Prior art and the
-  app-link check added to the spec. AD-3 decided (tree names). Native `< 2/2 >` arrows
-  still show on Pascal's merged account.
-- Probe panel (P1 to P8) built into the spike extension, tested offline (56/56) and
-  audited (12/12); ready for Pascal's first clicks.
-- All open questions decided in chat with plain explanations (DA-1, DA-D1, TA-1, TS-2,
-  FK-3, ZB-3, XR-1) and folded into the spec. The README's open-questions table is empty.
+Milestone 0 spike ([plan](milestone-0__specs.md), [findings](milestone-0__findings.md)):
+P0, P1 and P5 done. Left: P2, P3, P4, P6, P7, P8, and P5's re-run once there are
+`zbtest/` chats to find.
 
 ## Waiting on Pascal
 
-1. **Run the probes** in the Chrome test profile, following
-   [Running the probes](milestone-0__specs.md#running-the-probes-pascal). Suggested first
-   session, short: P5 (read-only, checks the API answers on the new account), then P1 (one
-   new chat, one short message). Then "Copy results" and paste them to Claude.
+1. **Delete the P1 test chat**, the one Claude answered "ok". Version 0.0.2 left it with
+   claude.ai's automatic title, outside the `zbtest` tree; 0.0.3 fixes that.
+2. **Reload** the extension (⟳ in `chrome://extensions`; the panel then says 0.0.3) and
+   the claude.ai tab.
+3. **Next probes**, following
+   [Running the probes](milestone-0__specs.md#running-the-probes-pascal). Suggested
+   session: P4 (two chats), P8 on P4's chat B (two branches), P3 (sends nothing), then P5
+   again at the end. P2, P6 and P7 another time. Then "Copy results" and paste them to
+   Claude.
 
 ## Next for Claude
 
-1. Read the probe results, fix selectors or API calls in the spike (offline), and record
-   the answers in [milestone-0__findings](milestone-0__findings.md), updating every
-   *(to verify)* tag they settle.
-2. Then the remaining probes, a few at a time, the same way.
-
-## Session notes
-
-- 2026-10-13: Claude Code warned "transcript saving is off — inherited
-  CLAUDE_CODE_CHILD_SESSION marker". Cause: VS Code itself had
-  `CLAUDE_CODE_CHILD_SESSION=1` in its environment (probably launched from inside a
-  Claude Code session), so every VS Code terminal inherits it and the session cannot be
-  resumed. Fix: quit VS Code completely (Cmd+Q) and relaunch it from the Dock or
-  Spotlight, or start Claude with `env -u CLAUDE_CODE_CHILD_SESSION claude`.
-- 2026-10-13: a subagent's `find ~` set off macOS "access your Desktop" prompts; Pascal
-  refused them. Rule added to `CLAUDE.md`: never search the home folder.
-- 2026-10-13: the share link's page loads for a plain fetch, but the data it needs
-  (`/api/chat_snapshots/…`) is behind a Cloudflare challenge. Not bypassed.
+1. Read the results, fix the spike offline, record them in
+   [milestone-0__findings](milestone-0__findings.md), and update every *(to verify)* tag
+   they settle.
+2. When the last probe is done: close Milestone 0 (its files to `done/milestone-0/`, an
+   entry in the done log), then Milestone 1.

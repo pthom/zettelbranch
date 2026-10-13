@@ -4,7 +4,7 @@ The text the extension puts in the new chat's message box when you branch. Draft
 2026-10-13. Built on the decisions FK-1 = A (Claude writes the summary), FK-2 = A (full
 transcript), FK-3 = A (branching from your message replaces it) and AD-1 = A
 (`<tree>/<address>` titles). Context:
-[forking__findings](forking__findings.md), [forking__questions](forking__questions.md).
+[forking__findings](done/first-review/forking__findings.md), [forking__questions](done/first-review/forking__questions.md).
 
 ## Layout
 

@@ -86,11 +86,14 @@ which experience the account has.
 Two APIs coexist *(to verify)*:
 
 - the legacy JSON REST API under `/api/organizations/<org>/…`. It still answers for merged
-  accounts, though the merged web client no longer calls it for conversations;
+  accounts, though the merged web client no longer calls it for conversations. Checked
+  on Pascal's merged account on 2026-10-13 (P5): the list answers;
 - a Connect-RPC/protobuf API, `POST /claudeai-rpc/anthropic.bard.api.v1alpha.ConversationService/<Method>`,
   used by the merged web client. It is `v1alpha` and changes often.
 
-Endpoints. Everything in this table is *(to verify)*.
+Endpoints. Everything in this table is *(to verify)*, except (a) in legacy REST: on
+2026-10-13 (P5), `chat_conversations_v2?limit=100&offset=0` returned `{data, has_more}`
+with all 63 of Pascal's conversations in one response.
 
 | Need | Legacy REST | Merged RPC |
 |---|---|---|
@@ -110,14 +113,18 @@ which says rename and title were checked live on 2026-07-26 (c, d, e);
 [QoL claude-api.js](https://github.com/lugia19/Claude-QoL/blob/main/content/helpers/claude-api.js)
 and its exporter, 2026-10-10 (merged column, e); the bard README for the RPC calls.
 
-Auth *(to verify)*:
+Auth:
 
 - An HttpOnly `sessionKey` cookie. A same-origin request from the page sends it on its own,
   with no token or extra header
   ([paprwork notes, 2026-06-19](https://github.com/Papr-ai/paprwork/blob/main/docs/CLAUDE_CONVERSATIONS_API.md)).
+  Checked on 2026-10-13 (P5): a content script's same-origin `fetch` is answered, and
+  the code never reads a cookie.
 - Org id: read the `lastActiveOrg` cookie (QoL, agarwalvishal) or call `GET /api/organizations`.
-  In the second case, pick the org whose capabilities include chat, not `orgs[0]`.
-- The RPC endpoints check `Origin`. Calls from an extension page or service worker get
+  In the second case, pick the org whose capabilities include chat, not `orgs[0]`. Checked
+  on 2026-10-13 (P5): Pascal's account has 2 organizations, 1 with chat. Zettelbranch
+  uses the call, never the cookie.
+- The RPC endpoints check `Origin` *(to verify)*. Calls from an extension page or service worker get
   403 "origin not allowed". Calls from the page or from a Chrome content script pass.
   Legacy REST does not check `Origin` (bard README). QoL's Firefox build uses `content.fetch`
   for the RPC calls, while MDN says `content.fetch` does not exist in MV3. That needs
@@ -173,8 +180,9 @@ QoL's: rename after the first reply has finished, then read the title back.
   ([intellectronica gist, 2025-12-08](https://gist.github.com/intellectronica/96ec4201f2538ac42bcaa93665580b30);
   [Greasy Fork "Chunked Paste" v1.5](https://greasyfork.org/en/scripts/567635-claude-chunked-paste-bypass-attachment-detection)).
   This suggests that claude.ai's paste handler does the conversion and that text typed in
-  with `execCommand` stays inline *(to verify)*. Whether a single large `execCommand` call
-  also stays inline: not found.
+  with `execCommand` stays inline. Short text does (P1, 2026-10-13); long text
+  *(to verify, P2)*. Whether a single large `execCommand` call also stays inline: not
+  found.
 - Merged accounts *(to verify)*, per the bard README of 2026-10-08:
   - text attachments travel inline, up to 4 MB;
   - an attachment too big for the model's context window "upgrades" the chat to a
@@ -191,8 +199,14 @@ end up partly or entirely outside the model's context on merged accounts.
 
 - It is ProseMirror. Extensions in 2026 target `div.ProseMirror[contenteditable="true"]`,
   sometimes inside `[data-testid="chat-input"]`, and the Send button is
-  `[data-testid="chat-input-send"]` *(to verify)*. Tiptap is likely, because code blocks
-  carry Tiptap's `node-codeBlock` and `data-node-view-content-react`. Not confirmed.
+  `[data-testid="chat-input-send"]`. Checked on 2026-10-13 (P1): the message box is
+  `[data-testid="chat-input"][contenteditable="true"]` (the test id is on the editable
+  element itself), and the Send button selector holds. Tiptap is likely, because code
+  blocks carry Tiptap's `node-codeBlock` and `data-node-view-content-react`. Not
+  confirmed.
+- `execCommand('insertText')` works (P1, 2026-10-13): Send enables, and the sent message
+  is exactly the inserted text, with line breaks, indentation and code fences. Inserted
+  in one call, `- ` and ``` did not turn into a list or a code block.
 - How open-source extensions insert text:
 
 | Extension | Method | Last commit |

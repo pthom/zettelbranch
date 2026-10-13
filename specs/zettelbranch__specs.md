@@ -145,16 +145,18 @@ has readable addresses, cross-references, or code short enough to audit.
 - The page renders only part of a long conversation (a virtualized list; the new
   experience first loads only recent messages) *(to verify)*. So extraction reads the
   conversation through the API when it answers as expected, and from the page otherwise.
-- The sidebar only shows recent conversations. Check early whether the title-based
-  registry needs the search or the full conversation list page.
-- The message input is a rich-text editor: inserting text so the app's state actually
-  updates must be verified on the real page. Long pasted text may become an attachment,
-  and on the new experience may fall outside the model's context *(to verify)*.
+- The sidebar only shows recent conversations (14 of Pascal's 63). The registry reads
+  the full list through the API, which returns all of them in one request (Milestone 0,
+  P5).
+- The message input is a rich-text editor. `execCommand('insertText')` works on the real
+  page: Send enables and the sent message is exact, line breaks and indentation included
+  (Milestone 0, P1). Long text may still become an attachment, and on the new experience
+  fall outside the model's context *(to verify, P2)*.
 - Renaming goes through the API; the UI is the fallback. Whether a rename survives
   claude.ai's automatic title must be checked (Milestone 0, P4).
 - claude.ai exists in two versions during the rollout, with different internal APIs.
   Everything that talks to claude.ai lives in one file; fixtures record which version
-  they come from.
+  they come from. The legacy REST API still answers on Pascal's merged account (P5).
 - claude.ai projects are being redesigned. On Pascal's account a new project is a
   Claude Code project: one coordinator conversation, with "threads" that Claude starts as
   cloud coding sessions. Zettelbranch targets ordinary chats; chat projects will be

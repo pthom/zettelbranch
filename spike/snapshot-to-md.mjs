@@ -2,14 +2,14 @@
 // most faithful source). Message text is kept exactly as in the JSON; non-text parts
 // become one-line placeholders. No account details.
 //
-//   node snapshot-to-md.mjs [--snapshot out/snapshot.json] [--out ../specs/zettelbranch__origin-conversation.md] [--date 2026-10-13]
+//   node snapshot-to-md.mjs [--snapshot out/snapshot.json] [--out ../specs/done/origin-conversation/zettelbranch__origin-conversation.md] [--date 2026-10-13]
 import fs from 'node:fs';
 import path from 'node:path';
 import { args, loadSnapshot, roleOf, SAVED_SNAPSHOT, SHARE_URL, SPIKE_DIR, snapshotText } from './lib.mjs';
 
 const opt = args({
   snapshot: SAVED_SNAPSHOT,
-  out: path.join(SPIKE_DIR, '..', 'specs', 'zettelbranch__origin-conversation.md'),
+  out: path.join(SPIKE_DIR, '..', 'specs', 'done', 'origin-conversation', 'zettelbranch__origin-conversation.md'),
   date: '2026-10-13',
   url: SHARE_URL,
 });

@@ -19,6 +19,10 @@ Browser extension for claude.ai, idea stage. No code yet.
   Details in `specs/README.md`.
 - When Pascal answers a question: fold the decision into the spec, set the question to
   `decided`, update the README's open-questions table.
+- When a piece of work is done, in the same commit: a short entry in
+  `specs/done/README.md` (newest first); it leaves the working files (the status file
+  and plans keep only what is open); its files move to `specs/done/<work>/` for history,
+  with every link rewritten and checked. Details in `specs/README.md`.
 - At the end of each session: update `specs/zettelbranch__status.md`. Vault files are
   committed, for transparency.
 

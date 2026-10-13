@@ -4,7 +4,7 @@ Context: [testing__findings](testing__findings.md).
 
 ## TS-1 · Fixtures in a public repo
 
-**Status:** decided (2026-10-13), adjusted: fixtures are saved by hand, since no script may touch claude.ai. Folded into [spec](zettelbranch__specs.md#development-workflow).
+**Status:** decided (2026-10-13), adjusted: fixtures are saved by hand, since no script may touch claude.ai. Folded into [spec](../../zettelbranch__specs.md#development-workflow).
 
 - **A.** Create throwaway conversations in the test project, save them, scrub account
   details and sidebar titles, commit. *(recommended)*
@@ -32,6 +32,6 @@ Context: [testing__findings](testing__findings.md).
 
 - ~~**TS-D1** · Real-page tests try headless first, then a visible window in a separate
   macOS Space, then stop and ask.~~ Superseded: no automated real-page tests (see
-  [terms__findings](terms__findings.md)).
+  [terms__findings](../../terms__findings.md)).
 - **TS-D2** · Automated runs on the real site are kept few, and each run is logged in
   findings.

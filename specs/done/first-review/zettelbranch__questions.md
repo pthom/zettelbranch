@@ -18,7 +18,7 @@ The folder says `ZettenBranch`, the spec says `Zettelbranch`. The spec's own ety
 
 ## ZB-2 · Milestone 0 spike
 
-**Status:** decided (2026-10-13). Folded into [spec](zettelbranch__specs.md#milestone-0).
+**Status:** decided (2026-10-13). Folded into [spec](../../zettelbranch__specs.md#milestone-0).
 
 Before Milestone 1, a short spike on the real site to answer: title renaming and
 automatic naming, reading the full conversation list, inserting text into the message

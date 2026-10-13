@@ -10,6 +10,7 @@ Results of the Milestone 0 spike ([milestone-0__specs](milestone-0__specs.md)). 
 | 2026-10-13 | Dry runs on a hand-made sample page, served from disk at the share URL, headless | 0 | n/a | 0 |
 | 2026-10-13 | P0 on the files Pascal saved by hand in Firefox (`Claude.html`, `snapshot.json`), offline: jsdom and headless Chromium | 0 | none in the saved page | 0 |
 | 2026-10-13 | Probe panel (P1 to P8), offline tests against a fake claude.ai, headless | 0 | n/a | 0 |
+| 2026-10-13 | First probe session, by Pascal in the test profile, spike 0.0.2: P5, then P1 | by hand | none | 1 (P1), 1 message sent |
 
 ## P0 · Read a shared conversation
 
@@ -79,7 +80,7 @@ also change the page, so the extensions that were active matter.
 | Extract in headless Chromium, with the extension | `node p0-read-share.mjs` | `extracted.json`, `page.png`, `requests.json`, `browser-run.json`, `page-served.html` |
 | Compare with the JSON | `node compare.mjs` | `compare.json` |
 | Describe the JSON | `node inspect-snapshot.mjs` | `snapshot-summary.json` |
-| Write the conversation | `node snapshot-to-md.mjs` | `specs/zettelbranch__origin-conversation.md` |
+| Write the conversation | `node snapshot-to-md.mjs` | `specs/done/origin-conversation/zettelbranch__origin-conversation.md` |
 
 `npm run p0` runs the first four. `npm run sample` runs everything on the hand-made
 sample in `spike/fixtures/`.
@@ -190,7 +191,8 @@ the saved DOM, with no virtual rows or spacers. Chat pages may still differ (P6)
 
 ## Probe panel (P1 to P8)
 
-Built 2026-10-13, extension version 0.0.2. Pascal runs the probes by hand on the real site:
+Built 2026-10-13, extension version 0.0.2; 0.0.3 after the first session (see
+[below](#first-probe-session-p5-and-p1)). Pascal runs the probes by hand on the real site:
 see [Running the probes](milestone-0__specs.md#running-the-probes-pascal). No script
 touches claude.ai.
 
@@ -259,7 +261,7 @@ aborted, and the run fails if one escapes. The fake has:
 
 Result on 2026-10-13: **56 of 56 checks pass.** 86 requests, none escaped. The extension
 made 59 GET and 3 PUT calls, all of the four allowed kinds, and every rename went to a
-`zbtest/` name.
+`zbtest/` name. Version 0.0.3: **59 of 59**, 88 requests, 60 GET and 4 PUT.
 
 | Probe | Checked offline |
 |---|---|
@@ -301,30 +303,75 @@ also prints a plain `grep` for each check.
 | No extension APIs (`chrome.*`) | pass |
 | Manifest: no permissions, no background, claude.ai only | pass |
 
-### Open for the first real click
+## First probe session: P5 and P1
 
-Each lookup tries a short list, and the result says which one matched.
+2026-10-13, by Pascal, in the Chrome profile "Zettelbranch test", spike 0.0.2. No bot
+check, no error. The panel showed with its styles, and "Copy results" worked.
 
-- **Message box and Send button:** candidates from public notes
-  (`[data-testid="chat-input"]`, `div.ProseMirror[contenteditable="true"]`,
-  `[data-testid="chat-input-send"]`). The saved share page has no message box, so none is
-  confirmed.
-- **Attachment chip:** unknown. After each insertion the probes list every new
-  `data-testid` on the page.
-- **Insertion:** whether `execCommand('insertText')` keeps line breaks, indentation and
-  code fences in claude.ai's editor, or whether its Markdown shortcuts turn `- ` into a
-  list.
-- **New chat link:** `a[href="/new"]` in the sidebar, seen in the saved page. Whether a
-  click from the script opens the new chat without a reload is P3's question.
-- **API:** whether the legacy REST calls still answer on Pascal's account (the new "one
-  Claude" layout), the list's shape and paging, and the rename's answer. If they do not,
-  P4, P5, P6 and P8 show a clear error; P1, P2 and P7 fall back to the page.
-- **Addresses of pages:** the probes expect `/chat/<id>` for a conversation and `/new`
-  (or `/`) for a new chat, as in the saved page's links.
+### P5 · Conversation list (read-only)
+
+| Measure | Result |
+|---|---|
+| API on the merged account | Answers. `GET /api/organizations`: 2 organizations, 1 with chat (capabilities `claude_max`, `chat`); the probe picked that one. |
+| The list | 63 conversations in **1 request** (`limit=100`), 813 ms. Shape `{data, has_more}`. Oldest created 2024-07-30. |
+| Sidebar | 14 chat entries (`[data-testid="sidebar-recents"] a[href*="/chat/"]`). So the sidebar alone misses most of the tree: the registry reads the API list. |
+| `zbtest/` chats | 0, as expected before any test chat. |
+
+Fields of a list item: `created_at`, `current_leaf_message_uuid`,
+`effective_thinking_mode`, `has_assistant_outputs`, `is_archived`, `is_multiplayer`,
+`is_starred`, `is_temporary`, `is_wiggle_enabled`, `last_read_at`, `last_settled_at`,
+`latest_assistant_output_at`, `latest_assistant_output_kind`, `live_status`,
+`live_status_started_at`, `local_project_id`, `model`, `name`, `needs_input`,
+`needs_input_kind`, `platform`, `project`, `project_uuid`, `session_id`, `settings`,
+`summary`, `updated_at`, `user_uuid`, `uuid`, `workspace_session_id`,
+`workspace_upgraded`.
+
+Worth knowing for Milestone 1:
+
+- `current_leaf_message_uuid`: the end of the branch the user is on, so the path to copy
+  can be read without guessing.
+- `platform`, `session_id`, `workspace_session_id`, `local_project_id`: the list may mix
+  ordinary chats with Cowork or Code sessions. Version 0.0.3 counts the values of these
+  fields (never free text), so the next P5 run shows the mix.
+- `summary`: a summary field exists. Whether claude.ai fills it, and for which chats, is
+  open; 0.0.3 counts how many are non-empty.
+
+### P1 · Insert text
+
+Inserted in a new chat with `execCommand('insertText')`, in one call (8 ms). The sample
+holds a header, a nested list and a fenced Python block with indentation: 199
+characters, 15 line breaks.
+
+| Measure | Result |
+|---|---|
+| Message box | `[data-testid="chat-input"][contenteditable="true"]`: the test id is on the editable element itself, not on a wrapper |
+| In the box | Exactly the sample: 199 characters, 16 paragraphs, no list, no code block. The editor's Markdown shortcuts did not fire. |
+| Send button | `[data-testid="chat-input-send"]`, disabled before, enabled after |
+| Attachment | None; no new `data-testid` on the page |
+| Sent message (read back through the API) | **Identical** to the sample: line breaks, the 4 indented lines, both fences and the 3 list lines all kept. No attachment, no file. |
+| How it shows | claude.ai renders the sent message's code block as a code block; the list lines stay plain lines. |
+
+So the core of forking works on the real page for short text. The synthetic paste is
+not needed: "Try paste instead" was not run and stays only as a fallback. Long text is
+P2's question.
+
+**Found:** P1's chat kept claude.ai's automatic title, so it was outside the `zbtest`
+tree (the panel did not rename it). Pascal deletes it by hand. Fixed in 0.0.3: P1's and
+P2's checks then offer to rename the chat to `zbtest/p1 · <automatic title>` or
+`zbtest/p2-<size> · …`, after the usual dialog. These names are not addresses, so the
+tree probes ignore them. Spike a2302f6.
+
+### Still open for the next clicks
+
+- **Attachment chip:** still unknown; P2's long text should show it. After each
+  insertion the probes list every new `data-testid` on the page.
+- **Long text:** whether a single large `execCommand` call stays inline (P2).
+- **New chat link:** `a[href="/new"]` in the sidebar. Whether a click from the script
+  opens the new chat without a reload is P3's question.
+- **Rename:** the API's answer, and whether claude.ai's automatic title overwrites an
+  early rename (P4).
 - **Page title:** format unknown; P4 shows it as is.
-- **Panel styles:** applied through a constructed stylesheet, which a strict page CSP
-  does not block. Not seen on claude.ai yet.
-- **Clipboard:** if "Copy results" fails, the panel shows the JSON to copy by hand.
+- **The list's mix:** chats, Cowork and Code sessions (P5 again, 0.0.3).
 
 ## Files
 

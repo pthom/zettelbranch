@@ -4,7 +4,7 @@ Context: [data-access__findings](data-access__findings.md).
 
 ## DA-1 · May the extension call claude.ai's own API?
 
-**Status:** decided (2026-10-13): A, after the plain explanation below. Folded into the [spec](zettelbranch__specs.md#trust-and-auditability-hard-requirements).
+**Status:** decided (2026-10-13): A, after the plain explanation below. Folded into the [spec](../../zettelbranch__specs.md#trust-and-auditability-hard-requirements).
 
 Today the spec says "no network calls of any kind". That rules out banner summaries,
 backlinks, a complete registry and the whole-tree view.
@@ -43,7 +43,7 @@ Without it, the extension sees only what is on your screen.
   no other place.
 - **Your login is never touched.** The browser attaches it to each request by itself;
   the extension never sees or stores it. That is the line Anthropic support drew
-  ([terms__findings](terms__findings.md)).
+  ([terms__findings](../../terms__findings.md)).
 - **It can do very little.** It reads and renames; it never sends a message, never
   deletes. The file lists the few addresses it calls, so anyone can check.
 - **Anthropic's answer** called this "personal automation", acceptable.
@@ -66,7 +66,7 @@ access to your login, basic branching that still works when the API breaks.
 
 ## DA-2 · If A: reads only, or also renaming?
 
-**Status:** decided (2026-10-13): A. Folded into the [spec](zettelbranch__specs.md#trust-and-auditability-hard-requirements).
+**Status:** decided (2026-10-13): A. Folded into the [spec](../../zettelbranch__specs.md#trust-and-auditability-hard-requirements).
 
 Renaming a conversation through the API is more reliable than driving the UI, but it is
 a write.
@@ -82,7 +82,7 @@ a write.
 - **DA-D1** · The prompt reaches the new chat by opening it inside the same page, with no
   storage. If that fails, fall back to `storage.session` (memory only).
   **Decided (2026-10-13):** 1, with 2 as the fallback (see below). Folded into the
-  [spec](zettelbranch__specs.md#core-design).
+  [spec](../../zettelbranch__specs.md#core-design).
 
 > Pascal: That is difficult for me to answer. If you want my output you would need to give me more details. Remain comprehensible, please. 
 

@@ -4,7 +4,7 @@ Context: [trust-audit__findings](trust-audit__findings.md).
 
 ## TA-1 · Distribution channels
 
-**Status:** decided (2026-10-13): A. Folded into the [spec](zettelbranch__specs.md#trust-and-auditability-hard-requirements).
+**Status:** decided (2026-10-13): A. Folded into the [spec](../../zettelbranch__specs.md#trust-and-auditability-hard-requirements).
 
 - **A.** GitHub tagged releases. Firefox: signed by AMO as unlisted (self-distributed
   `.xpi`). Chrome: load unpacked. *(recommended for now)*

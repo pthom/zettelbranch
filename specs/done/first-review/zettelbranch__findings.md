@@ -1,6 +1,6 @@
 # General findings
 
-Review of [zettelbranch__specs](zettelbranch__specs.md), 2026-10-13.
+Review of [zettelbranch__specs](../../zettelbranch__specs.md), 2026-10-13.
 
 ## Overall assessment
 

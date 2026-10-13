@@ -4,7 +4,7 @@ Context: [addressing__findings](addressing__findings.md).
 
 ## AD-1 · Title format
 
-**Status:** decided (2026-10-13). Folded into [spec](zettelbranch__specs.md#core-design).
+**Status:** decided (2026-10-13). Folded into [spec](../../zettelbranch__specs.md#core-design).
 
 The title is the registry, so its format must be unambiguous to parse, and it must work
 with several trees.
@@ -25,7 +25,7 @@ Decided in chat, 2026-10-13: A. In the spec's example `1b1a · Zettelbranch`, `Z
 
 ## AD-2 · Turning an existing conversation into a tree root
 
-**Status:** decided (2026-10-13). Folded into [spec](zettelbranch__specs.md#core-design).
+**Status:** decided (2026-10-13). Folded into [spec](../../zettelbranch__specs.md#core-design).
 
 When you click "branch from here" in a conversation that is not part of a tree yet:
 
@@ -40,10 +40,10 @@ Decided in chat, 2026-10-13: A, rename it.
 
 ## AD-3 · Tree identity: names or numbers?
 
-**Status:** decided (2026-10-13): A, names, in chat. Already the [spec](zettelbranch__specs.md#core-design)'s format.
+**Status:** decided (2026-10-13): A, names, in chat. Already the [spec](../../zettelbranch__specs.md#core-design)'s format.
 
 The original conversation (message 44 of
-[zettelbranch__origin-conversation](zettelbranch__origin-conversation.md)) proposed numbering the trees themselves: tree 1, tree 2… with branches as
+[zettelbranch__origin-conversation](../origin-conversation/zettelbranch__origin-conversation.md)) proposed numbering the trees themselves: tree 1, tree 2… with branches as
 letters and numbers below. AD-1 chose a tree name instead. Same Oulipo example, branch
 `1a1` of the Oulipo tree:
 
@@ -71,4 +71,4 @@ letters and numbers below. AD-1 chose a tree name instead. Same Oulipo example, 
 - **AD-D5** · After `z`, letters continue `aa`, `ab`…
 - **AD-D6** · The topic part of the title is claude.ai's automatic title; the extension
   only adds the address prefix. Depends on the Milestone 0 rename test (P4 in
-  [milestone-0__specs](milestone-0__specs.md)).
+  [milestone-0__specs](../../milestone-0__specs.md)).
