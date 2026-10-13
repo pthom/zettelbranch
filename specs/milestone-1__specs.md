@@ -95,6 +95,18 @@ About 25 minutes, in the Chrome profile "Zettelbranch test". Every chat is a `zb
 7. Move between chats with the sidebar: the pill stays.
 8. Tell Claude what you saw. Then delete every `zbtest/` chat.
 
+## Firefox check (step 9)
+
+About 15 minutes, in a separate Firefox profile (Firefox is Pascal's main browser, so never his everyday profile).
+
+1. Firefox: open `about:profiles`, "Create a New Profile", name it "Zettelbranch test", then "Launch profile in new browser". Sign in to claude.ai there.
+2. In that window: `about:debugging#/runtime/this-firefox`, "Load Temporary Add-on…", pick `extension/manifest.json` in the repo. It stays until Firefox quits.
+3. Firefox asks extensions for site access: click the puzzle icon in the toolbar, then Zettelbranch, and allow it on claude.ai.
+4. Open claude.ai. Does the Zettelbranch pill appear at the bottom right, with its styles?
+5. A new chat, two short exchanges. Open the panel: are the messages listed? (This is the point most likely to fail: Firefox may send the extension's API requests without the login.)
+6. Branch, tree name `zbtest`, preview, "Open new chat": is the text in the box? Send, then "Name this branch".
+7. Tell Claude what you saw, then delete the `zbtest/` chats.
+
 ## Rules carried over
 
 - No script or automated browser on claude.ai; real-page checks by Pascal's clicks.
