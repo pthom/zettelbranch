@@ -42,6 +42,9 @@ export function writeJson(file, data) {
 // Signs that a saved page is a bot check rather than the conversation.
 export function challengeMarkers(html) {
   const found = [];
+  // Script and style code is left out: claude.ai's own app script preloads hcaptcha.com
+  // for its login page, which is not a bot check.
+  html = html.replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, '');
   const title = /<title[^>]*>([^<]*)<\/title>/i.exec(html);
   if (title && /just a moment|attention required/i.test(title[1])) found.push(`title "${title[1].trim()}"`);
   for (const [re, label] of [
@@ -193,6 +196,9 @@ export function loadSnapshot(file) {
 // source Markdown compare on content.
 export function normalize(md) {
   return md
+    // The page shows typographic quotes where the source has straight ones.
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
     .replace(/\[artifact: [^\]]*\]/g, ' ')
     .replace(/^\s*(`{3,}|~{3,})[^\n]*$/gm, ' ')
     .replace(/^\s{0,3}#{1,6}\s+/gm, '')

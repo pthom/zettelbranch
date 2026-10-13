@@ -20,28 +20,26 @@ Current state of the work and next steps. Updated by Claude at the end of each s
   touches claude.ai; the extension never touches credentials.
 - Pascal's account is most likely already on the "one Claude" experience; it is the
   target.
-- Spike P0 built in `spike/` and tested offline on a hand-made sample, with all network
-  blocked. Not yet run on the real page: it waits for Pascal's files.
+- Spike P0 done, offline, on the share page Pascal saved by hand: 44 of 44 messages
+  extracted, roles right, text 99.9% identical to the JSON. Results in
+  [milestone-0__findings](milestone-0__findings.md#results). The original conversation is
+  in [zettelbranch__origin-conversation](zettelbranch__origin-conversation.md).
 - All open questions decided in chat with plain explanations (DA-1, DA-D1, TA-1, TS-2,
   FK-3, ZB-3, XR-1) and folded into the spec. The README's open-questions table is empty.
 
 ## Waiting on Pascal
 
-1. **Save the two P0 files** into `spike/out/`: `share-page.html` ("Webpage, Complete",
-   without scrolling first) and `snapshot.json`. How: either the DevTools steps in
-   [milestone-0__findings](milestone-0__findings.md#files-pascal-saves), or open
-   `https://claude.ai/api/chat_snapshots/b6ff02e2-cfa2-49f7-a7f5-8557f0ebca66?rendering_mode=messages&render_all_tools=true`
-   in the browser and save it.
+1. **Commit the original conversation or not:**
+   [zettelbranch__origin-conversation](zettelbranch__origin-conversation.md) (44 messages,
+   in French, no account details). Not committed until Pascal says so.
 2. **Before P1:** create the claude.ai test project and a separate browser profile, see
    [milestone-0__specs](milestone-0__specs.md#what-pascal-does-first-p1-onwards).
 
 ## Next for Claude
 
-1. When the P0 files are there: run `cd spike && npm run p0 && node snapshot-to-md.mjs`,
-   fix the selectors offline, fill in the P0 results in
-   [milestone-0__findings](milestone-0__findings.md).
-2. With the original conversation available: check every finding and decision against
-   it, and flag anything it contradicts.
+1. Check every finding and decision against the original conversation, especially
+   messages 43 and 44, which came after the first spec. Flag anything it contradicts.
+2. Small P0 fixes for Milestone 1: file cards' names, web-search source chips.
 3. Build the probe panel of the spike extension (P1 to P8, Pascal clicks). The API calls
    go in one file, reads plus renaming only, no cookies, no typing listeners.
 
