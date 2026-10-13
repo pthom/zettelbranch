@@ -4,7 +4,7 @@ Context: Pascal's question during the Milestone 1 checklist (2026-10-13): "we ar
 
 ## NF-1 · Copy the conversation, or let claude.ai fork it?
 
-**Status:** decided (2026-10-13): A. Pascal: "Let's do a probe about forks." Research and probe in `specs/native-fork__findings.md`.
+**Status:** decided (2026-10-13): A. Pascal: "Let's do a probe about forks." Research and probe in [native-fork__findings](native-fork__findings.md).
 
 Today Zettelbranch opens a new chat and puts a copy of the conversation in your first message, as one quoted block of text. Claude reads it as a transcript, not as its own past messages. Images and files do not come along (placeholders).
 
@@ -43,3 +43,7 @@ Options:
 What A changes in the work: one more allowed call in `api.js` (the fork, as in the probe), the branch flow choosing between the two, the header found in the first message you send rather than in message 1, and new tests. About a day of offline work, then a short check by hand.
 
 **Answer:** A
+
+## NF-3 · Keep claude.ai's own fork, now that it only continues earlier versions?
+
+**Status:** decided (2026-10-13), in chat: remove it (Claude's recommendation; Pascal: "ok"). Pascal's check showed that claude.ai refuses the fork from a chat's last reply: it only continues an earlier version (the end of a branch left with the arrows). NF-2's premise did not hold. The quoted copy stays the only way; the step 6b code is in commit `ba045c4`.

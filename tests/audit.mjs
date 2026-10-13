@@ -22,12 +22,6 @@ function codeLines(file) {
 }
 const lines = files.flatMap(codeLines);
 const hits = (re, only) => lines.filter((l) => (!only || only(l.file)) && re.test(l.text));
-// Lines that must be exactly these (file and text), and nothing else.
-const except = (found, allowed) => found.filter((l) => !allowed.some(([f, t]) => l.file === f && l.text === t));
-// The few lines allowed to do what is otherwise forbidden.
-const FORK_LINE = "  const FORK = { method: 'POST', path: '/claudeai-rpc/anthropic.bard.api.v1alpha.ConversationService/PerformAction' };";
-const LOAD_LINE = '    location.assign(`/chat/${created}#zettelbranch`);';
-const HASH_LINE = "  if (location.hash === '#zettelbranch') globalThis.ZBUi.autoOpen();";
 
 const checks = [];
 const check = (name, offending) => checks.push({ name, pass: offending.length === 0, offending });
@@ -36,16 +30,7 @@ check(`Network calls only in ${NET_FILE}`,
   hits(/\bfetch\s*\(|XMLHttpRequest|sendBeacon|WebSocket|EventSource|importScripts|new Image\b|\.src\s*=|\bimport\s*\(|window\.open\s*\(|location\.(assign|replace)\s*\(|location\.href\s*=/, (f) => f !== NET_FILE));
 const fetches = hits(/\bfetch\s*\(/, (f) => f === NET_FILE);
 check(`${NET_FILE} calls fetch in one place, behind its allowed list`, fetches.length === 1 ? [] : fetches.length ? fetches : [{ file: NET_FILE, n: 0, text: 'no fetch call found' }]);
-check('Only GET and PUT, and one POST: claude.ai\'s copy, the constant FORK in api.js',
-  except(hits(/['"](POST|DELETE|PATCH|HEAD|OPTIONS)['"]/i), [[NET_FILE, FORK_LINE]]));
-const loads = hits(/location\.(assign|replace)\s*\(|location\.href\s*=/);
-const createdSet = hits(/\bcreated\s*=[^=]/);
-check('One page load, in api.js: the chat claude.ai just created (`created`, set once, after the fork)',
-  [...except(loads, [[NET_FILE, LOAD_LINE]]), ...(loads.length === 1 ? [] : [{ file: NET_FILE, n: 0, text: `${loads.length} page loads` }]),
-    ...except(createdSet, [[NET_FILE, '  let created = null;'], [NET_FILE, '    created = newId;']])]);
-check('The panel opens by itself only on the page Zettelbranch loads (#zettelbranch)',
-  [...except(hits(/location\.hash/), [['content.js', HASH_LINE]]),
-    ...except(hits(/\bautoOpen\b/), [['content.js', HASH_LINE], ['ui.js', '  function autoOpen() {'], ['ui.js', '  global.ZBUi = { mount, autoOpen };']])]);
+check('Only GET and PUT', hits(/['"](POST|DELETE|PATCH|HEAD|OPTIONS)['"]/i));
 check('No other host than claude.ai',
   lines.filter((l) => (l.text.match(/(https?|wss?):\/\/[^\s'"`)]*/g) || []).some((u) => u !== 'https://claude.ai')));
 check('No cookies, no credentials or tokens (requests use credentials: same-origin only)',
@@ -65,7 +50,7 @@ check('No eval or code from strings', hits(/\beval\s*\(|new Function\s*\(|setTim
 check('No hidden calls: no computed property access on global objects', hits(/\b(window|globalThis|self|document|global|location|navigator)\s*\[/));
 check('No extension APIs (no messaging, no background, no extension storage)', hits(/\b(chrome|browser)\.\w/));
 check('No messaging with page scripts or other windows', hits(/postMessage|BroadcastChannel|MessageChannel|dispatchEvent|CustomEvent/));
-check('No clipboard; execCommand only to insert text, in one place', [...hits(/clipboard/i), ...except(hits(/execCommand/), [['branch.js', "    document.execCommand('insertText', false, text);"]])]);
+check('No clipboard; execCommand only to insert text', [...hits(/clipboard/i), ...hits(/execCommand\(/).filter((l) => !/execCommand\('insertText', false, /.test(l.text))]);
 check('Never presses Send: no Send button, no key events, no form submit; the only click is on the New chat link',
   [...hits(/chat-input-send|KeyboardEvent|requestSubmit|\.submit\s*\(/), ...hits(/\.click\s*\(/).filter((l) => !/\bnewChatLink\.click\(\)/.test(l.text))]);
 

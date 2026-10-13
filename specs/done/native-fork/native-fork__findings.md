@@ -86,7 +86,7 @@ For Zettelbranch:
 - **From anywhere else**, or **instead of your own message**: only the copy (a quoted transcript) can do it.
 - The native copy keeps the parent's title and settings but not the model (the default model instead).
 
-Decision: NF-2 in `specs/native-fork__questions.md`.
+Decision: NF-2 in [native-fork__questions](native-fork__questions.md).
 
 ## Third run: the real rule (2026-10-13, Zettelbranch 0.1.0 with step 6b)
 
@@ -102,5 +102,8 @@ Putting the three runs together:
 
 So claude.ai's action only continues an **earlier version** in a new chat: the end of a branch you switched away from with the arrows. It is the "Continue in a new session" of the merged UI's "earlier version" banner, and the error names in the notes (`continue_branch_not_an_old_branch`) say the same. The latest version can only be continued in place. *(Our reading of three runs and the notes; it fits all of them.)*
 
-For Zettelbranch, that means the native fork never applies to the usual case: branching a conversation from where it stands. NF-2's premise ("from the last reply") does not hold. Decision: NF-3 (in chat).
+For Zettelbranch, that means the native fork never applies to the usual case: branching a conversation from where it stands. NF-2's premise ("from the last reply") does not hold. Decision: NF-3.
 
+## NF-3 · Decision
+
+Decided in chat on 2026-10-13 (Pascal: "ok"): remove the native fork from the extension and keep the quoted copy only. One behaviour everywhere, no "alpha" API, about 400 fewer lines to audit. The code is in git (`ba045c4`); these findings stay in case claude.ai changes its rule.

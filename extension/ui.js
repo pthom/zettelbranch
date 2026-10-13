@@ -1,13 +1,11 @@
 // Zettelbranch: the panel. A small "Zettelbranch" button at the bottom right opens it.
 // Shadow DOM outside <body>, built with DOM nodes and textContent only. Click listeners
 // only: no keyboard or input listeners. Every action starts with a click; the flow itself
-// is in branch.js. The panel opens by itself in one case only (autoOpen, from content.js):
-// on the page Zettelbranch loads after claude.ai copied a chat, to offer "Start the branch".
+// is in branch.js.
 (function (global) {
   'use strict';
 
   const B = () => global.ZBBranch;
-  const MODEL_NOTE = 'claude.ai\'s copy uses the default model; pick another in the message box\'s model menu if you like.';
 
   const CSS = `
     :host { all: initial; }
@@ -140,22 +138,12 @@
       showError('', chat.apiError);
       parts.push(el('p', { class: 'box warn', 'data-zb': 'note', text: `claude.ai's API did not answer as expected, so Zettelbranch read the page instead. Only the ${chat.messages.length} messages on screen were read: in a long chat, earlier messages are missing. Naming branches is unavailable until the API answers.` }));
     }
-    if (chat.start) {
-      const s = chat.start;
-      parts.push(el('div', { class: 'box notice', 'data-zb': 'start-box' }, [
-        el('p', { text: `This chat is the branch ${s.tree}/${s.address}: claude.ai copied ${s.tree}/${s.parentAddress} into it, through message ${s.n}. Start the branch to put its first message in the box, then add yours.` }),
-        button('Start the branch', 'start', startBranch, 'primary'),
-        el('p', { 'data-zb': 'model-note', text: MODEL_NOTE }),
-      ]));
-    }
     if (chat.needsName && chat.source === 'api') {
       parts.push(el('div', { class: 'box notice', 'data-zb': 'name-box' }, [
         el('p', { text: `This chat is the branch ${chat.branch.tree}/${chat.branch.address}, not named yet.` }),
         button('Name this branch', 'name', nameBranch, 'primary'),
       ]));
     }
-    // A branch already named: its topic can still change.
-    const rename = chat.branch && !chat.needsName && chat.source === 'api' ? button('Name this branch', 'name', nameBranch) : null;
     if (!chat.messages.length) {
       parts.push(el('p', { text: 'This chat has no messages yet.' }));
       return show(...parts);
@@ -176,7 +164,7 @@
     });
     const list = el('div', { class: 'msgs', 'data-zb': 'messages' }, rows);
     hint.textContent = hintFor(chat.messages[chat.selected]);
-    parts.push(el('p', { text: 'Choose where the branch starts:' }), list, hint, el('div', { class: 'row' }, [button('Branch', 'branch', branch, 'primary'), rename]));
+    parts.push(el('p', { text: 'Choose where the branch starts:' }), list, hint, el('div', { class: 'row' }, [button('Branch', 'branch', branch, 'primary')]));
     show(...parts);
     const sel = rows[chat.selected];
     list.scrollTop = sel.offsetTop - list.clientHeight / 2;
@@ -192,28 +180,19 @@
   function showPreview(r) {
     const p = r.pending;
     const fmt = (n) => n.toLocaleString('en-US');
-    const buttons = el('div', { class: 'row' }, [
-      button('Open new chat', 'open', () => openChat(p), 'primary'),
-      button('Cancel', 'cancel', () => {
-        B().cancel();
-        showChat(B().current());
-      }),
-    ]);
-    if (p.kind === 'native') {
-      return show(
-        el('p', { 'data-zb': 'preview-title', text: `claude.ai will copy this conversation into a new chat, named ${p.name}. Your first message there:` }),
-        ...r.notes.map((t) => el('p', { class: 'box warn', 'data-zb': 'note', text: t })),
-        el('pre', { 'data-zb': 'preview', text: p.text }),
-        buttons
-      );
-    }
     show(
       el('p', { 'data-zb': 'preview-title', text: `Preview: the first message of ${p.address}` }),
       el('p', { class: 'muted', 'data-zb': 'size', text: `${fmt(p.chars)} characters, about ${fmt(p.tokens)} tokens. ${p.turns} messages copied${p.flattened ? ', from the whole tree path' : ''}.` }),
       p.tooLong ? el('p', { class: 'box warn', 'data-zb': 'warning', text: `This is longer than ${fmt(B().SIZE_WARNING)} characters, the largest size tested. It may not go into the message box whole: check the box before you press Send.` }) : null,
       ...r.notes.map((t) => el('p', { class: 'box warn', 'data-zb': 'note', text: t })),
       el('pre', { 'data-zb': 'preview', text: p.text }),
-      buttons
+      el('div', { class: 'row' }, [
+        button('Open new chat', 'open', openChat, 'primary'),
+        button('Cancel', 'cancel', () => {
+          B().cancel();
+          showChat(B().current());
+        }),
+      ])
     );
   }
 
@@ -224,19 +203,6 @@
     ui.panel.hidden = false;
     clearMessages();
     await refresh();
-  }
-
-  // Called by content.js on the page Zettelbranch loads after claude.ai copied a chat: reads
-  // this chat, and opens the panel only if it is a branch still to be started.
-  function autoOpen() {
-    act(async () => {
-      const r = await B().read();
-      if (!r.ok || !r.chat.start) return;
-      ui.pill.hidden = true;
-      ui.panel.hidden = false;
-      clearMessages();
-      showChat(r.chat);
-    });
   }
 
   async function branch() {
@@ -252,45 +218,17 @@
     showPreview(r);
   }
 
-  async function openChat(p) {
+  async function openChat() {
     clearMessages();
-    if (p.kind === 'native') say(`claude.ai is copying this conversation for ${p.address}. This takes a few seconds, 15 at most…`);
     const r = await B().open();
-    // claude.ai's own copy failed, so the quoted transcript was used: say why.
-    const notes = (r.fallback || []).map((t) => el('p', { class: 'box warn', 'data-zb': 'fallback', text: t }));
-    if (!r.ok) {
-      if (notes.length) show(...notes);
-      return showFailure(r);
-    }
-    if (r.native) return say(`Opening ${r.name}…`); // a page load follows
+    if (!r.ok) return showFailure(r);
     show(
-      ...notes,
       el('div', { class: 'box notice', 'data-zb': 'opened' }, [
         el('p', { text: `The new chat holds the first message of ${r.address}. Read it, change it if you like, then press Send.` }),
       ]),
       r.exact ? null : el('p', { class: 'box warn', 'data-zb': 'warning', text: `The message box holds ${r.inBox.toLocaleString('en-US')} characters, the preview had ${r.chars.toLocaleString('en-US')}. Check the box before you press Send.` }),
-      r.fallback && r.tooLong ? el('p', { class: 'box warn', 'data-zb': 'warning', text: `This message is longer than ${B().SIZE_WARNING.toLocaleString('en-US')} characters, the largest size tested. Check the box before you press Send.` }) : null,
       el('p', { text: 'Once Claude has replied, name the branch:' }),
       el('div', { class: 'row' }, [button('Name this branch', 'name', nameBranch, 'primary')])
-    );
-  }
-
-  async function startBranch() {
-    clearMessages();
-    const r = await B().start();
-    if (r.stale) {
-      await refresh();
-      return showFailure(r);
-    }
-    if (!r.ok) return showFailure(r);
-    show(
-      el('div', { class: 'box notice', 'data-zb': 'started' }, [
-        el('p', { text: `The message box holds the first message of ${r.address}. Add your message at the end, then press Send.` }),
-      ]),
-      r.exact ? null : el('p', { class: 'box warn', 'data-zb': 'warning', text: `The message box holds ${r.inBox.toLocaleString('en-US')} characters, the branch's first message has ${r.chars.toLocaleString('en-US')}. Check the box before you press Send.` }),
-      el('p', { 'data-zb': 'model-note', text: MODEL_NOTE }),
-      el('p', { text: 'To change the branch\'s topic:' }),
-      el('div', { class: 'row' }, [button('Name this branch', 'name', nameBranch)])
     );
   }
 
@@ -344,5 +282,5 @@
     document.documentElement.append(host);
   }
 
-  global.ZBUi = { mount, autoOpen };
+  global.ZBUi = { mount };
 })(globalThis);

@@ -24,21 +24,21 @@ Nothing here touched claude.ai. Every test ran in headless Chromium against a fa
 
 ## What was built
 
-Line counts as of step 6b (`ba045c4`).
+Line counts after step 6b was removed (NF-3).
 
 | File | Lines | What |
 |---|---|---|
 | [manifest.json](../extension/manifest.json) | 19 | MV3, scripts on `https://claude.ai/*`, no permissions, no background; `gecko.id` `zettelbranch@pthom.github.io`, Firefox 128 or later |
-| [api.js](../extension/api.js) | 218 | The only network file: the five calls and the one page load, an allowed list (bodies included) checked before each request, renames only to `<tree>/<address> · <topic>` |
-| [tree.js](../extension/tree.js) | 102 | Addresses by segments, titles, next child, next root, the proposed tree name |
-| [conversation.js](../extension/conversation.js) | 296 | Messages from the API (path, text, placeholders, ids); the page fallback, as Markdown |
-| [prompt.js](../extension/prompt.js) | 255 | The prompts of [forking__prompt](forking__prompt.md), flattening, parsing back, which branch a chat is |
-| [branch.js](../extension/branch.js) | 443 | The flow: read, branch, claude.ai's fork or the new chat, start, name |
-| [ui.js](../extension/ui.js) | 348 | The pill, the panel, the previews, the notices |
-| [content.js](../extension/content.js) | 14 | Mounts the pill, except on `/share/` pages; opens the panel on the page loaded after claude.ai's fork |
-| **extension/** | **1,695** | |
-| [AUDIT.md](../AUDIT.md) | 195 | 20 points, 30 commands, what they cannot prove, an LLM prompt |
-| `tests/` | 2,309 | Audit, unit and end-to-end tests, the fake claude.ai (`tests/fake/`) |
+| [api.js](../extension/api.js) | 140 | The only network file: the four calls, an allowed list checked before each request, renames only to tree titles |
+| [tree.js](../extension/tree.js) | 102 | Addresses by segments, titles (` · `, or ` . ` and ` - ` typed by hand), next child, next root, the proposed tree name |
+| [conversation.js](../extension/conversation.js) | 296 | Messages from the API (path, text, placeholders); the page fallback, as Markdown |
+| [prompt.js](../extension/prompt.js) | 152 | The prompt of [forking__prompt](forking__prompt.md); parsing it back |
+| [branch.js](../extension/branch.js) | 314 | The flow: read, branch, open the new chat, name |
+| [ui.js](../extension/ui.js) | 286 | The pill, the panel, the preview, the notices |
+| [content.js](../extension/content.js) | 7 | Mounts the pill, except on `/share/` pages |
+| **extension/** | **1,316** | |
+| [AUDIT.md](../AUDIT.md) | 179 | 18 points, 26 commands, what they cannot prove, an LLM prompt |
+| `tests/` | 1,702 | Audit, unit and end-to-end tests, the fake claude.ai (`tests/fake/`), real fixtures |
 
 The code uses only standard web APIs, so the same files should run in Chrome and Firefox. Not tried in Firefox yet (step 9).
 
@@ -111,7 +111,9 @@ What it shows:
 - In the page fallback, a user message shown as several paragraphs comes back with blank lines between them. Only when the API fails.
 - `conversation.js` is tested on hand-made API shapes and pages, and since step 4 on a real conversation (`tests/fixtures/real-*.json`): the shown branch only, text exact with code, table and formula, the thinking left out, the image as a placeholder, the prompt parsing back into the same messages. On Pascal's account the thinking block holds no text (`thinking_hidden`), only a summary of it. Not in the fixture: a pasted text attachment.
 
-## claude.ai's own fork (step 6b)
+## claude.ai's own fork (step 6b), removed
+
+*Removed on 2026-10-13 (NF-3): on Pascal's check, claude.ai refused the fork from a chat's last reply. It only continues an earlier version in a new chat (`specs/done/native-fork/native-fork__findings.md`). The code went back to its state before step 6b, keeping one general fix: the header's quote is escaped. The notes below are history; the code is in commit `ba045c4`.*
 
 Built offline by Claude on 2026-10-13, commit `ba045c4`, as decided in NF-2 = A. Nothing touched claude.ai: every test ran against the fake claude.ai.
 
