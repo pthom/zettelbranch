@@ -28,20 +28,24 @@ Current state of the work and next steps. Updated by Claude at the end of each s
   [origin-conversation__findings](origin-conversation__findings.md). Prior art and the
   app-link check added to the spec. AD-3 decided (tree names). Native `< 2/2 >` arrows
   still show on Pascal's merged account.
+- Probe panel (P1 to P8) built into the spike extension, tested offline (56/56) and
+  audited (12/12); ready for Pascal's first clicks.
 - All open questions decided in chat with plain explanations (DA-1, DA-D1, TA-1, TS-2,
   FK-3, ZB-3, XR-1) and folded into the spec. The README's open-questions table is empty.
 
 ## Waiting on Pascal
 
-1. Nothing right now. Test profile ready (Chrome, "Zettelbranch test"); test
-   conversations will be ordinary `zbtest/` chats, deleted by Pascal after each probe
-   session.
+1. **Run the probes** in the Chrome test profile, following
+   [Running the probes](milestone-0__specs.md#running-the-probes-pascal). Suggested first
+   session, short: P5 (read-only, checks the API answers on the new account), then P1 (one
+   new chat, one short message). Then "Copy results" and paste them to Claude.
 
 ## Next for Claude
 
-1. Small P0 fixes for Milestone 1: file cards' names, web-search source chips.
-2. Build the probe panel of the spike extension (P1 to P8, Pascal clicks). The API calls
-   go in one file, reads plus renaming only, no cookies, no typing listeners.
+1. Read the probe results, fix selectors or API calls in the spike (offline), and record
+   the answers in [milestone-0__findings](milestone-0__findings.md), updating every
+   *(to verify)* tag they settle.
+2. Then the remaining probes, a few at a time, the same way.
 
 ## Session notes
 
