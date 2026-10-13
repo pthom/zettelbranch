@@ -85,7 +85,7 @@ What it shows:
 
 - The whole flow works on the real site: list, preview, new chat, fill, send, name, tree root, flattening.
 - **The sidebar lags behind an API rename, even after a reload.** The title at the top and the phone are right at once; the sidebar catches up later, apparently when the page reloads its list (for example after a new chat is created). In Milestone 0 (P4) a reload was enough; here it was not. So the notice's "claude.ai shows the new name after a reload" is only half true.
-- To fix: the notice's wording; the header's quote of a branch's first reply (drop the summary marker); code-fence marks in quotes and list labels.
+- Fixed the same day: the notice now says the phone shows the new name at once, the title at the top after a reload, the sidebar a few minutes later; the header quotes a branch's first reply without the summary marker; quotes and list labels drop code-fence marks.
 - Pascal's question during the checklist: "we are using new chats instead of forking, i.e. re-editing a message?" Yes, by design. See the status file for the follow-up.
 
 ## For Pascal

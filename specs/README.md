@@ -36,6 +36,5 @@ Claude maintains these files. Pascal answers questions inline and may edit anyth
 
 ## Open questions
 
-| ID | Question | File |
-|---|---|---|
-| NF-1 | Copy the conversation, or let claude.ai fork it? | `native-fork__questions.md` |
+None right now.
+

@@ -468,6 +468,15 @@ describe('prompt.js', () => {
     assert.equal(P.quote('word '.repeat(20)), 'word word word word word word word word word word word word…');
   });
 
+  test('quotes drop code fences and quote markers; a branch\'s first reply is quoted without its summary', () => {
+    assert.equal(P.quote('Subject: test\n\n```python\ndef main():\n    pass\n```'), 'Subject: test def main(): pass');
+    const first = P.build({ ...base, fork: 3 }).text; // the first message of zbtest/1b
+    const summary = '> Parent zbtest/1 in brief: We talked about cards.';
+    const at = (reply) => P.build({ tree: 'zbtest', parentTitle: 'zbtest/1b · Topic', parentAddress: '1b', newAddress: '1b1', fork: 1, messages: [{ n: 1, role: 'user', text: first }, { n: 2, role: 'assistant', text: reply }] }).text.split('\n')[2];
+    assert.match(at(`${summary}\n\nHere is more about Oulipo.`), /after message 2 \(Claude\): "Here is more about Oulipo\."$/);
+    assert.match(at(summary), /after message 2 \(Claude\): "Parent zbtest\/1 in brief: We talked about cards\."$/);
+  });
+
   test('refuses a bad address or a missing message', () => {
     assert.throws(() => P.build({ ...base, newAddress: 'b1', fork: 3 }), /bad address/);
     assert.throws(() => P.build({ ...base, fork: 9 }), /no message/);

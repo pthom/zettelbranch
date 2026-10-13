@@ -84,7 +84,7 @@
     const branchStart = messages[0].n === 1 && P().parseBranchMessage(messages[0].text);
     if (i === 0 && branchStart) text = branchStart.ownText || '(copied history only)';
     if (i === 1 && branchStart && m.role === 'assistant') text = P().stripSummary(text) || text;
-    const flat = text.replace(/^>\s?/gm, '').replace(/\s+/g, ' ').trim();
+    const flat = P().plain(text);
     return flat.length > 60 ? flat.slice(0, 60) + '…' : flat || '(empty)';
   }
 

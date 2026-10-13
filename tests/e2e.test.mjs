@@ -234,7 +234,7 @@ test('Name this branch after Claude\'s reply: the automatic title proposed, acce
   assert.equal(d.defaultValue, 'zbtest/1b · Auto title of a branch');
   assert.match(d.message, /You can change the topic; the address part stays/);
   assert.equal(puts().at(-1).name, 'zbtest/1b · Auto title of a branch');
-  assert.equal(await text('notice'), 'Named zbtest/1b · Auto title of a branch. claude.ai shows the new name after a reload.Reload now');
+  assert.equal(await text('notice'), 'Named zbtest/1b · Auto title of a branch. Your phone shows it now. Here, the title at the top shows it after a reload; the sidebar can take a few minutes more.Reload now');
   assert.equal(await text('chat-title'), 'zbtest/1b · Auto title of a branch');
   assert.equal(await Z('name-box').count(), 0);
   assert.equal(await row(2).textContent(), '2ClaudeParent zbtest/1 in brief: We talked about card boxes and the…');
@@ -330,7 +330,7 @@ test('a chat not in a tree: an invalid tree name is asked again; accepted, the c
   assert.match(again.message, /"Oulipo Club" cannot be a tree name/);
   assert.equal(confirm.message, 'Zettelbranch: rename this chat?\n\nOld title: Oulipo and constraints\nNew title: oulipo/1 · Oulipo and constraints');
   assert.equal(puts().at(-1).name, 'oulipo/1 · Oulipo and constraints');
-  assert.equal(await text('notice'), 'Named oulipo/1 · Oulipo and constraints. claude.ai shows the new name after a reload.Reload now');
+  assert.equal(await text('notice'), 'Named oulipo/1 · Oulipo and constraints. Your phone shows it now. Here, the title at the top shows it after a reload; the sidebar can take a few minutes more.Reload now');
   assert.equal(await text('preview-title'), 'Preview: the first message of oulipo/1a');
   assert.equal((await Z('preview').textContent()).split('\n')[2].slice(0, 63), 'Forked from: oulipo/1 · Oulipo and constraints, after message 2');
 });

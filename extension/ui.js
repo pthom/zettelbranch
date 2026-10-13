@@ -94,10 +94,11 @@
     ui.info.hidden = true;
   }
 
-  // After each rename (M1-4): the open tab shows the new name only after a reload.
+  // After each rename (M1-4). The open tab's title shows the new name after a reload; its
+  // sidebar can lag longer (seen on 2026-10-13, even after Shift+Reload). The phone at once.
   function showRenamed(name) {
     ui.notice.replaceChildren(
-      el('p', { text: `Named ${name}. claude.ai shows the new name after a reload.` }),
+      el('p', { text: `Named ${name}. Your phone shows it now. Here, the title at the top shows it after a reload; the sidebar can take a few minutes more.` }),
       button('Reload now', 'reload', () => location.reload())
     );
     ui.notice.hidden = false;

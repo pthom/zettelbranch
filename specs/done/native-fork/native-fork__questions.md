@@ -4,7 +4,7 @@ Context: Pascal's question during the Milestone 1 checklist (2026-10-13): "we ar
 
 ## NF-1 · Copy the conversation, or let claude.ai fork it?
 
-**Status:** open
+**Status:** decided (2026-10-13): A. Pascal: "Let's do a probe about forks." Research and probe in `specs/native-fork__findings.md`.
 
 Today Zettelbranch opens a new chat and puts a copy of the conversation in your first message, as one quoted block of text. Claude reads it as a transcript, not as its own past messages. Images and files do not come along (placeholders).
 
@@ -21,4 +21,5 @@ Unknowns: whether it works on your account and for any message; it belongs to cl
 - **B.** Finish Milestone 1 with the copy (it works and is tested), and look at the native action in Milestone 2.
 - **C.** Keep the copy only: no undocumented writes beyond renaming.
 
-**Answer:**
+**Answer:** A
+

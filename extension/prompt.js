@@ -14,9 +14,12 @@
   const escapeZb = (t) => t.replace(/<(\/?)zb-/g, '&lt;$1zb-');
   const unescapeZb = (t) => t.replace(/&lt;(\/?)zb-/g, '<$1zb-');
 
+  // Text for one line (a quote, a list label): code-fence marks and quote markers dropped.
+  const plain = (text) => String(text).replace(/```[\w+#.-]*/g, ' ').replace(/^\s*>\s?/gm, '').replace(/\s+/g, ' ').trim();
+
   // First 60 characters, cut at a word.
   function quote(text) {
-    const flat = String(text).replace(/\s+/g, ' ').trim();
+    const flat = plain(text);
     if (flat.length <= 60) return flat;
     const cut = flat.slice(0, 60);
     const sp = cut.lastIndexOf(' ');
@@ -123,6 +126,8 @@
       if (text.trim()) turns.push({ branch: parentAddress, n: m.n, role: m.role, text });
     }
     const forkText = fork === 0 && parsed ? parsed.ownText : forkMsg.text;
+    // A branch's first reply is quoted without Claude's summary on top, if anything follows it.
+    const quoted = after && fork === 1 && parsed ? stripSummary(forkMsg.text).trim() || forkMsg.text : forkText;
     const prefill = after ? '' : forkText;
 
     const parent = `${tree}/${parentAddress}`;
@@ -130,7 +135,7 @@
       `Zettelbranch · ${tree}/${newAddress}`,
       `Path: ${tree}/${T().ancestry(newSegs).join(' › ')}`,
       after
-        ? `Forked from: ${parentTitle}, after message ${forkMsg.n} (Claude): "${quote(forkText)}"`
+        ? `Forked from: ${parentTitle}, after message ${forkMsg.n} (Claude): "${quote(quoted)}"`
         : `Forked from: ${parentTitle}, instead of message ${forkMsg.n} (me): "${quote(forkText)}"`,
     ].join('\n');
     const transcript = [
@@ -143,5 +148,5 @@
     return { text, turns: turns.length, flattened: !!parsed, chars: text.length, tokens: Math.round(text.length / 4) };
   }
 
-  global.ZBPrompt = { build, parseHeader, parseBranchMessage, stripSummary, parseSummary, quote, escapeZb, unescapeZb };
+  global.ZBPrompt = { build, parseHeader, parseBranchMessage, stripSummary, parseSummary, quote, plain, escapeZb, unescapeZb };
 })(globalThis);
