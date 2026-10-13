@@ -22,6 +22,8 @@ Ask for short answers, so that each picture holds a whole reply.
 
 ## The still pictures (Cmd+Shift+4, a selected area)
 
+Pascal pastes them in the chat (full screen is fine); Claude crops them. Received: `start.png` (`sky/1` before branching, the Zettelbranch button at the bottom right).
+
 1. `choose.png`: `sky/1` with the panel open, **message 2 clicked** (selected), the list and the Branch button visible.
 2. Branch: type `sky` as the tree name, OK, OK. Then `preview.png`: the preview, with "Open new chat".
 3. Open new chat, type "Why are sunsets red and orange?" at the end of the box. `new-chat.png`: the end of the box with your question, and the panel's two steps. Then Send.

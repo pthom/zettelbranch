@@ -17,6 +17,8 @@ Each branch is an ordinary claude.ai chat. Its address is in its title, so you s
 
 See the [README](../README.md#install). Then open claude.ai: a **Zettelbranch** button sits at the bottom right of the page.
 
+![A conversation before branching, with the Zettelbranch button at the bottom right](images/start.png)
+
 ## Your first branch
 
 ### 1. Choose where the branch starts
