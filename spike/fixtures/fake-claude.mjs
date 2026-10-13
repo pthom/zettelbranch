@@ -247,6 +247,14 @@ export function createFakeClaude() {
       if (!c) return json(route, 404, {});
       return json(route, 200, { name: c.name, messages: pathOf(c).map((x) => ({ role: x.sender === 'human' ? 'user' : 'assistant', text: x.text, attachments: x.attachments })) });
     }
+    if (p === '/fake/rename' && req.method() === 'POST') {
+      const body = JSON.parse(req.postData());
+      const c = convs.get(body.id);
+      if (!c) return json(route, 404, {});
+      c.name = body.name;
+      c.updated_at = now();
+      return json(route, 200, {});
+    }
     if (p === '/fake/send' && req.method() === 'POST') {
       const body = JSON.parse(req.postData());
       const c = body.conversationId ? convs.get(body.conversationId) : newConv('');

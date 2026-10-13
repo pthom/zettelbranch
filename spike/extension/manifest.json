@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Zettelbranch spike (Milestone 0 probes)",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "Throwaway Milestone 0 probes for claude.ai, run by hand from a small panel. No permissions, no background. Network: same-origin claude.ai API reads and renames only, all in claude-api.js.",
   "content_scripts": [
     {

@@ -113,16 +113,58 @@
     );
   }
 
+  // The title menu, as a Radix dropdown: opens on pointerdown; Rename turns the title into a
+  // field; Enter saves through the app's own call, then the app updates its own sidebar.
+  const titleButton = $('[data-testid="chat-title-button"]');
+  const titleText = $('[data-testid="chat-title-text"]');
+  let menu = null;
+  function closeMenu() {
+    if (menu) menu.remove();
+    menu = null;
+  }
+  titleButton.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    if (menu) return closeMenu();
+    menu = mk('div', { role: 'menu', 'data-testid': 'chat-title-menu' });
+    for (const [label, id] of [['Star', 'star'], ['Rename', 'rename'], ['Delete', 'delete']]) {
+      const item = mk('div', { role: 'menuitem', 'data-testid': 'chat-menu-' + id }, label);
+      if (id === 'rename') item.addEventListener('click', startRename);
+      menu.append(item);
+    }
+    document.body.append(menu);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeMenu();
+  });
+  function startRename() {
+    closeMenu();
+    const m = /^\/chat\/([0-9a-f-]{36})/.exec(location.pathname);
+    const input = mk('input', { type: 'text', 'data-testid': 'chat-title-input' });
+    input.value = titleText.textContent;
+    titleButton.replaceWith(input);
+    input.focus();
+    input.addEventListener('keydown', async (e) => {
+      if (e.key !== 'Enter') return;
+      await fetch('/fake/rename', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: m[1], name: input.value }) });
+      titleText.textContent = input.value;
+      input.replaceWith(titleButton);
+      await loadSidebar();
+    });
+  }
+
   async function route() {
     const m = /^\/chat\/([0-9a-f-]{36})/.exec(location.pathname);
     list.replaceChildren();
     clearComposer();
+    closeMenu();
     if (!m) {
       document.title = 'Claude';
+      titleText.textContent = '';
       return;
     }
     const conv = await (await fetch('/fake/conv/' + m[1])).json();
     document.title = conv.name ? `${conv.name} - Claude` : 'Claude';
+    titleText.textContent = conv.name;
     for (const msg of conv.messages.slice(-RENDER_LAST)) {
       const turn = mk('div', { 'data-test-render-count': '1' });
       if (msg.role === 'user') {

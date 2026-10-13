@@ -1031,6 +1031,120 @@
     };
   }
 
+  // ---------------------------------------------------------------- P11
+
+  // Renames this zbtest/ chat through claude.ai's own title menu, as by hand: open the menu on
+  // the title at the top, pick Rename, type the name, confirm. Reports what it finds at each
+  // step, and whether the open tab then shows the new name. Safety: it presses Enter only in a
+  // plain text field it found after picking Rename, never in the message box.
+  const describeEl = (e) => (e ? { tag: e.tagName.toLowerCase(), testid: e.getAttribute('data-testid'), role: e.getAttribute('role'), ariaHaspopup: e.getAttribute('aria-haspopup'), text: (e.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 50) } : null);
+  const inComposer = (e) => !!(e && (e.closest('[data-testid="chat-input"]') || e.isContentEditable));
+  function pointerPress(e) {
+    const o = { bubbles: true, cancelable: true, composed: true, button: 0, buttons: 1, pointerType: 'mouse', isPrimary: true, pointerId: 1 };
+    e.dispatchEvent(new PointerEvent('pointerdown', o));
+    e.dispatchEvent(new MouseEvent('mousedown', o));
+    e.dispatchEvent(new PointerEvent('pointerup', { ...o, buttons: 0 }));
+    e.dispatchEvent(new MouseEvent('mouseup', { ...o, buttons: 0 }));
+  }
+  const visibleMenu = () => [...document.querySelectorAll('[role="menu"]')].find((m) => m.getClientRects().length > 0) || null;
+  function findTitleButton(title) {
+    const start = (title || '').slice(0, 12);
+    for (const scope of ['[data-testid="chat-title-split"]', '[data-testid="chat-header"]', 'header']) {
+      const root = document.querySelector(scope);
+      if (!root) continue;
+      const buttons = [...root.querySelectorAll('button')];
+      const b = buttons.find((x) => x.getAttribute('aria-haspopup')) || buttons.find((x) => start && (x.textContent || '').includes(start));
+      if (b) return { el: b, scope, candidates: buttons.length };
+    }
+    return { el: null };
+  }
+  function findRenameField() {
+    const a = document.activeElement;
+    if (a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA') && !inComposer(a)) return { el: a, how: 'focused field' };
+    for (const sel of ['[role="dialog"] input[type="text"]', '[role="dialog"] input:not([type])', '[role="dialog"] textarea', '[data-testid="chat-header"] input', 'header input']) {
+      const e = document.querySelector(sel);
+      if (e && !inComposer(e)) return { el: e, how: sel };
+    }
+    return { el: null };
+  }
+
+  async function p11Rename() {
+    const pk = pageKind();
+    if (pk.kind !== 'chat') return refuse('open a zbtest chat first');
+    const g = await writeGuard({ allowNew: false });
+    if (!g.ok) return g;
+    if (!C().isTestTitle(g.title)) return refuse('P11 renames only a chat whose title starts with zbtest/');
+    const newTitle = g.title.replace(/ \((new API|old API|menu)\)$/, '') + ' (menu)';
+    if (!window.confirm(`Zettelbranch spike: rename this chat through claude.ai's own title menu?\n\nOld title: ${g.title}\nNew title: ${newTitle}`)) return { ok: true, renamed: false, cancelled: true, changed: 'nothing' };
+    const steps = [];
+    const t0 = performance.now();
+    // 1. The title button.
+    const tb = findTitleButton(g.title);
+    steps.push({ step: 'title button', found: !!tb.el, scope: tb.scope || null, el: describeEl(tb.el), candidates: tb.candidates || 0 });
+    if (!tb.el) return { ok: false, steps, error: 'the title button was not found' };
+    // 2. Open its menu: pointer events first (Radix menus open on pointerdown), then a click.
+    pointerPress(tb.el);
+    let menu = await waitFor(visibleMenu, 1000, 50);
+    let opened = menu ? 'pointer events' : null;
+    if (!menu) {
+      tb.el.click();
+      menu = await waitFor(visibleMenu, 1000, 50);
+      opened = menu ? 'click' : null;
+    }
+    const items = menu ? [...menu.querySelectorAll('[role="menuitem"]')] : [];
+    steps.push({ step: 'menu', opened, items: items.map(describeEl) });
+    if (!menu) return { ok: false, steps, error: 'no menu opened' };
+    // 3. The Rename item.
+    const rename = items.find((i) => /rename/i.test(i.getAttribute('data-testid') || '')) || items.find((i) => /^(rename|renommer)\b/i.test((i.textContent || '').trim()));
+    steps.push({ step: 'rename item', found: !!rename, el: describeEl(rename) });
+    if (!rename) {
+      menu.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true, cancelable: true }));
+      return { ok: false, steps, error: 'no Rename item in the menu; the menu was closed (Escape)' };
+    }
+    pointerPress(rename);
+    rename.click();
+    // 4. The field that appears; type the name.
+    const field = await waitFor(() => findRenameField().el && findRenameField(), 2000, 50);
+    steps.push({ step: 'rename field', found: !!field, how: field ? field.how : null, el: field ? describeEl(field.el) : null });
+    if (!field) return { ok: false, steps, error: 'no rename field appeared' };
+    const f = field.el;
+    if (inComposer(f) || (f.tagName !== 'INPUT' && f.tagName !== 'TEXTAREA')) return { ok: false, steps, error: 'refused: the field is not a plain text field outside the message box' };
+    f.focus();
+    f.select();
+    const viaExec = document.execCommand('insertText', false, newTitle);
+    if (f.value !== newTitle) {
+      const proto = f.tagName === 'INPUT' ? HTMLInputElement.prototype : HTMLTextAreaElement.prototype;
+      Object.getOwnPropertyDescriptor(proto, 'value').set.call(f, newTitle);
+      f.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    steps.push({ step: 'typed', viaExecCommand: viaExec, valueIsNewTitle: f.value === newTitle });
+    // 5. Confirm: a dialog's Save button if there is one, else Enter in that field only.
+    const dialog = f.closest('[role="dialog"]');
+    const save = dialog ? [...dialog.querySelectorAll('button')].find((b) => b.type === 'submit' || /^(save|rename|enregistrer|renommer|ok)$/i.test((b.textContent || '').trim())) : null;
+    if (save) {
+      pointerPress(save);
+      save.click();
+    } else {
+      for (const type of ['keydown', 'keypress', 'keyup']) f.dispatchEvent(new KeyboardEvent(type, { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true, cancelable: true }));
+    }
+    steps.push({ step: 'confirm', how: save ? 'dialog button' : 'Enter in the field', button: describeEl(save) });
+    // 6. What the server and the open tab show, 1.5 s later.
+    await sleep(1500);
+    const back = await A().getConversation(pk.id);
+    const entry = sidebarEntry(pk.id);
+    const header = document.querySelector('[data-testid="chat-title-split"], [data-testid="chat-header"]');
+    return {
+      ok: back.name === newTitle,
+      newTitle,
+      onServer: back.name === newTitle,
+      sidebarShowsIt: entry ? entry.label === newTitle : 'entry not found',
+      titleAtTopShowsIt: header ? (header.textContent || '').includes(newTitle) : 'header not found',
+      steps,
+      ms: Math.round(performance.now() - t0),
+      next: 'Look at the sidebar and the title at the top, without reloading. Then copy the results.',
+    };
+  }
+
   global.ZBProbes = {
     startWatching,
     pageKind,
@@ -1055,6 +1169,7 @@
     p9Fork,
     p9Read,
     p10Rename,
+    p11Rename,
     setForkAt,
     getForkAt,
     _state: state,

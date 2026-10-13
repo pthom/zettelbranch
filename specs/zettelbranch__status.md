@@ -12,9 +12,10 @@ Zettelbranch 0.1.0 is released (2026-10-13): Milestone 1 is closed ([plan and bu
 
 ## Waiting on Pascal
 
-1. **Use 0.1.0 for real:** load it in your main browser (Chrome: "Load unpacked" from a folder you keep; Firefox: a temporary add-on until a signed version exists), and note what bothers you.
-2. **Clean up:** delete the `zbtest/` and `zbtest2/` chats.
-3. **Optional:** ask a person at Anthropic about automated tests (draft from Claude).
+1. **P11, the rename through claude.ai's own menu:** `specs/done/milestone-1/rename-api__findings.md`, section "P11" (about 3 minutes, in Firefox with the spike).
+2. **Use 0.1.0 for real:** load it in your main browser (Chrome: "Load unpacked" from a folder you keep; Firefox: a temporary add-on until a signed version exists), and note what bothers you.
+3. **Clean up:** delete the `zbtest/` and `zbtest2/` chats.
+4. **Optional:** ask a person at Anthropic about automated tests (draft from Claude).
 
 ## Next for Claude
 

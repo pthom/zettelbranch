@@ -124,6 +124,8 @@ try {
   check('P9 refuses on a private chat', r.refused === true, r);
   r = await probe('p10', 'Rename through the newer API');
   check('P10 refuses on a private chat', r.refused === true, r);
+  r = await probe('p11', "Rename through claude.ai's menu");
+  check('P11 refuses on a private chat', r.refused === true, r);
   check('refusals hold no private text or title', noSecrets(checks.slice(-5).map((c) => c.detail)).length === 0);
 
   r = await probe('p5', 'List conversations');
@@ -290,8 +292,16 @@ try {
   r = await probe('p10', 'Rename through the newer API', { dialog: 'dismiss' });
   check('P10 cancelled by the dialog changes nothing', r.cancelled === true, r);
 
+  // ------------------------------------------------ K3. P11, the rename through claude.ai's own menu
+  r = await probe('p11', "Rename through claude.ai's menu", { dialog: 'accept' });
+  const p11 = Object.fromEntries((r.steps || []).map((x) => [x.step, x]));
+  check('P11 opens the title menu (pointer events) and finds Rename', p11.menu && p11.menu.opened === 'pointer events' && p11['rename item'] && p11['rename item'].found, r.steps);
+  check('P11 types into the rename field and confirms with Enter there', p11['rename field'] && p11['rename field'].found && p11.typed && p11.typed.valueIsNewTitle && p11.confirm && p11.confirm.how === 'Enter in the field', r.steps);
+  check('P11: the server and the open tab show the new name', r.ok === true && r.newTitle === 'zbtest/1 · Root topic (menu)' && r.onServer && r.sidebarShowsIt === true && r.titleAtTopShowsIt === true, { onServer: r.onServer, sidebar: r.sidebarShowsIt, top: r.titleAtTopShowsIt });
+  check('P11 sent nothing into the message box', !(await editorHas('Root topic (menu)')));
+
   await page.screenshot({ path: path.join(opt.out, 'panel.png') });
-  for (const id of ['p2', 'p4', 'p8', 'p9', 'p10']) {
+  for (const id of ['p2', 'p4', 'p8', 'p9', 'p10', 'p11']) {
     const sec = page.locator(`${host} section[data-zb-section="${id}"]`);
     await sec.screenshot({ path: path.join(opt.out, `${id}.png`) });
     fs.writeFileSync(path.join(opt.out, `${id}-steps.txt`), (await sec.locator('ol.steps').innerText()) + '\n');

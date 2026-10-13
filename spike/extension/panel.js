@@ -5,7 +5,7 @@
 (function (global) {
   'use strict';
 
-  const VERSION = '0.0.9';
+  const VERSION = '0.0.10';
   const Z = () => global.ZBProbes;
   const log = [];
   let host = null;
@@ -281,6 +281,13 @@
         { text: "Rename it through the newer API (a dialog shows both titles). Then, WITHOUT reloading, watch the sidebar and the title at the top for about 10 seconds.", buttons: [["Rename through the newer API", () => p.p10Rename('rpc')]] },
         { text: 'For comparison, the older API (the one Zettelbranch uses today). Again, watch without reloading.', buttons: [['Rename through the older API', () => p.p10Rename('put')]] },
         { text: 'Click "Copy results", paste them to Claude, and say what the sidebar and the top title showed after each rename.' },
+      ]),
+      stepsSection('p11', "P11 · Rename through claude.ai's own menu", [
+        "Renames the chat as you would by hand: the menu on the title at the top, then Rename. Does the open tab show the new name at once?",
+      ], [
+        { text: 'Open a zbtest chat.' },
+        { text: "Click the button (a dialog shows both titles). The panel opens the title menu, picks Rename, types the name and confirms. Watch the title at the top and the sidebar.", buttons: [["Rename through claude.ai's menu", () => p.p11Rename()]] },
+        { text: 'Click "Copy results" and paste them to Claude, with what you saw.' },
       ])
     );
     pre.style.margin = '6px 10px';

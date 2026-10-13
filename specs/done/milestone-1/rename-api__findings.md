@@ -44,3 +44,21 @@ What is left, to make the open tab show a new name at once:
 ## RN-1 · Decision
 
 Decided in chat on 2026-10-13 (Pascal: "A, release 0.1.0. Then note B as a possible improvement for later."): keep today's rename through the older API and the reload notice; the lag is a known limit of 0.1.0. Renaming through claude.ai's own menu stays a possible improvement for later, to try after some real use.
+
+## P11: claude.ai's own rename menu (option B, probed after 0.1.0)
+
+Pascal asked for it on 2026-10-13, after the release. Spike 0.0.10 adds P11: on his click, the panel renames a `zbtest/` chat as by hand: it opens the menu on the title at the top (pointer events first, as menus built with Radix open on a press, then a click), picks the item whose test id or label says Rename (or Renommer), types the name into the field that appears, and confirms with a Save button in a dialog, or else with Enter in that field. It reports what it found at each step, then whether the server, the sidebar and the title at the top show the new name, 1.5 s later.
+
+Safety: it presses Enter only in a plain text field found after picking Rename, never in the message box (refused if the field is inside it or editable text). Offline, against the fake claude.ai (now with a title menu): 78 of 78 checks pass, audit 12 of 12; claude.ai's real menu is unknown until the run.
+
+### Running it (Pascal)
+
+1. Firefox, with the spike as a temporary add-on: `about:debugging`, "Actualiser" (Reload) on the spike; then reload the claude.ai tab. The panel says 0.0.10.
+2. Open a `zbtest/` chat, for example `zbtest/1 · Initial greeting (old API)`.
+3. "ZB probes", P11: "Rename through claude.ai's menu", OK. Watch the top of the chat and the sidebar.
+4. "Copy results", paste them to Claude, with what you saw.
+
+### Results
+
+Not run yet.
+
