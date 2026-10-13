@@ -26,17 +26,14 @@ Current state of the work and next steps. Updated by Claude at the end of each s
   in [zettelbranch__origin-conversation](zettelbranch__origin-conversation.md).
 - The vault checked against the original conversation:
   [origin-conversation__findings](origin-conversation__findings.md). Prior art and the
-  app-link check added to the spec.
+  app-link check added to the spec. AD-3 decided (tree names). Native `< 2/2 >` arrows
+  still show on Pascal's merged account.
 - All open questions decided in chat with plain explanations (DA-1, DA-D1, TA-1, TS-2,
   FK-3, ZB-3, XR-1) and folded into the spec. The README's open-questions table is empty.
 
 ## Waiting on Pascal
 
-1. **AD-3:** tree names (`oulipo/1a`) or numbers (`2a`)? Raised by the original
-   conversation, see [origin-conversation__findings](origin-conversation__findings.md).
-2. **A quick look:** in the original conversation, are there `< 2/2 >` arrows under
-   message 3 ("Version 2")?
-3. **Before P1:** create the claude.ai test project and a separate browser profile, see
+1. **Before P1:** create the claude.ai test project and a separate browser profile, see
    [milestone-0__specs](milestone-0__specs.md#what-pascal-does-first-p1-onwards).
 
 ## Next for Claude

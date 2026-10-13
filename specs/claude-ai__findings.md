@@ -29,7 +29,9 @@ Anthropic's docs:
   app shows a single "Chat and Cowork" option next to Code (tooltip seen by Pascal),
   not two separate options. Pascal does not use "Add from GitHub". Proposed by Claude:
   build for the merged experience, keep everything that talks to claude.ai in one file,
-  and label each fixture with the experience it came from.
+  and label each fixture with the experience it came from. In the original design
+  conversation, an edit Pascal made on 2026-10-13 shows `< 2/2 >` arrows, with retry,
+  edit and copy buttons; the shared copy shows only the chosen path.
 - The help article on the merged experience lists this under current limitations:
   "Branching a conversation from an earlier point isn't available."
   ([help center, updated about 2026-09](https://support.claude.com/en/articles/16761823-claude-cowork-and-chat-are-one-claude))

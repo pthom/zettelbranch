@@ -52,12 +52,8 @@ Claude maintains these files. Pascal answers questions inline and may edit anyth
 
 ## Open questions
 
-| ID | Question | Where it stands |
-|---|---|---|
-| [AD-3](addressing__questions.md#ad-3--tree-identity-names-or-numbers) | Tree identity: names (`oulipo/1a`) or numbers (`2a`)? | Raised by the original conversation |
-
-Every other question of 2026-10-13 is decided; each question file says where the
-decision went.
+None right now. Every question of 2026-10-13 is decided; each question file says where
+the decision went.
 
 ## History
 

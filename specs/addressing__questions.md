@@ -40,7 +40,7 @@ Decided in chat, 2026-10-13: A, rename it.
 
 ## AD-3 · Tree identity: names or numbers?
 
-**Status:** open
+**Status:** decided (2026-10-13): A, names, in chat. Already the [spec](zettelbranch__specs.md#core-design)'s format.
 
 The original conversation (message 44 of
 [zettelbranch__origin-conversation](zettelbranch__origin-conversation.md)) proposed numbering the trees themselves: tree 1, tree 2… with branches as
@@ -59,7 +59,7 @@ letters and numbers below. AD-1 chose a tree name instead. Same Oulipo example, 
   (`1b1a · Zettelbranch`) already has this form. But a number says nothing about its
   tree: you remember that 2 is Oulipo, or read the topic.
 
-**Answer:**
+**Answer:** A (names), in chat.
 
 ## Defaults (object if you disagree)
 

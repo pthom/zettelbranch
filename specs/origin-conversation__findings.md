@@ -35,7 +35,8 @@ have yet. One of them reopens a decided question (AD-3 below).
   cards on a theme. A useful way to explain the banner.
 - **Perec's cards were tags, not links** (message 22): his "Peekaboo" system crossed
   keywords, like tags and faceted search; note-to-note links are Luhmann's. The spec's
-  line "Georges Perec's cross-referenced index cards" is a bit off. Perec's cross-
+  line "Georges Perec's cross-referenced index cards" was a bit off (reworded on
+  2026-10-13). Perec's cross-
   references are in his books (the index of *La Vie mode d'emploi*). Keyword crossing
   could be a later feature idea.
 - **Claude in Chrome** (messages 38 and 40): Anthropic's own browser agent, kept "for
@@ -45,14 +46,19 @@ have yet. One of them reopens a decided question (AD-3 below).
   It works only in Chrome, so a separate Chrome profile could be the test browser while
   Firefox stays your main one. It shows a visible window.
 
-## A fact to check on Pascal's account
+## Native branches on Pascal's account
 
 In message 3 ("Version 2"), Pascal edited a message to try native branching. The JSON
 has message indexes 0 to 47 for 44 messages, so four messages are hidden siblings, as an
-edit would create. If the `< 2/2 >` arrows show under message 3 in the original
-conversation, native branches are still visible on his account, which contradicts the
-third-party claim that merged accounts hide new forks
-([claude-ai__findings](claude-ai__findings.md#1-native-branching)).
+edit would create.
+
+Checked by Pascal, 2026-10-13: the original conversation shows `< 2/2 >` under message 3
+(with retry, edit and copy buttons); the shared copy does not, since a share holds only
+the chosen path. So on his merged account, a new edit is still visible as a native
+branch. This contradicts the third-party claim that merged accounts hide new forks
+([claude-ai__findings](claude-ai__findings.md#1-native-branching)). It does not change
+the project: the native tree stays unnamed, unlinked and reachable only through the
+arrows.
 
 ## Already settled by the conversation
 
