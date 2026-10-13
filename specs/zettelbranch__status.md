@@ -34,5 +34,6 @@ Milestone 1 (0.1.0) is closed ([plan and build notes](done/milestone-1/milestone
 
 ## Not checked, for later
 
+- Firefox applying an update by itself (`updates.json`): the chain is checked from GitHub's side, but no installed copy has updated yet. At the next version, Pascal's installed 0.1.3 should update (or at once: `about:addons`, the gear menu, "Check for Updates").
 - What claude.ai's own `summary` field holds (filled for most chats): could feed the banner's one-line summaries.
 - The page title's format; an attachment made by a paste.
