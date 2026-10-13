@@ -9,7 +9,8 @@
 //   prepare()  "Branch": makes the chat a tree root first if needed (two dialogs and a
 //              rename), finds the next free address, builds the prompt for the preview
 //   open()     "Open new chat": clicks the app's own New chat link and puts the prompt in
-//              the message box with one insertText call. Never presses Send.
+//              the message box with one insertText call, or line by line if that call lost
+//              the line breaks (Firefox, 0.1.3). Never presses Send.
 //   name()     "Name this branch": a dialog with the proposed name, then a rename. Also for a
 //              branch already named, to change its topic
 //   Renames go through claude.ai's own title menu (menu.js), so the open tab shows the new
@@ -346,6 +347,48 @@
     sel.addRange(range);
   }
 
+  // Text compared without the blank lines at its start and end: Firefox adds an empty line at
+  // the top of claude.ai's box whichever way the text goes in (P1, 2026-10-13).
+  const trimBlank = (t) => String(t).replace(/^(?:[ \t]*\n)+/, '').replace(/(?:\n[ \t]*)+$/, '');
+  const same = (a, b) => trimBlank(a) === trimBlank(b);
+
+  // The three ways the extension writes into the message box `box`, which is empty (open()
+  // checks it first), or holds only what insertOnce just put there.
+  function insertOnce(box, text) {
+    caretToEnd(box);
+    document.execCommand('insertText', false, text);
+  }
+  function insertLines(box, text) {
+    caretToEnd(box);
+    text.split('\n').forEach((line, i) => {
+      if (i > 0) document.execCommand('insertParagraph', false);
+      if (line) document.execCommand('insertText', false, line);
+    });
+  }
+  function emptyBox(box) {
+    box.focus();
+    if (document.activeElement !== box) return false;
+    document.execCommand('selectAll', false);
+    document.execCommand('delete', false);
+    return !editorText(box).trim();
+  }
+
+  // Fills the empty box with the prompt. One insertText call keeps the line breaks in Chrome
+  // (Milestone 0, P2). In Firefox, claude.ai's box joins all the lines into one paragraph
+  // (P1, 2026-10-13): then the box is emptied, and the prompt typed line by line, with a
+  // paragraph between lines. Returns { method: 'one call' | 'line by line', inBox, note }.
+  async function fill(box, text) {
+    insertOnce(box, text);
+    await sleep(300);
+    const inBox = editorText(find('composer') || box);
+    if (same(inBox, text)) return { method: 'one call', inBox };
+    const b = find('composer') || box;
+    if (!emptyBox(b)) return { method: 'one call', inBox: editorText(b), note: 'the box could not be emptied to try again line by line' };
+    insertLines(b, text);
+    await sleep(300);
+    return { method: 'line by line', inBox: editorText(find('composer') || b) };
+  }
+
   async function open() {
     const p = pending;
     if (!p) return { ok: false, text: 'Click Branch first.' };
@@ -360,14 +403,14 @@
     const box = await waitFor(() => (pageKind().kind === 'new' && C().fromPage(document).messages.length === 0 ? find('composer') : null));
     if (!box) return { ok: false, text: 'The new chat\'s message box did not appear.', error: { text: 'claude.ai changed, Zettelbranch needs an update.', detail: 'no element matches ' + FIND.composer.join(' or ') } };
     if (editorText(box).trim()) return { ok: false, text: 'The message box already holds text, so nothing was inserted. Empty it, then click Open new chat again.' };
-    caretToEnd(box);
-    document.execCommand('insertText', false, p.text);
-    await sleep(300);
-    const inBox = editorText(find('composer') || box);
+    box.focus();
+    if (document.activeElement !== box) return { ok: false, text: 'The message box did not take the focus, so nothing was inserted. Click Open new chat again.' };
+    const t0 = Date.now();
+    const f = await fill(box, p.text);
     pending = null;
     // own: the box ends with your message, when you branched instead of it.
     opened = { address: p.address, parent: p.parent, own: p.fork.role === 'user' };
-    return { ok: true, address: p.address, own: opened.own, chars: p.chars, exact: inBox === p.text, inBox: inBox.length };
+    return { ok: true, address: p.address, own: opened.own, chars: p.chars, exact: same(f.inBox, p.text), inBox: trimBlank(f.inBox).length, method: f.method, note: f.note, ms: Date.now() - t0 };
   }
 
   // ---------------------------------------------------------------- naming
@@ -431,5 +474,8 @@
   // The branch this tab opened and has not named yet, for the pill's reminder; null if none.
   const unnamed = () => (opened ? opened.address : null);
 
-  global.ZBBranch = { read, cached, prepare, cancel, open, name, explain, pageKind, unnamed, current: () => chat, SIZE_WARNING };
+  // For the offline tests of the insertion against a real editor (tests/editor/).
+  const insertion = { insertOnce, insertLines, emptyBox, editorText, same, fill };
+
+  global.ZBBranch = { read, cached, prepare, cancel, open, name, explain, pageKind, unnamed, insertion, current: () => chat, SIZE_WARNING };
 })(globalThis);

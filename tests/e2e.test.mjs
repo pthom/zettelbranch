@@ -145,7 +145,7 @@ async function assertNothingLeftOpen() {
   assert.equal(await page.locator('input[data-testid="name-chat"]').count(), 0, 'no rename field left open');
 }
 const step = async (n) => ((await Z(`step-${n}`).locator('p').first().textContent()) || '').trim();
-const convNamed = (name) => [...fake.convs.values()].find((c) => c.name === name);
+const convNamed = (name, ok = () => true) => [...fake.convs.values()].find((c) => c.name === name && ok(c));
 // The message box's text, by the same rules as the extension's editorText.
 const editorText = () => page.evaluate(() => {
   const el = document.querySelector('[data-testid="chat-input"] [contenteditable="true"]');
@@ -310,6 +310,7 @@ test('Open new chat: the box holds exactly the preview text; Send is not pressed
   assert.equal(await step(2), 'When Claude has replied:');
   assert.equal(await Z('step-2').locator('[data-zb="name"]').textContent(), 'Name this branch');
   assert.equal(await Z('warning').count(), 0, 'the box matches the preview');
+  assert.equal(await Z('insert-method').count(), 0, 'one insertText call was enough');
   assert.equal(await editorText(), previewText);
   assert.equal(await page.locator('[data-testid="chat-input-send"]').isEnabled(), true, 'the app saw the text');
   const reads = apiCount();
@@ -822,6 +823,123 @@ test('a panel left open on another chat reads again before branching', async () 
   assert.equal(await Z('preview').count(), 0);
 });
 
+test('Firefox (claude.ai\'s box joins the lines of one insertion): the box is emptied and filled line by line, exactly; the branch sent is named', async () => {
+  fake.options.firefox = { flatten: true, emptyTop: true };
+  try {
+    await goChat(fake.ids.root);
+    await openPanel();
+    await click('branch');
+    assert.equal(await text('preview-title'), 'Preview: the first message of zbtest/1d');
+    const preview = await Z('preview').textContent();
+    await click('open');
+    assert.match(await text('insert-method'), /^Inserted line by line, in \d+\.\d s: one insertion had lost the line breaks\.$/);
+    assert.equal(await Z('warning').count(), 0, 'no warning: the box holds the preview (Firefox\'s empty top line aside)');
+    assert.equal(await editorText(), '\n' + preview, 'exact, after the empty line Firefox adds at the top');
+    await shots('opened-firefox');
+    await typeAtEnd('What is the green flash?');
+    await pressSend();
+    const sent = [...fake.convs.values()].find((c) => c.messages.length && c.messages[0].content[0].text.includes('Zettelbranch · zbtest/1d')).messages[0].content[0].text;
+    assert.ok(sent.startsWith('\nZettelbranch · zbtest/1d\nPath: zbtest/1 › 1d\nForked from: '), 'sent with its line breaks');
+    assert.equal(await text('identity'), 'Branch zbtest/1d (not named yet), from zbtest/1 after message 4');
+    const putsBefore = puts().length;
+    plan({});
+    await click('name');
+    allAnswered();
+    assert.equal(dialogs.at(-1).defaultValue, 'zbtest/1d · The green flash');
+    await assertMenuRename('zbtest/1d · The green flash', putsBefore);
+  } finally {
+    fake.options.firefox = null;
+  }
+});
+
+test('Firefox: a prompt over 100,000 characters also goes in line by line, exactly', async (t) => {
+  fake.options.firefox = { flatten: true, emptyTop: true };
+  try {
+    await goChat(fake.ids.big);
+    await openPanel();
+    await click('branch');
+    const preview = await Z('preview').textContent();
+    assert.ok(preview.length > 100000);
+    const t0 = Date.now();
+    await click('open');
+    const ms = Date.now() - t0;
+    assert.match(await text('insert-method'), /^Inserted line by line, in \d+\.\d s/);
+    assert.equal(await Z('warning').count(), 0);
+    assert.equal(await editorText(), '\n' + preview);
+    t.diagnostic(`${preview.length.toLocaleString('en-US')} characters, ${preview.split('\n').length} lines: Open new chat took ${ms} ms in all (${await text('insert-method')})`);
+  } finally {
+    fake.options.firefox = null;
+  }
+});
+
+test('a branch whose first message lost its line breaks (0.1.2 in Firefox) is still a branch, and can be named', async () => {
+  await goChat(fake.ids.ten);
+  await openPanel();
+  await click('branch');
+  assert.equal(await text('preview-title'), 'Preview: the first message of zbtest/10b');
+  const preview = await Z('preview').textContent();
+  await click('cancel');
+  const flat = '\n' + preview.replace(/\n/g, ' ') + 'What about flattened lines?';
+  const id = fake.addChat('Sibling root', flat, '> Parent zbtest/10 in brief: We talked about card boxes.\n\nAn answer.\n\nBranch title: Flattened lines');
+  await goChat(id);
+  await openPanel();
+  assert.equal(await text('identity'), 'Branch zbtest/10b (not named yet), from zbtest/10 after message 2');
+  assert.deepEqual((await Z('message').allTextContents()).slice(0, 1), ['1YouWhat about flattened lines?']);
+  const putsBefore = puts().length;
+  plan({});
+  await click('name');
+  allAnswered();
+  assert.equal(dialogs.at(-1).defaultValue, 'zbtest/10b · Flattened lines');
+  await assertMenuRename('zbtest/10b · Flattened lines', putsBefore);
+});
+
+test('the panel moves when you drag its title bar, stays inside the window, and opens again where it was; the pill stays at the bottom right', async () => {
+  await goChat(fake.ids.root);
+  await openPanel();
+  assert.equal(await Z('bar').getAttribute('title'), 'Drag to move');
+  const box = () => Z('panel').boundingBox();
+  const b0 = await box();
+  const dragFrom = async (x, y, dx, dy) => {
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await page.mouse.move(x + dx / 2, y + dy / 2, { steps: 3 });
+    await page.mouse.move(x + dx, y + dy, { steps: 3 });
+    await page.mouse.up();
+  };
+  await dragFrom(b0.x + 60, b0.y + 16, -500, -200); // on the bar's title, not a button
+  const b1 = await box();
+  assert.ok(Math.abs(b1.x - (b0.x - 500)) <= 1 && Math.abs(b1.y - (b0.y - 200)) <= 1, `moved with the pointer: ${JSON.stringify([b0, b1])}`);
+  await page.mouse.move(5, 5);
+  await page.screenshot({ path: path.join(SHOTS, 'dragged-page-light.png') });
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await page.screenshot({ path: path.join(SHOTS, 'dragged-page-dark.png') });
+  await page.emulateMedia({ colorScheme: 'light' });
+  await dragFrom(b1.x + 60, b1.y + 16, -2000, -2000);
+  const b2 = await box();
+  assert.ok(b2.x >= 0 && b2.y >= 0 && b2.x <= 8 && b2.y <= 8, `kept inside, top left: ${JSON.stringify(b2)}`);
+  await dragFrom(b2.x + 60, b2.y + 16, 3000, 3000);
+  const b3 = await box();
+  assert.ok(b3.x + b3.width <= 1280 && b3.y + b3.height <= 860 && b3.x + b3.width >= 1270, `kept inside, bottom right: ${JSON.stringify(b3)}`);
+  await dragFrom(b3.x + 60, b3.y + 16, -400, -300);
+  const b4 = await box();
+  const hide = await Z('hide').boundingBox();
+  await dragFrom(hide.x + 5, hide.y + 5, -200, -200); // a press on a button does not drag
+  assert.deepEqual(await box(), b4, 'no drag from a button');
+  await click('refresh');
+  assert.deepEqual(await box(), b4, 'the refresh button still works, the panel stays');
+  await click('hide');
+  const pill = await Z('pill').boundingBox();
+  assert.ok(Math.abs(pill.x + pill.width - (1280 - 12)) <= 1 && Math.abs(pill.y + pill.height - (860 - 12)) <= 1, `the pill at the bottom right: ${JSON.stringify(pill)}`);
+  await openPanel();
+  const b5 = await box();
+  assert.ok(Math.abs(b5.x - b4.x) <= 1 && Math.abs(b5.y - b4.y) <= 1, 'opened again where it was dragged');
+  await page.reload();
+  await page.locator('#zettelbranch').waitFor({ state: 'attached' });
+  await openPanel();
+  const b6 = await box();
+  assert.ok(Math.abs(b6.x + b6.width - (1280 - 12)) <= 1, 'after a reload, back at the bottom right (memory only)');
+});
+
 test('when claude.ai\'s menu fails at any step, the rename goes through the API, with the reload notice; nothing is left open or typed', async () => {
   const id = convNamed('zbtest/1c · Branching, revisited').uuid;
   const cases = [
@@ -917,6 +1035,8 @@ test('network: only the allowed API calls, renames only to tree titles, nothing 
     'zbtest/10a · Fish and birds',
     'zbtest/1c · Branching, revisited',
     'zbtest/1a1a · Naming the cards',
+    'zbtest/1d · The green flash',
+    'zbtest/10b · Flattened lines',
   ], 'every other rename through claude.ai\'s own menu');
   // Every synthetic event the page received: only to the title button, the menu (Escape), the
   // exact Rename item, the rename field (Enter, Escape), and the New chat link (a click).

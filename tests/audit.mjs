@@ -30,7 +30,9 @@ check(`Network calls only in ${NET_FILE}`,
   hits(/\bfetch\s*\(|XMLHttpRequest|sendBeacon|WebSocket|EventSource|importScripts|new Image\b|\.src\s*=|\bimport\s*\(|window\.open\s*\(|location\.(assign|replace)\s*\(|location\.href\s*=/, (f) => f !== NET_FILE));
 const fetches = hits(/\bfetch\s*\(/, (f) => f === NET_FILE);
 check(`${NET_FILE} calls fetch in one place, behind its allowed list`, fetches.length === 1 ? [] : fetches.length ? fetches : [{ file: NET_FILE, n: 0, text: 'no fetch call found' }]);
-check('Only GET and PUT', hits(/['"](POST|DELETE|PATCH|HEAD|OPTIONS)['"]/i));
+// The editing command 'delete' (emptying the message box, branch.js) is not an HTTP method.
+const EMPTY_LINE = "document.execCommand('delete', false);";
+check('Only GET and PUT', hits(/['"](POST|DELETE|PATCH|HEAD|OPTIONS)['"]/i).filter((l) => !(l.file === 'branch.js' && l.text.trim() === EMPTY_LINE)));
 // SVG's namespace name, for createElementNS (the refresh icon), is a name, never fetched:
 // allowed on that one exact line only.
 const SVG_NS_LINE = "const NS = 'http://www.w3.org/2000/svg';";
@@ -42,8 +44,14 @@ check('No storage (web storage, IndexedDB, extension storage, caches)',
   hits(/localStorage|sessionStorage|indexedDB|openDatabase|\bstorage\.|caches\./));
 check('No HTML injection', hits(/innerHTML|outerHTML|insertAdjacentHTML|document\.write|DOMParser|createContextualFragment|srcdoc/));
 check('No innerText (never document.body.innerText)', hits(/\.innerText\b/));
-check('Click listeners only (no keyboard, input or other listeners)',
-  [...hits(/addEventListener\(\s*(?!['"]click['"])/), ...hits(/\.on[a-z]+\s*=/)]);
+// Besides clicks, only the four pointer listeners that drag the panel by its own title bar
+// (ui.bar, in our Shadow DOM).
+const BAR_LISTENERS = ["ui.bar.addEventListener('pointerdown', grab);", "ui.bar.addEventListener('pointermove', drag);", "ui.bar.addEventListener('pointerup', drop);", "ui.bar.addEventListener('pointercancel', drop);"];
+const BAR_LINE = "ui.bar = el('div', { class: 'top', 'data-zb': 'bar', title: 'Drag to move' }, [el('b', { text: 'Zettelbranch' }), ui.refresh, hideButton]);";
+check('Click listeners only (no keyboard, input or other listeners), and pointer listeners on the panel\'s title bar to drag it',
+  [...hits(/addEventListener\(\s*(?!['"]click['"])/).filter((l) => !(l.file === 'ui.js' && BAR_LISTENERS.includes(l.text.trim()))), ...hits(/\.on[a-z]+\s*=/),
+    ...(lines.some((l) => l.file === 'ui.js' && l.text.trim() === BAR_LINE) ? [] : [{ file: 'ui.js', n: 0, text: 'ui.bar is not the panel\'s title bar as described' }]),
+    ...hits(/\bui\.bar\s*=/).filter((l) => l.text.trim() !== BAR_LINE)]);
 // The key events menu.js sends (Enter or Escape) name their types on one exact line.
 const KEY_TYPES_LINE = "const types = k === 'Enter' ? ['keydown', 'keypress', 'keyup'] : ['keydown', 'keyup'];";
 check('No keyboard or input listeners',
@@ -68,9 +76,14 @@ check('No eval or code from strings', hits(/\beval\s*\(|new Function\s*\(|setTim
 check('No hidden calls: no computed property access on global objects', hits(/\b(window|globalThis|self|document|global|location|navigator)\s*\[/));
 check('No extension APIs (no messaging, no background, no extension storage)', hits(/\b(chrome|browser)\.\w/));
 check('No messaging with page scripts or other windows', hits(/postMessage|BroadcastChannel|MessageChannel|CustomEvent/));
-const EXEC_LINES = { 'branch.js': "document.execCommand('insertText', false, p.text);", 'menu.js': "document.execCommand('insertText', false, name);" };
-check('No clipboard; execCommand only to insert the prompt (branch.js) and a name in claude.ai\'s rename field (menu.js)',
-  [...hits(/clipboard/i), ...hits(/execCommand/).filter((l) => l.text.trim() !== EXEC_LINES[l.file])]);
+// execCommand: insertText, insertParagraph, selectAll and delete on the message box (branch.js,
+// in insertOnce, insertLines and emptyBox); insertText in claude.ai's rename field (menu.js).
+const EXEC_LINES = {
+  'branch.js': ["document.execCommand('insertText', false, text);", "if (i > 0) document.execCommand('insertParagraph', false);", "if (line) document.execCommand('insertText', false, line);", "document.execCommand('selectAll', false);", "document.execCommand('delete', false);"],
+  'menu.js': ["document.execCommand('insertText', false, name);"],
+};
+check('No clipboard; execCommand only to write the prompt into the message box (branch.js) and a name into claude.ai\'s rename field (menu.js)',
+  [...hits(/clipboard/i), ...hits(/execCommand/).filter((l) => !(EXEC_LINES[l.file] || []).includes(l.text.trim()))]);
 const CLICK_LINES = { 'branch.js': 'newChatLink.click();', 'menu.js': 'if (el) el.click();' };
 check('Never presses Send: no Send button, no form submit; the only clicks are on the New chat link and (menu.js) the Rename item',
   [...hits(/chat-input-send|requestSubmit|\.submit\s*\(/), ...hits(/\.click\s*\(/).filter((l) => !(l.text.trim().endsWith(CLICK_LINES[l.file] || '\0'))),

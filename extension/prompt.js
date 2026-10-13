@@ -8,7 +8,9 @@
   'use strict';
 
   const T = () => global.ZBTree;
-  const HEADER_RE = /^Zettelbranch · ([a-z0-9-]+)\/([0-9a-z]+)$/;
+  // The header's first line. Also when the line breaks were lost (0.1.2 in Firefox sent the
+  // whole first message as one line): then a space follows the address.
+  const HEADER_RE = /^Zettelbranch · ([a-z0-9-]+)\/([0-9a-z]+)(?=\s|$)/;
 
   // Message text holding `<zb-` (a chat about this very prompt) gets `&lt;zb-` there.
   const escapeZb = (t) => t.replace(/<(\/?)zb-/g, '&lt;$1zb-');
@@ -28,7 +30,7 @@
 
   // The header's first line, `Zettelbranch · <tree>/<address>`: { tree, address } or null.
   function parseHeader(text) {
-    const h = HEADER_RE.exec(String(text).split('\n')[0].trim());
+    const h = HEADER_RE.exec(String(text).replace(/^\s+/, ''));
     return h && T().parseAddress(h[2]) ? { tree: h[1], address: h[2] } : null;
   }
 
@@ -40,7 +42,7 @@
     const end = text.indexOf('</zb-instructions>');
     if (!head || !tr || end < 0) return null;
     const turns = [];
-    const re = /<zb-turn branch="([^"]*)" n="(\d+)" role="(user|assistant)">\n?([\s\S]*?)\n?<\/zb-turn>/g;
+    const re = /<zb-turn branch="([^"]*)" n="(\d+)" role="(user|assistant)">(?:\n| )?([\s\S]*?)(?:\n| )?<\/zb-turn>/g;
     let m;
     while ((m = re.exec(tr[1]))) turns.push({ branch: m[1], n: Number(m[2]), role: m[3], text: unescapeZb(m[4]) });
     return { ...head, turns, ownText: text.slice(end + '</zb-instructions>'.length).trim() };
@@ -98,11 +100,15 @@
   // Where a branch comes from, from its header: { parentTitle, parent, how, n }, for example
   // { parent: 'zbtest/1', how: 'after', n: 4 }. The parent's address from the "Path:" line,
   // else from the parent's title in the "Forked from:" line. Null if that line is not there.
+  // Both are looked for anywhere before the transcript, as a message whose line breaks were
+  // lost holds them on its one line.
   function parseForkedFrom(text) {
-    const lines = String(text).split('\n');
-    const m = /^Forked from: (.*?), (after|instead of) message (\d+) \((?:Claude|me)\): "/.exec(lines[2] || '');
+    text = String(text);
+    const end = text.indexOf('<zb-transcript>');
+    const head = end < 0 ? text : text.slice(0, end);
+    const m = /(?:^|\s)Forked from: (.*?), (after|instead of) message (\d+) \((?:Claude|me)\): "/.exec(head);
     if (!m) return null;
-    const path = /^Path: ([a-z0-9-]+)\/(.+)$/.exec(lines[1] || '');
+    const path = /(?:^|\s)Path: ([a-z0-9-]+)\/([0-9a-z]+(?: › [0-9a-z]+)*)/.exec(head);
     const addrs = path ? path[2].split(' › ') : [];
     const t = T().parseTitle(m[1]);
     const parent = addrs.length >= 2 ? `${path[1]}/${addrs[addrs.length - 2]}` : t ? `${t.tree}/${t.address}` : m[1];

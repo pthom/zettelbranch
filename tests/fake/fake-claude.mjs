@@ -24,6 +24,9 @@
 // (the menu), `renameItem`, `field` (the rename field), `sticks` (the save keeps the name);
 // `readonly` makes the field refuse typing. `menuRenames` logs the app's own saves through
 // that menu, `synthetic` every synthetic event the page received, with its element.
+// `options.firefox` makes the app's message box behave as Firefox did in claude.ai's (P1):
+// { flatten: one insertText with line breaks gives one paragraph, emptyTop: an empty
+// paragraph at the top }.
 // `fail` makes the API misbehave on purpose: 'shape' (an answer claude.ai would give if it
 // changed, holding SECRET text) or 'status' (a 500 whose body holds SECRET text).
 import fs from 'node:fs';
@@ -50,7 +53,7 @@ export function createFakeClaude() {
   const convs = new Map();
   const apiLog = [];
   const fail = { conversation: null, list: null, rename: null };
-  const options = { autoTitle: true, delay: 0, branchTitle: null, claudeTitles: true, titleStyle: 'plain', slowSend: null, menu: null };
+  const options = { autoTitle: true, delay: 0, branchTitle: null, claudeTitles: true, titleStyle: 'plain', slowSend: null, menu: null, firefox: null };
   const MENU = { title: true, opens: true, renameItem: true, field: true, sticks: true, readonly: false };
   const menuRenames = [];
   const synthetic = [];
@@ -193,19 +196,20 @@ export function createFakeClaude() {
   add(dup, 'human', 'Second 1a1 question');
   add(dup, 'assistant', 'Second 1a1 answer');
 
-  // A chat made meanwhile, as if in another tab.
-  function addChat(name) {
+  // A chat made meanwhile, as if in another tab; or with the given first message and reply.
+  function addChat(name, first = `Question of ${name}`, answer = `Answer of ${name}`) {
     const c = newConv(name);
-    add(c, 'human', `Question of ${name}`);
-    add(c, 'assistant', `Answer of ${name}`);
+    add(c, 'human', first);
+    add(c, 'assistant', answer);
     return c.uuid;
   }
 
   // ---------------------------------------------------------------- replies
 
   // Claude's suggested names for the questions the tests type.
-  const TITLES = { 'What about fish and birds?': 'Fish and birds on one page', 'What is a lipogram?': 'Lipograms', 'How does branching work?': 'How branches work', 'Shall we name the cards?': 'Naming the cards' };
+  const TITLES = { 'What is the green flash?': 'The green flash', 'What about fish and birds?': 'Fish and birds on one page', 'What is a lipogram?': 'Lipograms', 'How does branching work?': 'How branches work', 'Shall we name the cards?': 'Naming the cards' };
   function reply(text) {
+    text = text.replace(/^\s+/, ''); // Firefox's empty line at the top of the box
     if (text.startsWith('Zettelbranch · ') && text.includes('<zb-instructions>')) {
       const parent = /"Parent (\S+) in brief:"/.exec(text);
       const own = text.slice(text.indexOf('</zb-instructions>') + '</zb-instructions>'.length).trim();
@@ -220,6 +224,7 @@ export function createFakeClaude() {
   // A branch's first message holds the parent's whole conversation, so claude.ai names the
   // branch after the parent (seen on 2026-10-13: "Poème en forme de chat" twice).
   function autoTitle(text) {
+    text = text.replace(/^\s+/, '');
     const parent = /^Forked from: (.*?), (?:after|instead of) message/.exec(text.split('\n')[2] || '');
     if (text.startsWith('Zettelbranch · ')) return options.branchTitle || (parent ? parent[1].replace(/^[a-z0-9-]+\/[0-9a-z]+ · /, '') : 'Auto title of a branch');
     return 'Auto: ' + text.replace(/[^A-Za-z0-9 ]+/g, ' ').split(/\s+/).filter(Boolean).slice(0, 4).join(' ');
@@ -299,7 +304,7 @@ export function createFakeClaude() {
       if (!c) return json(route, 404, {});
       return json(route, 200, { name: c.name, messages: pathOf(c).map((x) => ({ role: x.sender === 'human' ? 'user' : 'assistant', text: x.pageText, attachments: x.attachments })) });
     }
-    if (p === '/fake/options') return json(route, 200, { ...MENU, ...(options.menu || {}) });
+    if (p === '/fake/options') return json(route, 200, { ...MENU, ...(options.menu || {}), firefox: options.firefox || null });
     if (p === '/fake/synthetic' && req.method() === 'POST') {
       synthetic.push({ ...JSON.parse(req.postData()), path: null });
       return json(route, 200, {});

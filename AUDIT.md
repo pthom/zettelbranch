@@ -6,7 +6,7 @@ A program's own claims about itself prove nothing. So the code is kept short and
 
 ## What runs
 
-Everything that runs is in `extension/`: `manifest.json` and eight scripts, about 1,850 lines in all (`wc -l extension/*`). No build step, no dependencies, no minified code: the files you read are the files the browser runs.
+Everything that runs is in `extension/`: `manifest.json` and eight scripts, about 1,970 lines in all (`wc -l extension/*`). No build step, no dependencies, no minified code: the files you read are the files the browser runs.
 
 | File | What it does |
 |---|---|
@@ -26,7 +26,8 @@ What it does, and when:
 - **While the panel is open**, it follows the chat on screen: every 0.4 seconds it compares the tab's address with the page it shows, and when you move to another chat it reads that chat, exactly as its refresh button does (reads only, never a write). Hiding the panel stops it.
 - **Opening the panel**, and its refresh button, read the conversation on screen: `GET /api/organizations` (once per page load, to find your organization) and `GET …/chat_conversations/<id>?tree=True…`, and at the same time the list of your conversations (`GET …/chat_conversations_v2`, only `uuid` and `name` kept), to show the chat's tree as links. Each link is a plain page load of that chat, its address ending with `#zettelbranch` (a marker that never leaves the browser); on a page loaded with that marker, `content.js` opens the panel at once, which reads as above.
 - **Branch** reads the list of your conversations (`GET …/chat_conversations_v2`, only `uuid` and `name` are kept) to find the next free address. If the chat is not in a tree yet, it asks for a tree name and a confirmation in browser dialogs, then renames the chat (`PUT …/chat_conversations/<id>` with `{"name": …}`).
-- **Open new chat** clicks claude.ai's own New chat link and types the prompt into the message box. You read it and press Send yourself; the extension never does.
+- **Open new chat** clicks claude.ai's own New chat link and types the prompt into the message box, with one `insertText`. If the box then does not hold the prompt (in Firefox, claude.ai's box joins all its lines into one), it empties the box and types the prompt again line by line. It never touches a box that already held text. You read it and press Send yourself; the extension never does.
+- **The panel** can be dragged by its title bar: four pointer listeners on that bar move the panel, and nothing else. Its place is kept in the tab's memory only.
 - **Name this branch** renames the new chat after a dialog where you can change the name.
 - **Renames** (the tree root during Branch, Name this branch, Rename this branch) go through claude.ai's own title menu on the chat on screen, as you would by hand, so the open tab shows the new name at once: `menu.js` opens the menu on the title, picks the item whose test id is exactly `rename-chat-trigger`, types the name into the field `name-chat` and presses Enter there. The name is then read back (`GET …/chat_conversations/<id>`, a few times within 3 seconds). If any step fails, the extension closes what it opened (Escape) and renames through the API instead (`PUT …/chat_conversations/<id>` with `{"name": …}`), as version 0.1.0 did.
 - **Renames** go only to `<tree>/<address> · <topic>` titles; `api.js` refuses anything else before any request is made.
@@ -48,10 +49,11 @@ grep -nE 'fetch *\(|XMLHttpRequest|sendBeacon|WebSocket|EventSource|importScript
 [ "$(grep -cE 'fetch *\(' extension/api.js)" = 1 ] || echo 'fetch is called in more than one place'
 ```
 
-**3. Only GET and PUT.** Never POST, DELETE or PATCH: no message is sent, nothing deleted.
+**3. Only GET and PUT.** Never POST, DELETE or PATCH: no message is sent, nothing deleted. (The one `'delete'` in `branch.js` is an editing command that empties the message box: see 16.)
 
 ```sh
-grep -niE "['\"](post|delete|patch|head|options)['\"]" extension/*.js | grep -vE '^[^:]+:[0-9]+: *//'
+grep -niE "['\"](post|delete|patch|head|options)['\"]" extension/*.js | grep -vE '^[^:]+:[0-9]+: *//' | grep -vF "extension/branch.js:"
+grep -niE "['\"](post|delete|patch|head|options)['\"]" extension/branch.js | grep -vE '^[0-9]+: *//' | grep -vF "document.execCommand('delete', false);"
 ```
 
 **4. No other host than claude.ai.** One line holds another address: SVG's namespace name, `const NS = 'http://www.w3.org/2000/svg';` in `ui.js`, which `createElementNS` needs to draw the refresh icon. It is a name, never fetched; the command lets that exact line through and nothing else.
@@ -85,10 +87,12 @@ grep -nE 'innerHTML|outerHTML|insertAdjacentHTML|document\.write|DOMParser|creat
 grep -n 'innerText' extension/*.js | grep -vE '^[^:]+:[0-9]+: *//'
 ```
 
-**9. Click listeners only.** No keyboard, input, paste or other listeners: it never reads what you type. (The one line in `menu.js` that names key events lists those it sends, Enter or Escape: see 19.)
+**9. Click listeners only, and the panel's title bar.** No keyboard, input, paste or other listeners: it never reads what you type. Besides clicks, four pointer listeners (`pointerdown`, `pointermove`, `pointerup`, `pointercancel`) let you drag the panel by its own title bar (`ui.bar`, inside the extension's Shadow DOM); they only move the panel. (The one line in `menu.js` that names key events lists those it sends, Enter or Escape: see 19.)
 
 ```sh
-grep -n 'addEventListener' extension/*.js | grep -v "addEventListener('click'"
+grep -n 'addEventListener' extension/*.js | grep -v "addEventListener('click'" | grep -vF -e "extension/ui.js:"
+grep -n 'addEventListener' extension/ui.js | grep -v "addEventListener('click'" | grep -vF -e "ui.bar.addEventListener('pointerdown', grab);" -e "ui.bar.addEventListener('pointermove', drag);" -e "ui.bar.addEventListener('pointerup', drop);" -e "ui.bar.addEventListener('pointercancel', drop);"
+grep -n 'ui\.bar *=' extension/ui.js | grep -vF "ui.bar = el('div', { class: 'top', 'data-zb': 'bar', title: 'Drag to move' }, [el('b', { text: 'Zettelbranch' }), ui.refresh, hideButton]);"
 grep -nE '\.on[a-z]+ *=' extension/*.js | grep -vE '^[^:]+:[0-9]+: *//'
 grep -nE "['\"](keydown|keyup|keypress|input|beforeinput|change|composition[a-z]*|paste|copy)['\"]" extension/*.js | grep -vE '^[^:]+:[0-9]+: *//' | grep -v '^extension/menu.js:'
 grep -nE "['\"](keydown|keyup|keypress|input|beforeinput|change|composition[a-z]*|paste|copy)['\"]" extension/menu.js | grep -vE '^[0-9]+: *//' | grep -vF "const types = k === 'Enter' ? ['keydown', 'keypress', 'keyup'] : ['keydown', 'keyup'];"
@@ -135,12 +139,12 @@ grep -nE '(chrome|browser)\.[a-zA-Z]' extension/*.js | grep -vE '^[^:]+:[0-9]+: 
 grep -nE 'postMessage|BroadcastChannel|MessageChannel|CustomEvent' extension/*.js | grep -vE '^[^:]+:[0-9]+: *//'
 ```
 
-**16. No clipboard.** `execCommand` only types: the prompt into the message box (`branch.js`), and a name into claude.ai's rename field (`menu.js`).
+**16. No clipboard.** `execCommand` only writes: the prompt into the message box (`branch.js`), and a name into claude.ai's rename field (`menu.js`). In `branch.js`, `insertOnce` types the prompt with one `insertText`; when the box then does not hold it (Firefox joins the lines into one), `emptyBox` empties the box with `selectAll` and `delete` (only after checking that the box has the focus; the box was empty before and holds only what was just typed), and `insertLines` types it again line by line, `insertText` for each line and `insertParagraph` between lines. `selectAll`, `delete` and `insertParagraph` appear nowhere else.
 
 ```sh
 grep -ni 'clipboard' extension/*.js | grep -vE '^[^:]+:[0-9]+: *//'
 grep -n 'execCommand' extension/*.js | grep -vE '^[^:]+:[0-9]+: *//' | grep -vF -e "extension/branch.js:" -e "extension/menu.js:"
-grep -n 'execCommand' extension/branch.js | grep -vF "document.execCommand('insertText', false, p.text);"
+grep -n 'execCommand' extension/branch.js | grep -vF -e "document.execCommand('insertText', false, text);" -e "if (i > 0) document.execCommand('insertParagraph', false);" -e "if (line) document.execCommand('insertText', false, line);" -e "document.execCommand('selectAll', false);" -e "document.execCommand('delete', false);"
 grep -n 'execCommand' extension/menu.js | grep -vE '^[0-9]+: *//' | grep -vF "document.execCommand('insertText', false, name);"
 ```
 

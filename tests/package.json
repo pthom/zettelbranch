@@ -7,7 +7,8 @@
     "audit": "node audit.mjs",
     "unit": "node --test unit.test.mjs",
     "e2e": "node --test --test-concurrency=1 e2e.test.mjs",
-    "test": "node audit.mjs && node --test unit.test.mjs && node --test --test-concurrency=1 e2e.test.mjs"
+    "test": "node audit.mjs && node --test unit.test.mjs && node --test --test-concurrency=1 e2e.test.mjs && node editor-check.mjs",
+    "editor": "node editor-check.mjs"
   },
   "devDependencies": {
     "@tiptap/core": "^2.27.3",

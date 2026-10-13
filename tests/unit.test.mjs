@@ -564,6 +564,57 @@ describe('prompt.js', () => {
   });
 });
 
+// ---------------------------------------------------------------- a first message without line breaks
+
+// 0.1.2 in Firefox: claude.ai's box put the whole first message in one paragraph, so it was
+// sent as one line (P1, 2026-10-13). Such a branch must still read as one.
+describe('prompt.js, a first message whose line breaks were lost', () => {
+  const P = loadIntoWindow(['tree.js', 'prompt.js']).ZBPrompt;
+  const msgs = [
+    { n: 1, role: 'user', text: 'Show me a function.' },
+    { n: 2, role: 'assistant', text: 'Here:\n\n```python\ndef f(x):\n    return 2 * x\n```' },
+    { n: 3, role: 'user', text: 'And a list?' },
+    { n: 4, role: 'assistant', text: '- one\n- two' },
+  ];
+  const text = P.build({ tree: 'oulipo', parentTitle: 'oulipo/1 · Poème en forme de chat, encore', parentAddress: '1', newAddress: '1c', messages: msgs, fork: 3 }).text;
+  const flat = '\n' + text.replace(/\n/g, ' ') + 'tentons notre chance avec un enfant';
+
+  test('the header, after the empty top line and with a space after the address', () => {
+    assert.ok(!flat.slice(1).includes('\n'), 'one line');
+    assert.deepEqual({ ...P.parseHeader(flat) }, { tree: 'oulipo', address: '1c' });
+    assert.deepEqual({ ...P.parseHeader('\n\n' + text) }, { tree: 'oulipo', address: '1c' }, 'blank lines first, line breaks kept');
+    assert.equal(P.parseHeader('Zettelbranch · oulipo/1c, more'), null, 'not followed by a space or the end');
+  });
+
+  test('where it comes from, found anywhere before the transcript', () => {
+    assert.deepEqual({ ...P.parseForkedFrom(flat) }, { parentTitle: 'oulipo/1 · Poème en forme de chat, encore', parent: 'oulipo/1', how: 'after', n: 4 });
+    assert.deepEqual({ ...P.parseForkedFrom(text) }, { ...P.parseForkedFrom(flat) }, 'the same as with its line breaks');
+    const quoted = text.replace('</zb-transcript>', 'Forked from: zz/9 · Fake, after message 1 (Claude): "x" </zb-transcript>');
+    assert.equal(P.parseForkedFrom(quoted).parent, 'oulipo/1', 'never from the transcript');
+  });
+
+  test('its parts: the turns (their line breaks lost too, the code fence inside) and your text', () => {
+    const b = P.parseBranchMessage(flat);
+    assert.equal(b.address, '1c');
+    assert.deepEqual([...b.turns.map((t) => `${t.branch}#${t.n} ${t.role}`)], ['1#1 user', '1#2 assistant', '1#3 user', '1#4 assistant']);
+    assert.equal(b.turns[1].text, 'Here:  ```python def f(x):     return 2 * x ```');
+    assert.equal(b.ownText, 'tentons notre chance avec un enfant');
+    const named = P.proposeTopic('', [{ n: 1, role: 'user', text: flat }, { n: 2, role: 'assistant', text: 'Voici.\n\nBranch title: Un enfant au ballon' }]);
+    assert.deepEqual({ ...named }, { topic: 'Un enfant au ballon', from: 'claude' });
+  });
+});
+
+describe('branch.js, comparing the box with the prompt', () => {
+  const same = loadIntoWindow(['branch.js']).ZBBranch.insertion.same;
+  test('blank lines at the start and the end do not count; anything else does', () => {
+    assert.equal(same('\nZettelbranch · zb/1a\nPath\n\n', 'Zettelbranch · zb/1a\nPath\n\n'), true, 'Firefox\'s empty top line');
+    assert.equal(same('a\nb', 'a\nb\n\n'), true);
+    assert.equal(same('  a\nb', 'a\nb'), false, 'spaces on the first line count');
+    assert.equal(same('a b', 'a\nb'), false, 'a lost line break counts');
+    assert.equal(same('a\n\nb', 'a\nb'), false, 'an extra blank line inside counts');
+  });
+});
+
 // ---------------------------------------------------------------- the name proposal
 
 describe('prompt.js, the topic proposed for a branch\'s name', () => {

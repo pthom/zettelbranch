@@ -64,7 +64,7 @@
   }
 
   function updateSend() {
-    send.disabled = !editorText().trim();
+    send.disabled = !editor.textContent.trim();
   }
 
   function clearComposer() {
@@ -74,6 +74,43 @@
   }
 
   editor.addEventListener('input', updateSend);
+
+  // Firefox in claude.ai's box, as Pascal's probe P1 saw it (2026-10-13), when the fake
+  // server's options.firefox asks for it. `flatten`: one insertText holding line breaks ends
+  // up in one paragraph, the line breaks turned into spaces. Chromium (where the tests run)
+  // splits such a call into input events, one per line, a line break being an insertText
+  // without data: each new paragraph is then merged back into the one before, with a space.
+  // A paragraph made by insertParagraph stays. `emptyTop`: an empty paragraph appears at the
+  // top when text goes into the empty box, whichever way.
+  let firefox = null;
+  let fresh = true; // the box is empty, nothing typed since
+  editor.addEventListener('input', (e) => {
+    if (!firefox) return;
+    if (firefox.flatten && e.inputType === 'insertText' && e.data === null) {
+      const sel = getSelection();
+      const here = sel.anchorNode && (sel.anchorNode.nodeType === 1 ? sel.anchorNode : sel.anchorNode.parentElement).closest('p');
+      const before = here && here.previousElementSibling;
+      if (here && before && before.tagName === 'P') {
+        for (const br of before.querySelectorAll('br')) br.remove();
+        for (const br of here.querySelectorAll('br')) br.remove();
+        before.append(document.createTextNode(' '), ...here.childNodes);
+        here.remove();
+        const r = document.createRange();
+        r.selectNodeContents(before);
+        r.collapse(false);
+        sel.removeAllRanges();
+        sel.addRange(r);
+      }
+    }
+    if (!editor.textContent.trim()) fresh = true;
+    else if (firefox.emptyTop && fresh) {
+      fresh = false;
+      const top = mk('p', { 'data-fake-top': '' });
+      top.append(mk('br'));
+      editor.prepend(top);
+    }
+    updateSend();
+  });
 
   function renderAssistant(text) {
     const md = mk('div', { class: 'grid-cols-1 grid gap-2.5 standard-markdown' });
@@ -176,7 +213,10 @@
     clearComposer();
     closeMenu();
     closeField();
-    if (!(await options()).title) split.remove();
+    const o = await options();
+    firefox = o.firefox;
+    fresh = true;
+    if (!o.title) split.remove();
     else if (!split.isConnected) $('[data-testid="chat-header"]').append(split);
     if (!m) {
       document.title = 'Claude';

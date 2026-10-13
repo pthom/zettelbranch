@@ -1,8 +1,9 @@
 // Zettelbranch: the panel. A small "Zettelbranch" button at the bottom right opens it.
-// Shadow DOM outside <body>, built with DOM nodes and textContent only. Click listeners
-// only: no keyboard or input listeners. Every action starts with a click; the flow itself
-// is in branch.js. While the panel is open, it follows the chat on screen: when the tab
-// moves to another chat, it reads that chat as its refresh button does (reads only).
+// Shadow DOM outside <body>, built with DOM nodes and textContent only. Click listeners,
+// and pointer listeners on the panel's own title bar to drag it; no keyboard or input
+// listeners. Every action starts with a click; the flow itself is in branch.js. While the
+// panel is open, it follows the chat on screen: when the tab moves to another chat, it
+// reads that chat as its refresh button does (reads only).
 (function (global) {
   'use strict';
 
@@ -22,7 +23,8 @@
     [hidden] { display: none !important; }
     .pill { background: var(--accent); color: var(--accent-fg); border: 0; border-radius: 999px; padding: 6px 13px; font: inherit; font-weight: 600; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,.2); }
     .panel { box-sizing: border-box; width: 410px; max-width: calc(100vw - 24px); max-height: 80vh; display: flex; flex-direction: column; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 8px 28px rgba(0,0,0,.22); overflow: hidden; }
-    .top { display: flex; gap: 6px; align-items: center; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+    .top { display: flex; gap: 6px; align-items: center; padding: 8px 10px; border-bottom: 1px solid var(--line); cursor: grab; touch-action: none; user-select: none; }
+    .top.dragging { cursor: grabbing; }
     .top b { flex: 1; font-size: 13.5px; }
     button.icon { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 26px; padding: 0; color: var(--accent); }
     button.icon svg { width: 16px; height: 16px; }
@@ -93,7 +95,7 @@
     return b;
   }
 
-  let ui = null; // { wrap, pill, panel, refresh, notice, error, info, body }
+  let ui = null; // { host, wrap, pill, panel, bar, refresh, notice, error, info, body }
   let busy = false;
   let shown = null; // the chat the panel shows
   let reading = null; // a read in the background, while the panel shows what was read before
@@ -310,6 +312,7 @@
   function open() {
     ui.pill.hidden = true;
     ui.panel.hidden = false;
+    if (place) setPlace(place.left, place.top); // where it was dragged, inside the window
     startFollowing();
     readOnScreen();
   }
@@ -349,6 +352,44 @@
     stopFollowing();
     ui.panel.hidden = true;
     ui.pill.hidden = false;
+    Object.assign(ui.host.style, { left: 'auto', top: 'auto', right: '12px', bottom: '12px' }); // the pill: bottom right
+  }
+
+  // ---------------------------------------------------------------- moving the panel
+
+  // The panel moves when you drag its title bar (Pascal, 2026-10-13: it could hide Claude's
+  // reply or the Send button). Pointer listeners on that bar only, in our Shadow DOM; a drag
+  // never starts on its buttons. The place is kept in this tab's memory only. The pill stays
+  // at the bottom right; the panel opens again where it was dragged.
+  const MARGIN = 4;
+  let place = null; // { left, top } of the panel, once dragged
+  let grabbed = null; // where the pointer holds the panel, while dragging
+  function setPlace(left, top) {
+    const w = ui.panel.offsetWidth;
+    const h = ui.panel.offsetHeight;
+    left = Math.min(Math.max(MARGIN, left), Math.max(MARGIN, window.innerWidth - w - MARGIN));
+    top = Math.min(Math.max(MARGIN, top), Math.max(MARGIN, window.innerHeight - h - MARGIN));
+    place = { left, top };
+    Object.assign(ui.host.style, { left: `${left}px`, top: `${top}px`, right: 'auto', bottom: 'auto' });
+    // Taller content scrolls inside the panel instead of going below the window.
+    ui.panel.style.maxHeight = `${Math.round(Math.min(window.innerHeight * 0.8, window.innerHeight - top - MARGIN))}px`;
+  }
+  function grab(e) {
+    if (e.button !== 0 || e.target.closest('button')) return;
+    const r = ui.host.getBoundingClientRect();
+    grabbed = { dx: e.clientX - r.left, dy: e.clientY - r.top };
+    ui.bar.setPointerCapture(e.pointerId);
+    ui.bar.classList.add('dragging');
+    e.preventDefault();
+  }
+  function drag(e) {
+    if (grabbed) setPlace(e.clientX - grabbed.dx, e.clientY - grabbed.dy);
+  }
+  function drop(e) {
+    if (!grabbed) return;
+    grabbed = null;
+    ui.bar.classList.remove('dragging');
+    if (ui.bar.hasPointerCapture(e.pointerId)) ui.bar.releasePointerCapture(e.pointerId);
   }
 
   async function branch() {
@@ -391,6 +432,8 @@
     show(
       el('p', { class: 'box notice', 'data-zb': 'opened', text: `The new chat holds the first message of ${r.address}.` }),
       r.exact ? null : el('p', { class: 'box warn', 'data-zb': 'warning', text: `The message box holds ${r.inBox.toLocaleString('en-US')} characters, the preview had ${r.chars.toLocaleString('en-US')}. Check the box before you press Send.` }),
+      // How the text went in, when one call was not enough (Firefox): for a check on the real site.
+      r.method === 'line by line' || r.note ? el('p', { class: 'detail muted', 'data-zb': 'insert-method', text: r.note ? `Not inserted line by line: ${r.note}.` : `Inserted line by line, in ${(r.ms / 1000).toFixed(1)} s: one insertion had lost the line breaks.` }) : null,
       steps(r)
     );
   }
@@ -446,11 +489,16 @@
     ui.info = el('p', { class: 'box warn', 'data-zb': 'info', hidden: '' });
     ui.body = el('div', { class: 'body', 'data-zb': 'body' });
     ui.refresh = refreshButton();
-    const hideButton = el('button', { type: 'button', 'data-zb': 'hide', text: 'Hide' });
+    const hideButton = el('button', { type: 'button', 'data-zb': 'hide', title: 'Hide the panel', text: 'Hide' });
     hideButton.addEventListener('click', hide); // also during a background read
-    const top = el('div', { class: 'top' }, [el('b', { text: 'Zettelbranch' }), ui.refresh, hideButton]);
-    ui.panel = el('div', { class: 'panel', 'data-zb': 'panel', hidden: '' }, [top, el('div', { class: 'main' }, [ui.notice, ui.error, ui.info, ui.body])]);
+    ui.bar = el('div', { class: 'top', 'data-zb': 'bar', title: 'Drag to move' }, [el('b', { text: 'Zettelbranch' }), ui.refresh, hideButton]);
+    ui.bar.addEventListener('pointerdown', grab);
+    ui.bar.addEventListener('pointermove', drag);
+    ui.bar.addEventListener('pointerup', drop);
+    ui.bar.addEventListener('pointercancel', drop);
+    ui.panel = el('div', { class: 'panel', 'data-zb': 'panel', hidden: '' }, [ui.bar, el('div', { class: 'main' }, [ui.notice, ui.error, ui.info, ui.body])]);
     ui.wrap = el('div', { class: 'wrap' }, [ui.pill, ui.panel]);
+    ui.host = host;
     shadow.append(ui.wrap);
     // Outside <body>, so the app's own rendering never touches it.
     document.documentElement.append(host);
