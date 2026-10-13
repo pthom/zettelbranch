@@ -7,7 +7,8 @@
 //              rename), finds the next free address, builds the prompt for the preview
 //   open()     "Open new chat": clicks the app's own New chat link and puts the prompt in
 //              the message box with one insertText call. Never presses Send.
-//   name()     "Name this branch": a dialog with the proposed name, then a rename
+//   name()     "Name this branch": a dialog with the proposed name, then a rename. Also for a
+//              branch already named, to change its topic
 (function (global) {
   'use strict';
 
@@ -47,7 +48,7 @@
 
   let chat = null; // the chat the panel shows
   let pending = null; // the prompt in the preview, until "Open new chat"
-  let opened = null; // the branch last opened in this tab: { address, parent }
+  let opened = null; // the branch this tab opened and has not named yet: { address, parent, own }
 
   function pageKind() {
     const p = location.pathname;
@@ -96,12 +97,18 @@
     return t === 'Claude' ? '' : t;
   }
 
+  // The branch this tab opened is named: no more reminder.
+  function settle(head) {
+    if (opened && opened.address === `${head.tree}/${head.address}`) opened = null;
+  }
+
   async function read() {
     chat = null;
     pending = null;
     const pk = pageKind();
     if (pk.kind === 'share') return { ok: false, text: 'Zettelbranch does not work on shared conversations.' };
-    if (pk.kind !== 'chat') return { ok: false, text: opened ? `After you send the first message of ${opened.address} and Claude replies, click Name this branch.` : 'Open a conversation to branch from it.' };
+    if (pk.kind === 'new' && opened) return { ok: false, steps: { ...opened } };
+    if (pk.kind !== 'chat') return { ok: false, text: 'Open a conversation to branch from it.' };
     let c;
     try {
       const conv = await A().getConversation(pk.id);
@@ -112,10 +119,12 @@
       c = { id: pk.id, title: pageTitle(pk.id), messages: page.messages, source: 'page', apiError: explain(e) };
     }
     c.messages.forEach((m, i) => (m.label = label(m, i, c.messages)));
-    // A branch still to be named: its first message has a header, its title not the address.
+    // A branch: its first message has a header. Named once its title is `<tree>/<address> · <topic>`.
     const first = c.messages[0];
     c.branch = first && first.n === 1 && first.role === 'user' ? P().parseHeader(first.text) : null;
-    c.needsName = !!c.branch && !c.title.startsWith(`${c.branch.tree}/${c.branch.address} · `);
+    c.named = !!c.branch && !!P().namedTopic(c.title, c.branch);
+    c.needsName = !!c.branch && !c.named;
+    if (c.named && c.source === 'api') settle(c.branch);
     const lastReply = c.messages.map((m) => m.role).lastIndexOf('assistant');
     c.selected = lastReply >= 0 ? lastReply : c.messages.length - 1;
     chat = c;
@@ -259,23 +268,24 @@
     await sleep(300);
     const inBox = editorText(find('composer') || box);
     pending = null;
-    opened = { address: p.address, parent: p.parent };
-    return { ok: true, address: p.address, chars: p.chars, exact: inBox === p.text, inBox: inBox.length };
+    // own: the box ends with your message, when you branched instead of it.
+    opened = { address: p.address, parent: p.parent, own: p.fork.role === 'user' };
+    return { ok: true, address: p.address, own: opened.own, chars: p.chars, exact: inBox === p.text, inBox: inBox.length };
   }
 
   // ---------------------------------------------------------------- naming
 
-  // The first words of Claude's reply, as the topic when claude.ai has no title yet.
-  function firstWords(reply) {
-    const summary = P().parseSummary(reply);
-    const body = P().stripSummary(reply).trim() || (summary ? summary.text : reply);
-    const words = body.replace(/[#*_`>[\]]/g, ' ').split(/\s+/).filter(Boolean).slice(0, 8).join(' ');
-    return words.slice(0, 60).replace(/[\s.,:;!?-]+$/, '');
-  }
+  // Where the proposed topic comes from (prompt.js, proposeTopic), said in the dialog.
+  const FROM = {
+    current: 'Proposed: its current name.',
+    title: 'Proposed from claude.ai\'s title.',
+    question: 'Proposed from your first question in this branch.',
+    reply: 'Proposed from Claude\'s first reply.',
+  };
 
   // The name, in a browser dialog. The topic can change; the address part must stay.
-  function askName(prefix, topic) {
-    let ask = 'Zettelbranch: name this branch. You can change the topic; the address part stays.';
+  function askName(prefix, topic, from) {
+    let ask = `Zettelbranch: name this branch. ${FROM[from]} You can change the topic; the address part stays.`;
     for (let i = 0; i < 3; i++) {
       const v = window.prompt(ask, prefix + topic);
       if (v === null) return { text: 'Not renamed.' };
@@ -295,20 +305,24 @@
       const head = msgs[0] && msgs[0].role === 'user' ? P().parseHeader(msgs[0].text) : null;
       if (!head) return { ok: false, text: 'This chat does not start with a Zettelbranch header, so it is not a branch.' };
       const prefix = `${head.tree}/${head.address} · `;
-      if (conv.name.startsWith(prefix)) return { ok: false, text: `This branch is already named ${conv.name}.` };
-      const reply = msgs.find((m) => m.role === 'assistant');
-      const named = T().parseTitle(conv.name);
-      const topic = (named ? named.topic : conv.name) || (reply ? firstWords(reply.text) : '');
-      if (!topic) return { ok: false, text: 'Wait for Claude\'s reply, then click Name this branch again.' };
-      const asked = askName(prefix, topic);
+      const proposal = P().proposeTopic(conv.name, msgs);
+      if (!proposal) return { ok: false, text: 'Wait for Claude\'s reply, then click Name this branch again.' };
+      const asked = askName(prefix, proposal.topic, proposal.from);
       if (!asked.name) return { ok: false, text: asked.text };
+      if (asked.name === conv.name) {
+        settle(head);
+        return { ok: false, text: `The name did not change: ${conv.name}. Nothing was renamed.` };
+      }
       await rename(pk.id, asked.name);
-      opened = null;
+      settle(head);
       return { ok: true, renamed: asked.name };
     } catch (e) {
       return { ok: false, text: 'Could not name this branch.', error: explain(e) };
     }
   }
 
-  global.ZBBranch = { read, prepare, cancel, open, name, explain, pageKind, current: () => chat, SIZE_WARNING };
+  // The branch this tab opened and has not named yet, for the pill's reminder; null if none.
+  const unnamed = () => (opened ? opened.address : null);
+
+  global.ZBBranch = { read, prepare, cancel, open, name, explain, pageKind, unnamed, current: () => chat, SIZE_WARNING };
 })(globalThis);

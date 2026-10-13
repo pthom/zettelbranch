@@ -85,14 +85,30 @@ async function openPanel() {
   await click('pill');
   assert.equal(await visible('panel'), true);
 }
-// Pascal pressing Send: the fake app's own button.
+// Pascal pressing Send: the fake app's own button. Waits for his message and the reply.
 async function pressSend() {
   sends++;
+  const rows = await page.locator('[data-testid="transcript-row"]').count();
   const wasNew = !/\/chat\//.test(page.url());
   await page.locator('[data-testid="chat-input-send"]').click();
   if (wasNew) await page.waitForURL(/\/chat\//);
-  await page.waitForFunction(() => document.querySelectorAll('[data-testid="transcript-row"]').length >= 2);
+  await page.waitForFunction((n) => document.querySelectorAll('[data-testid="transcript-row"]').length >= n + 2, rows);
 }
+// Pascal typing at the end of the message box (the test puts the caret there, as his click would).
+async function typeAtEnd(s) {
+  await page.evaluate(() => {
+    const el = document.querySelector('[data-testid="chat-input"] [contenteditable="true"]');
+    el.focus();
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    range.collapse(false);
+    getSelection().removeAllRanges();
+    getSelection().addRange(range);
+  });
+  await page.keyboard.type(s);
+}
+const step = async (n) => ((await Z(`step-${n}`).locator('p').first().textContent()) || '').trim();
+const convNamed = (name) => [...fake.convs.values()].find((c) => c.name === name);
 // The message box's text, by the same rules as the extension's editorText.
 const editorText = () => page.evaluate(() => {
   const el = document.querySelector('[data-testid="chat-input"] [contenteditable="true"]');
@@ -141,6 +157,13 @@ async function shot(name) {
   await page.waitForTimeout(150);
   await page.locator('#zettelbranch').screenshot({ path: path.join(SHOTS, name) });
 }
+// The same, in light and dark: `<name>-light.png`, `<name>-dark.png`.
+async function shots(name) {
+  await shot(`${name}-light.png`);
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await shot(`${name}-dark.png`);
+  await page.emulateMedia({ colorScheme: 'light' });
+}
 
 // ---------------------------------------------------------------- tests
 
@@ -159,6 +182,7 @@ test('the pill mounts on chat pages, not on shared ones; nothing happens before 
   await click('hide');
   assert.equal(await visible('panel'), false);
   assert.equal(await visible('pill'), true);
+  assert.equal(await text('pill'), 'Zettelbranch');
 });
 
 test('the panel lists the messages, Claude\'s last reply chosen', async () => {
@@ -211,43 +235,72 @@ test('branch from Claude\'s reply: next address by segments (1a exists; 1a1 and 
   await page.emulateMedia({ colorScheme: 'light' });
 });
 
-test('Open new chat: the box holds exactly the preview text; Send is not pressed', async () => {
+test('Open new chat: the box holds exactly the preview text; Send is not pressed; two steps say what comes next', async () => {
   const sendsBefore = requestLog.filter((r) => r.url.endsWith('/fake/send')).length;
   await click('open');
   assert.match(page.url(), /\/new$/);
-  assert.match(await text('opened'), /holds the first message of zbtest\/1b\. Read it, change it if you like, then press Send\./);
+  assert.equal(await text('opened'), 'The new chat holds the first message of zbtest/1b.');
+  assert.equal(await step(1), 'Type your question at the end of the box, after the instructions, then press Send.');
+  assert.equal(await step(2), 'When Claude has replied:');
+  assert.equal(await Z('step-2').locator('[data-zb="name"]').textContent(), 'Name this branch');
   assert.equal(await Z('warning').count(), 0, 'the box matches the preview');
   assert.equal(await editorText(), previewText);
   assert.equal(await page.locator('[data-testid="chat-input-send"]').isEnabled(), true, 'the app saw the text');
   await page.waitForTimeout(500);
   assert.equal(requestLog.filter((r) => r.url.endsWith('/fake/send')).length, sendsBefore, 'nothing sent');
-  await shot('opened-light.png');
+  await remember();
+  await shots('opened');
 });
 
-test('Name this branch after Claude\'s reply: the automatic title proposed, accepted, then the reload notice', async () => {
+test('while the branch is not named, the hidden panel\'s pill says so; opened again in the new chat, the steps', async () => {
+  const before = apiCount();
+  await click('hide');
+  assert.equal(await text('pill'), 'Zettelbranch: name this branch');
+  assert.equal(await Z('pill').getAttribute('title'), 'zbtest/1b is not named yet. Click, then Name this branch.');
+  await shots('pill-remind');
+  await openPanel();
+  assert.equal(await text('status'), 'You opened the branch zbtest/1b in a new chat.');
+  assert.equal(await step(1), 'Type your question at the end of the box, after the instructions, then press Send.');
+  assert.equal(apiCount(), before, 'no API call in the new chat');
+  assert.equal(await editorText(), previewText, 'the box is untouched');
+});
+
+test('Name this branch: claude.ai named the branch after its parent, so the name comes from your question', async () => {
+  await typeAtEnd('What about fish and birds?');
   await pressSend();
+  const id = /\/chat\/([0-9a-f-]{36})/.exec(page.url())[1];
+  assert.equal(fake.convs.get(id).name, 'Root topic', 'the fake names a branch after its parent, as claude.ai did');
+  await click('hide');
+  assert.equal(await text('pill'), 'Zettelbranch: name this branch');
+  await openPanel();
+  assert.match(await text('name-box'), /^This chat is the branch zbtest\/1b, not named yet\.Name this branch$/);
+  assert.equal(await text('chat-title'), 'Root topic');
+  assert.equal(await Z('rename').count(), 0);
+  await remember();
+  await shots('name-box');
   plan({});
   await click('name');
   allAnswered();
   const d = dialogs[dialogs.length - 1];
   assert.equal(d.type, 'prompt');
-  assert.equal(d.defaultValue, 'zbtest/1b · Auto title of a branch');
-  assert.match(d.message, /You can change the topic; the address part stays/);
-  assert.equal(puts().at(-1).name, 'zbtest/1b · Auto title of a branch');
-  assert.equal(await text('notice'), 'Named zbtest/1b · Auto title of a branch. Your phone shows it now. Here, the title at the top shows it after a reload; the sidebar can take a few minutes more.Reload now');
-  assert.equal(await text('chat-title'), 'zbtest/1b · Auto title of a branch');
+  assert.equal(d.defaultValue, 'zbtest/1b · What about fish and birds');
+  assert.equal(d.message, 'Zettelbranch: name this branch. Proposed from your first question in this branch. You can change the topic; the address part stays.');
+  assert.equal(puts().at(-1).name, 'zbtest/1b · What about fish and birds');
+  assert.equal(await text('notice'), 'Named zbtest/1b · What about fish and birds. Your phone shows it now. Here, the title at the top shows it after a reload; the sidebar can take a few minutes more.Reload now');
+  assert.equal(await text('chat-title'), 'zbtest/1b · What about fish and birds');
   assert.equal(await Z('name-box').count(), 0);
-  assert.equal(await row(2).textContent(), '2ClaudeParent zbtest/1 in brief: We talked about card boxes and the…');
+  assert.equal(await Z('rename').isVisible(), true, 'a named branch can be renamed');
+  assert.equal(await row(2).textContent(), '2ClaudeHere is my answer to your message.');
   await remember();
   await shot('notice-light.png');
 });
 
 test('Reload now reloads the page; the sidebar then shows the new name', async () => {
   const sidebarBefore = await page.locator('[data-testid="sidebar-recents"]').textContent();
-  assert.ok(!sidebarBefore.includes('zbtest/1b · Auto title'), 'the open tab still shows the old name');
+  assert.ok(!sidebarBefore.includes('zbtest/1b · What about'), 'the open tab still shows the old name');
   await Promise.all([page.waitForEvent('load'), Z('reload').click()]);
-  await page.waitForFunction(() => document.title.startsWith('zbtest/1b · Auto title of a branch'));
-  assert.ok((await page.locator('[data-testid="sidebar-recents"]').textContent()).includes('zbtest/1b · Auto title of a branch'));
+  await page.waitForFunction(() => document.title.startsWith('zbtest/1b · What about fish and birds'));
+  assert.ok((await page.locator('[data-testid="sidebar-recents"]').textContent()).includes('zbtest/1b · What about fish and birds'));
   assert.equal(await visible('panel'), false);
 });
 
@@ -264,12 +317,18 @@ test('branch from your own message: it is pre-filled; next address 1c; Name with
   assert.ok(p.endsWith('</zb-instructions>\n\nHow does branching work?'));
   await click('open');
   assert.equal(await editorText(), p);
+  assert.equal(await step(1), 'Your message is at the end of the box, after the instructions. Change it if you like, then press Send.');
   await pressSend();
   plan({ value: 'zbtest/1c · My own topic' });
   await click('name');
   allAnswered();
+  assert.equal(dialogs.at(-1).defaultValue, 'zbtest/1c · How does branching work');
+  assert.match(dialogs.at(-1).message, / Proposed from your first question in this branch\. /);
   assert.equal(puts().at(-1).name, 'zbtest/1c · My own topic');
   assert.match(await text('notice'), /^Named zbtest\/1c · My own topic\./);
+  await click('hide');
+  assert.equal(await text('pill'), 'Zettelbranch', 'named: no more reminder');
+  assert.equal(await Z('pill').getAttribute('title'), null);
 });
 
 test('branch from the first message: empty transcript, no summary asked; Cancel goes back', async () => {
@@ -335,46 +394,75 @@ test('a chat not in a tree: an invalid tree name is asked again; accepted, the c
   assert.equal((await Z('preview').textContent()).split('\n')[2].slice(0, 63), 'Forked from: oulipo/1 · Oulipo and constraints, after message 2');
 });
 
-test('Name this branch: a wrong edit is asked again, then cancelled; with no title yet, the reply\'s first words', async () => {
+test('Name this branch: a wrong edit is asked again, then cancelled; with no title yet, the question\'s first words', async () => {
   fake.options.autoTitle = false;
   await click('open');
   assert.equal(await Z('notice').isVisible(), false, 'the reload notice is gone once the new chat opens');
-  await page.locator('[data-testid="chat-input"] [contenteditable="true"]').press('End');
-  await page.keyboard.type('What is a lipogram?');
+  await typeAtEnd('What is a lipogram?');
   await pressSend();
   const putsBefore = puts().length;
   plan({ value: 'Wrong prefix' }, { value: 'oulipo/1a ·   ' }, { dismiss: true });
   await click('name');
   allAnswered();
   const ds = dialogs.slice(-3);
-  assert.equal(ds[0].defaultValue, 'oulipo/1a · Here is my answer to your message');
+  assert.equal(ds[0].defaultValue, 'oulipo/1a · What is a lipogram');
+  assert.match(ds[0].message, / Proposed from your first question in this branch\. /);
   assert.match(ds[1].message, /must start with "oulipo\/1a · " followed by a topic/);
   assert.equal(await text('info'), 'Not renamed.');
   assert.equal(puts().length, putsBefore);
   plan({});
   await click('name');
   allAnswered();
-  assert.equal(puts().at(-1).name, 'oulipo/1a · Here is my answer to your message');
+  assert.equal(puts().at(-1).name, 'oulipo/1a · What is a lipogram');
   fake.options.autoTitle = true;
 });
 
-test('a branch opened later shows Name this branch in the panel', async () => {
+test('Pascal\'s case, after a reload: prompt sent as is, question in a second message; the top box names the branch from it', async () => {
   // zbtest/1a2 from the flattening test was never opened; make a branch and leave it unnamed.
   await goChat(fake.ids.ten);
   await openPanel();
   await click('branch');
   await click('open');
+  await pressSend(); // sent as is: Claude replies with the summary only
+  await typeAtEnd('Fish and birds?');
   await pressSend();
   await page.reload();
   await page.locator('#zettelbranch').waitFor({ state: 'attached' });
+  assert.equal(await text('pill'), 'Zettelbranch', 'the reminder lives in memory only');
   await openPanel();
   assert.match(await text('name-box'), /^This chat is the branch zbtest\/10a, not named yet\./);
+  assert.equal(await text('chat-title'), 'Sibling root', 'named after its parent');
   plan({});
   await click('name');
   allAnswered();
-  assert.equal(puts().at(-1).name, 'zbtest/10a · Auto title of a branch');
+  assert.equal(dialogs.at(-1).defaultValue, 'zbtest/10a · Fish and birds');
+  assert.match(dialogs.at(-1).message, / Proposed from your first question in this branch\. /);
+  assert.equal(puts().at(-1).name, 'zbtest/10a · Fish and birds');
   await click('refresh');
   assert.equal(await Z('name-box').count(), 0);
+});
+
+test('Rename this branch, once named: its current name proposed; unchanged, nothing is renamed and the panel says so', async () => {
+  await goChat(convNamed('zbtest/1c · My own topic').uuid);
+  await openPanel();
+  assert.equal(await Z('name-box').count(), 0);
+  const putsBefore = puts().length;
+  plan({});
+  await click('rename');
+  allAnswered();
+  assert.equal(dialogs.at(-1).defaultValue, 'zbtest/1c · My own topic');
+  assert.equal(dialogs.at(-1).message, 'Zettelbranch: name this branch. Proposed: its current name. You can change the topic; the address part stays.');
+  assert.equal(await text('info'), 'The name did not change: zbtest/1c · My own topic. Nothing was renamed.');
+  assert.equal(puts().length, putsBefore, 'no rename');
+  await remember();
+  await shots('rename');
+  plan({ value: 'zbtest/1c · Branching, revisited' });
+  await click('rename');
+  allAnswered();
+  assert.equal(puts().at(-1).name, 'zbtest/1c · Branching, revisited');
+  assert.match(await text('notice'), /^Named zbtest\/1c · Branching, revisited\./);
+  assert.equal(await text('chat-title'), 'zbtest/1c · Branching, revisited');
+  assert.equal(await Z('info').isVisible(), false);
 });
 
 test('over 100,000 characters: a warning in the preview', async () => {
@@ -475,11 +563,12 @@ test('network: only the allowed API calls, renames only to tree titles, nothing 
   ];
   assert.deepEqual(fake.apiLog.filter((e) => !allowed.some((re) => re.test(`${e.method} ${e.path}`))), []);
   assert.deepEqual(puts().map((e) => e.name), [
-    'zbtest/1b · Auto title of a branch',
+    'zbtest/1b · What about fish and birds',
     'zbtest/1c · My own topic',
     'oulipo/1 · Oulipo and constraints',
-    'oulipo/1a · Here is my answer to your message',
-    'zbtest/10a · Auto title of a branch',
+    'oulipo/1a · What is a lipogram',
+    'zbtest/10a · Fish and birds',
+    'zbtest/1c · Branching, revisited',
   ]);
   assert.equal(requestLog.filter((r) => r.url.endsWith('/fake/send')).length, sends, 'every message was sent by the test, none by the extension');
   const passive = (u) => u.startsWith('data:') || u.startsWith('blob:') || u.startsWith('about:') || u.startsWith('chrome-extension:');

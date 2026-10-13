@@ -175,8 +175,11 @@ export function createFakeClaude() {
     }
     return 'ok';
   }
+  // A branch's first message holds the parent's whole conversation, so claude.ai names the
+  // branch after the parent (seen on 2026-10-13: "Poème en forme de chat" twice).
   function autoTitle(text) {
-    if (text.startsWith('Zettelbranch · ')) return 'Auto title of a branch';
+    const parent = /^Forked from: (.*?), (?:after|instead of) message/.exec(text.split('\n')[2] || '');
+    if (text.startsWith('Zettelbranch · ')) return parent ? parent[1].replace(/^[a-z0-9-]+\/[0-9a-z]+ · /, '') : 'Auto title of a branch';
     return 'Auto: ' + text.replace(/[^A-Za-z0-9 ]+/g, ' ').split(/\s+/).filter(Boolean).slice(0, 4).join(' ');
   }
 

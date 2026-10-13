@@ -45,6 +45,10 @@
     .msg .n { color: var(--muted); min-width: 2em; text-align: right; font-variant-numeric: tabular-nums; }
     .msg .who { font-weight: 600; min-width: 3.4em; }
     .msg .text { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .steps { display: flex; flex-direction: column; gap: 8px; }
+    .step { display: flex; gap: 6px; align-items: baseline; }
+    .step .num { font-weight: 700; color: var(--accent); min-width: 1.1em; }
+    .step .row { flex: 1; }
     pre { margin: 0; padding: 8px; background: var(--code); border: 1px solid var(--line); border-radius: 6px; max-height: 280px; overflow: auto; white-space: pre-wrap; word-break: break-word; font: 11px/1.45 ui-monospace, Menlo, monospace; }
   `;
 
@@ -124,6 +128,7 @@
   async function refresh() {
     say('Reading this chat…');
     const r = await B().read();
+    if (r.steps) return show(el('p', { class: 'muted', 'data-zb': 'status', text: `You opened the branch ${r.steps.address} in a new chat.` }), steps(r.steps));
     if (!r.ok) {
       say(r.text);
       if (r.error) showError('', r.error);
@@ -133,16 +138,18 @@
   }
 
   function showChat(chat) {
-    const parts = [el('p', { class: 'title', 'data-zb': 'chat-title', text: chat.title || '(no title yet)' })];
-    if (chat.source === 'page') {
-      showError('', chat.apiError);
-      parts.push(el('p', { class: 'box warn', 'data-zb': 'note', text: `claude.ai's API did not answer as expected, so Zettelbranch read the page instead. Only the ${chat.messages.length} messages on screen were read: in a long chat, earlier messages are missing. Naming branches is unavailable until the API answers.` }));
-    }
+    const parts = [];
+    // A branch still to be named, at the top: also after a reload, when the pill's reminder is gone.
     if (chat.needsName && chat.source === 'api') {
       parts.push(el('div', { class: 'box notice', 'data-zb': 'name-box' }, [
         el('p', { text: `This chat is the branch ${chat.branch.tree}/${chat.branch.address}, not named yet.` }),
         button('Name this branch', 'name', nameBranch, 'primary'),
       ]));
+    }
+    parts.push(el('p', { class: 'title', 'data-zb': 'chat-title', text: chat.title || '(no title yet)' }));
+    if (chat.source === 'page') {
+      showError('', chat.apiError);
+      parts.push(el('p', { class: 'box warn', 'data-zb': 'note', text: `claude.ai's API did not answer as expected, so Zettelbranch read the page instead. Only the ${chat.messages.length} messages on screen were read: in a long chat, earlier messages are missing. Naming branches is unavailable until the API answers.` }));
     }
     if (!chat.messages.length) {
       parts.push(el('p', { text: 'This chat has no messages yet.' }));
@@ -164,7 +171,9 @@
     });
     const list = el('div', { class: 'msgs', 'data-zb': 'messages' }, rows);
     hint.textContent = hintFor(chat.messages[chat.selected]);
-    parts.push(el('p', { text: 'Choose where the branch starts:' }), list, hint, el('div', { class: 'row' }, [button('Branch', 'branch', branch, 'primary')]));
+    // A branch already named can get another topic.
+    const rename = chat.named && chat.source === 'api' ? button('Rename this branch', 'rename', nameBranch) : null;
+    parts.push(el('p', { text: 'Choose where the branch starts:' }), list, hint, el('div', { class: 'row' }, [button('Branch', 'branch', branch, 'primary'), rename]));
     show(...parts);
     const sel = rows[chat.selected];
     list.scrollTop = sel.offsetTop - list.clientHeight / 2;
@@ -205,6 +214,16 @@
     await refresh();
   }
 
+  // The pill reminds you of a branch this tab opened and has not named yet (memory only).
+  function hide() {
+    const due = B().unnamed();
+    ui.pill.textContent = due ? 'Zettelbranch: name this branch' : 'Zettelbranch';
+    if (due) ui.pill.setAttribute('title', `${due} is not named yet. Click, then Name this branch.`);
+    else ui.pill.removeAttribute('title');
+    ui.panel.hidden = true;
+    ui.pill.hidden = false;
+  }
+
   async function branch() {
     clearMessages();
     const chat = B().current();
@@ -218,17 +237,33 @@
     showPreview(r);
   }
 
+  // What to do in the new chat: after Open new chat, and when the panel opens again there.
+  // o.own: the box ends with your own message (a branch instead of it).
+  function steps(o) {
+    return el('div', { class: 'steps', 'data-zb': 'steps' }, [
+      el('div', { class: 'step', 'data-zb': 'step-1' }, [
+        el('span', { class: 'num', text: '1.' }),
+        el('p', {
+          text: o.own
+            ? 'Your message is at the end of the box, after the instructions. Change it if you like, then press Send.'
+            : 'Type your question at the end of the box, after the instructions, then press Send.',
+        }),
+      ]),
+      el('div', { class: 'step', 'data-zb': 'step-2' }, [
+        el('span', { class: 'num', text: '2.' }),
+        el('div', { class: 'row' }, [el('p', { text: 'When Claude has replied:' }), button('Name this branch', 'name', nameBranch, 'primary')]),
+      ]),
+    ]);
+  }
+
   async function openChat() {
     clearMessages();
     const r = await B().open();
     if (!r.ok) return showFailure(r);
     show(
-      el('div', { class: 'box notice', 'data-zb': 'opened' }, [
-        el('p', { text: `The new chat holds the first message of ${r.address}. Read it, change it if you like, then press Send.` }),
-      ]),
+      el('p', { class: 'box notice', 'data-zb': 'opened', text: `The new chat holds the first message of ${r.address}.` }),
       r.exact ? null : el('p', { class: 'box warn', 'data-zb': 'warning', text: `The message box holds ${r.inBox.toLocaleString('en-US')} characters, the preview had ${r.chars.toLocaleString('en-US')}. Check the box before you press Send.` }),
-      el('p', { text: 'Once Claude has replied, name the branch:' }),
-      el('div', { class: 'row' }, [button('Name this branch', 'name', nameBranch, 'primary')])
+      steps(r)
     );
   }
 
@@ -270,10 +305,7 @@
         clearMessages();
         return refresh();
       }),
-      button('Hide', 'hide', () => {
-        ui.panel.hidden = true;
-        ui.pill.hidden = false;
-      }),
+      button('Hide', 'hide', hide),
     ]);
     ui.panel = el('div', { class: 'panel', 'data-zb': 'panel', hidden: '' }, [top, el('div', { class: 'main' }, [ui.notice, ui.error, ui.info, ui.body])]);
     ui.wrap = el('div', { class: 'wrap' }, [ui.pill, ui.panel]);

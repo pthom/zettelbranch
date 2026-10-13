@@ -1,5 +1,5 @@
-// Zettelbranch: the branch prompt, per specs/forking__prompt.md, and parsing it back.
-// Pure functions, no DOM, no network.
+// Zettelbranch: the branch prompt, per specs/forking__prompt.md, parsing it back, and the
+// topic proposed for a branch's name. Pure functions, no DOM, no network.
 //
 // A branch's first message:
 //   1. header (3 plain lines)   2. <zb-transcript> of <zb-turn>   3. <zb-instructions>
@@ -67,6 +67,84 @@
     const m = /^Parent (\S+) in brief:\s*/.exec(text);
     return m ? { parent: m[1], text: text.slice(m[0].length) } : null;
   }
+
+  // ---------------------------------------------------------------- a branch's name
+
+  // The parent's title, from the header's third line: "Forked from: <title>, after message 4
+  // (Claude): …" or "…, instead of message 3 (me): …". '' if the line is not there.
+  function parseParentTitle(text) {
+    const m = /^Forked from: (.*?), (?:after|instead of) message \d+ \((?:Claude|me)\): "/.exec(String(text).split('\n')[2] || '');
+    return m ? m[1] : '';
+  }
+
+  // The topic of a title that already names this branch, `<tree>/<address> · <topic>` (with
+  // ` . ` or ` - ` typed by hand too). '' if the title does not name it.
+  function namedTopic(title, head) {
+    const t = T().parseTitle(title);
+    return t && t.tree === head.tree && t.address === head.address ? t.topic.trim() : '';
+  }
+
+  // Titles compared loosely: without an address prefix, spaces or case.
+  function topicKey(title) {
+    const t = T().parseTitle(title);
+    return String(t ? t.topic : title).normalize('NFC').replace(/\s+/g, ' ').trim().toLowerCase();
+  }
+
+  // A message's first words, as a topic: at most 6 words and 50 characters, cut at a word.
+  // Placeholders, Markdown marks and a trailing punctuation mark are left out.
+  function shortTopic(text) {
+    const own = String(text).replace(/(^|\n\n)\[(?:file|artifact|image|pasted text)\b[\s\S]*$/, '');
+    const words = plain(own).replace(/[#*_`>[\]]/g, ' ').split(/\s+/).filter(Boolean);
+    let out = '';
+    for (const w of words.slice(0, 6)) {
+      const next = out ? `${out} ${w}` : w;
+      if (next.length > 50) break;
+      out = next;
+    }
+    if (!out && words.length) out = words[0].slice(0, 50);
+    return out.replace(/[\s.,:;!?…¿¡\-–—]+$/u, '');
+  }
+
+  // The first words of Claude's reply, after the summary (or of the summary, if the reply is
+  // only that).
+  function firstWords(reply) {
+    const summary = parseSummary(reply);
+    const body = stripSummary(reply).trim() || (summary ? summary.text : reply);
+    const words = body.replace(/[#*_`>[\]]/g, ' ').split(/\s+/).filter(Boolean).slice(0, 8).join(' ');
+    return words.slice(0, 60).replace(/[\s.,:;!?-]+$/, '');
+  }
+
+  // The topic proposed when naming a branch, and where it comes from:
+  //   'current'   the branch is named already: its topic, to change it
+  //   'title'     claude.ai's title, unless it is empty or repeats the parent's (claude.ai
+  //               names a chat from its first message, which holds the parent's conversation)
+  //   'question'  else the first question asked in the branch: your text after the
+  //               instructions in its first message, else your next message
+  //   'reply'     else the first words of Claude's first reply
+  // title: claude.ai's title; messages: the branch's path [{ n, role, text }]. Null if the
+  // chat is not a branch, or if there is nothing to propose yet.
+  function proposeTopic(title, messages) {
+    const first = messages[0];
+    const head = first && first.role === 'user' ? parseHeader(first.text) : null;
+    if (!head) return null;
+    const current = namedTopic(title, head);
+    if (current) return { topic: current, from: 'current' };
+    const t = T().parseTitle(title);
+    const own = String(t ? t.topic : title || '').replace(/\s+/g, ' ').trim();
+    const parent = parseParentTitle(first.text);
+    if (own && !(parent && topicKey(own) === topicKey(parent))) return { topic: own, from: 'title' };
+    const parsed = parseBranchMessage(first.text);
+    const asked = [parsed ? parsed.ownText : '', ...messages.slice(1).filter((m) => m.role === 'user').map((m) => m.text)];
+    for (const q of asked) {
+      const topic = shortTopic(q);
+      if (topic) return { topic, from: 'question' };
+    }
+    const reply = messages.find((m) => m.role === 'assistant');
+    const words = reply ? firstWords(reply.text) : '';
+    return words ? { topic: words, from: 'reply' } : null;
+  }
+
+  // ---------------------------------------------------------------- the prompt
 
   // upTo: the parent's last message in the transcript (0 if the transcript holds only the
   // history the parent was itself branched from).
@@ -148,5 +226,8 @@
     return { text, turns: turns.length, flattened: !!parsed, chars: text.length, tokens: Math.round(text.length / 4) };
   }
 
-  global.ZBPrompt = { build, parseHeader, parseBranchMessage, stripSummary, parseSummary, quote, plain, escapeZb, unescapeZb };
+  global.ZBPrompt = {
+    build, parseHeader, parseBranchMessage, stripSummary, parseSummary, quote, plain, escapeZb, unescapeZb,
+    parseParentTitle, namedTopic, shortTopic, firstWords, proposeTopic,
+  };
 })(globalThis);

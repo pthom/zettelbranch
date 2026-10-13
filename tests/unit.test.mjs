@@ -490,6 +490,78 @@ describe('prompt.js', () => {
   });
 });
 
+// ---------------------------------------------------------------- the name proposal
+
+describe('prompt.js, the topic proposed for a branch\'s name', () => {
+  const P = loadIntoWindow(['tree.js', 'prompt.js']).ZBPrompt;
+  const ROOT = [
+    { n: 1, role: 'user', text: 'Write a poem in the shape of a cat.' },
+    { n: 2, role: 'assistant', text: 'Here is a calligram.' },
+  ];
+  // The first message of oulipo/1a, from Claude's reply 2 of oulipo/1, with `own` typed after it.
+  const header = (own = '') => P.build({ tree: 'oulipo', parentTitle: 'oulipo/1 · Poème en forme de chat', parentAddress: '1', newAddress: '1a', messages: ROOT, fork: 1 }).text + own;
+  const summary = '> Parent oulipo/1 in brief: We wrote a calligram of a cat.';
+  const branch = (own, ...more) => [
+    { n: 1, role: 'user', text: header(own) },
+    { n: 2, role: 'assistant', text: own ? `${summary}\n\nFish and birds can share a page.` : summary },
+    ...more.map((text, i) => ({ n: 3 + i, role: i % 2 ? 'assistant' : 'user', text })),
+  ];
+  const propose = (title, messages) => ({ ...P.proposeTopic(title, messages) });
+
+  test('the parent\'s title, from the header', () => {
+    assert.equal(P.parseParentTitle(header()), 'oulipo/1 · Poème en forme de chat');
+    assert.equal(P.parseParentTitle('Zettelbranch · zb/1a\nPath: zb/1 › 1a\nForked from: zb/1 · A, b, c, instead of message 3 (me): "x"'), 'zb/1 · A, b, c');
+    assert.equal(P.parseParentTitle('Hello'), '');
+  });
+
+  test('claude.ai\'s title repeats the parent\'s: the first question in the branch, typed after the instructions', () => {
+    const msgs = branch('Et si le chat parlait aux poissons et aux oiseaux ?');
+    const want = { topic: 'Et si le chat parlait aux', from: 'question' };
+    for (const title of ['Poème en forme de chat', '  poème en  forme de CHAT ', 'oulipo/1 · Poème en forme de chat', 'oulipo/1 . poème en forme de chat', 'oulipo/1a · Poème en forme de chat']) {
+      assert.deepEqual(propose(title, msgs), title.startsWith('oulipo/1a') ? { topic: 'Poème en forme de chat', from: 'current' } : want, title);
+    }
+    assert.deepEqual(propose('', msgs), want, 'no title yet');
+    assert.deepEqual(propose('oulipo/1a', msgs), want, 'the address without a topic');
+  });
+
+  test('the prompt sent as is: the question asked in the next message', () => {
+    const msgs = branch('', 'Fish and birds?', 'They can.');
+    assert.deepEqual(propose('Poème en forme de chat', msgs), { topic: 'Fish and birds', from: 'question' });
+    const image = branch('', '[file: fish.png, not copied]', 'A fish.', 'And birds, then?');
+    assert.deepEqual(propose('', image), { topic: 'And birds, then', from: 'question' }, 'a message with only a placeholder is skipped');
+  });
+
+  test('cut at a word: at most 6 words and 50 characters, no trailing punctuation, no placeholders or Markdown', () => {
+    assert.equal(P.shortTopic('One two three four five six seven eight.'), 'One two three four five six');
+    assert.equal(P.shortTopic('Antidisestablishmentarianism and supercalifragilistic words, really'), 'Antidisestablishmentarianism and');
+    assert.equal(P.shortTopic('Pourquoi ?'), 'Pourquoi');
+    assert.equal(P.shortTopic('Fish, birds…'), 'Fish, birds');
+    assert.equal(P.shortTopic('**Fish** and `birds`!\n\n[file: photo.png, not copied]\n\n[pasted text: notes.txt]\nPASTED'), 'Fish and birds');
+    assert.equal(P.shortTopic('x'.repeat(80)), 'x'.repeat(50));
+    assert.equal(P.shortTopic('[file: photo.png, not copied]'), '');
+    assert.equal(P.shortTopic('  ?! '), '');
+  });
+
+  test('claude.ai\'s title kept when it differs from the parent\'s', () => {
+    assert.deepEqual(propose('Poissons et oiseaux', branch('Et les poissons ?')), { topic: 'Poissons et oiseaux', from: 'title' });
+    assert.deepEqual(propose('zbtest/7 · Poissons', branch('Et les poissons ?')), { topic: 'Poissons', from: 'title' }, 'another address: its topic');
+  });
+
+  test('nothing else to go on: the first words of Claude\'s reply; nothing at all: null', () => {
+    assert.deepEqual(propose('Poème en forme de chat', branch('')), { topic: 'We wrote a calligram of a cat', from: 'reply' });
+    assert.equal(P.proposeTopic('', [{ n: 1, role: 'user', text: header() }]), null);
+    assert.equal(P.proposeTopic('Poème en forme de chat', [{ n: 1, role: 'user', text: 'Not a branch' }, ROOT[1]]), null, 'not a branch');
+  });
+
+  test('a branch named already: its current name, typed by hand too', () => {
+    assert.deepEqual(propose('oulipo/1a · Poisson et oiseau', branch('Fish?')), { topic: 'Poisson et oiseau', from: 'current' });
+    assert.deepEqual(propose('oulipo/1a - Poisson et oiseau', branch('Fish?')), { topic: 'Poisson et oiseau', from: 'current' });
+    assert.equal(P.namedTopic('oulipo/1a · x', { tree: 'oulipo', address: '1a' }), 'x');
+    assert.equal(P.namedTopic('oulipo/1a1 · x', { tree: 'oulipo', address: '1a' }), '');
+    assert.equal(P.namedTopic('zb/1a · x', { tree: 'oulipo', address: '1a' }), '');
+  });
+});
+
 // ---------------------------------------------------------------- a real conversation
 
 // `zbtest/1 . fixture`, made and saved by hand by Pascal on 2026-10-13, ids replaced
