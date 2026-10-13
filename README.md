@@ -39,4 +39,4 @@ Tests run offline, against a fake claude.ai: `cd tests && npm install && npm tes
 
 ## License
 
-Not chosen yet.
+[MIT](LICENSE).
