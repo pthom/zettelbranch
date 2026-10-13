@@ -21,10 +21,10 @@ The first message of a branch has four parts, in this order:
 Long material goes first and the question last: Anthropic's long-context advice, and it
 puts the cursor where you type.
 
-If claude.ai turns long text into a "Pasted" attachment *(to verify, Milestone 0)*, the
-extension inserts the parts separately: header, then transcript, then instructions. The
-transcript may become an attachment; the header, instructions and your message stay
-inline text. Nothing below depends on which case happens.
+Long text stays inline: inserted with one `execCommand` call, 100,000 characters stayed
+plain text and reached the model (Milestone 0, P2). Only a paste turns long text into a
+"Pasted" attachment, and the extension never pastes. So the whole prompt goes in at
+once.
 
 ## Header
 
@@ -165,8 +165,8 @@ The API holds it (`extracted_content`); the page only while that message is on s
 ## Size
 
 Every branch re-sends the whole path from the root. The preview shows the size in
-characters and an estimated token count, and warns above a threshold (to be set after
-Milestone 0). The "summary only" and "last N turns" modes (FK-2) are where this goes
+characters and an estimated token count, and warns above 100,000 characters, the
+largest size tested (Milestone 0). The "summary only" and "last N turns" modes (FK-2) are where this goes
 later.
 
 ## Open points

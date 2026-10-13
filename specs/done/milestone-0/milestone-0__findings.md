@@ -1,6 +1,25 @@
 # Milestone 0 findings
 
-Results of the Milestone 0 spike ([milestone-0__specs](milestone-0__specs.md)). Started 2026-10-13.
+Results of the Milestone 0 spike ([milestone-0__specs](milestone-0__specs.md)). Started and
+closed on 2026-10-13. The facts Milestone 1 needs are also in
+[claude-ai__findings](../../claude-ai__findings.md#9-checked-on-pascals-account-milestone-0).
+
+## In brief
+
+| Probe | Question | Answer | For Milestone 1 |
+|---|---|---|---|
+| P0 | Can a saved page be read? | Yes: 44 of 44 messages, text 99.9% identical | The offline harness works on hand-saved pages |
+| P1 | Does inserted text reach the app? | Yes, exactly: line breaks, indentation, fences | Insert with one `execCommand('insertText')` call |
+| P2 | Does long text stay inline? | Yes, up to 100,000 characters, and it reaches the model | No paste, no splitting; the whole prompt in one call |
+| P3 | New chat without a page load? | Yes, through the app's own New chat link; memory survives | The prompt travels in memory, no storage (DA-D1) |
+| P4 | Can a title be renamed, and does it last? | Yes, before and after the automatic title | Rename through the API; the open tab shows it only after a reload (to solve) |
+| P5 | Can the full list be read? | Yes: 67 in one request; the sidebar shows 15 | The registry reads the API list |
+| P6 | Does the page hold the whole chat? | No: 11 of 80 messages | Extraction reads the API |
+| P7 | Stable selectors on a chat page? | Yes: test ids and attributes | The page is the fallback only |
+| P8 | Does Claude follow the branch prompt? | Yes: summary first, right parent, no re-answering | Keep the draft; no summary for a first-message branch |
+
+No bot check appeared in five sessions by hand. Test chats created: 7 (P1, P4, P8, P2),
+deleted by Pascal after the last session.
 
 ## Run log
 
@@ -14,6 +33,7 @@ Results of the Milestone 0 spike ([milestone-0__specs](milestone-0__specs.md)). 
 | 2026-10-13 | Second session, spike 0.0.3: P4 (renames), stopped at P8 (its panel was unclear) | by hand | none | 2 (P4 chats A and B), 2 messages sent |
 | 2026-10-13 | Third session, spike 0.0.4: P4 after a reload, P8 (two branches of `zbtest/2`), P3, P5 | by hand | none | 2 (P8 branches), 2 messages sent |
 | 2026-10-13 | Fourth session, spike 0.0.4: P8's checks, P5, P6 and P7 on one of Pascal's own long chats (read-only), P2 refused | by hand | none | 0 |
+| 2026-10-13 | Fifth session, spike 0.0.6: P2, 20k and 100k | by hand | none | 2 (P2), 2 long messages sent |
 
 ## P0 · Read a shared conversation
 
@@ -24,7 +44,7 @@ no automated access to claude.ai, not even one page load. The earlier plan of on
 headless page loads was dropped before any load.
 
 Why: the Consumer Terms forbid accessing claude.ai "through automated or non-human means,
-whether through a bot, script, or otherwise" ([terms__findings](terms__findings.md)).
+whether through a bot, script, or otherwise" ([terms__findings](../../terms__findings.md)).
 Pascal chose manual saves (2026-10-13).
 
 So P0 no longer tests whether claude.ai loads in an automated browser, or whether bot
@@ -212,7 +232,7 @@ results" copies every result of the tab as JSON.
 | `compare.js` | Text comparison, as in P0 |
 | `conv.js` | Titles and addresses by segments; the message path and text from the API's tree |
 | `claude-api.js` | The only network file: four calls, listed at its top |
-| `prompt.js` | The branch prompt, per [forking__prompt](forking__prompt.md) |
+| `prompt.js` | The branch prompt, per [forking__prompt](../../forking__prompt.md) |
 | `probes.js` | P1 to P8 and their guards |
 | `panel.js` | The panel |
 | `content.js` | Share pages: P0. Other pages: the panel |
@@ -306,6 +326,24 @@ also prints a plain `grep` for each check.
 | No extension APIs (`chrome.*`) | pass |
 | Manifest: no permissions, no background, claude.ai only | pass |
 
+## Fifth probe session: P2
+
+2026-10-13, by Pascal, spike 0.0.6. Each size in a new chat that the panel opened itself.
+
+| | 20k | 100k |
+|---|---|---|
+| Inserted | 19,931 characters, 234 lines, in 0.1 s | 99,973 characters, 1,162 lines, in 0.8 s |
+| In the box | all of it, as plain paragraphs; no attachment chip, no new test id | the same |
+| Sent (read back through the API) | the whole text, no attachment, no file | the same |
+| Reached the model | yes: Claude replied with line 3, exactly | yes, the same |
+| Renamed after the check | `zbtest/p2-20k · zbtest filler for P2` | `zbtest/p2-100k · zbtest filler for P2` |
+
+So a single `execCommand('insertText')` call keeps even 100,000 characters (about 25,000
+tokens) as inline text, and the model sees all of it. claude.ai's conversion into a
+"Pasted" attachment belongs to its paste handler, which the extension never triggers.
+The three-part insert ("Header + transcript") is not needed and was not run. Above
+100,000 characters is untested.
+
 ## Fourth probe session: P8's check, P6, P7
 
 2026-10-13, by Pascal, spike 0.0.4 (the extension was not reloaded to 0.0.5).
@@ -322,7 +360,7 @@ also prints a plain `grep` for each check.
 So the prompt works, and Claude did not re-answer the transcript. One flaw: a branch from
 a chat's first message has nothing to summarise. Fixed in 0.0.6 (spike 4b87d1f): such a
 branch asks for no summary, and the check expects none; the text is in
-[forking__prompt](forking__prompt.md#instructions). Tested offline only.
+[forking__prompt](../../forking__prompt.md#instructions). Tested offline only.
 
 **P6 · Page versus API**, on one of Pascal's own long chats (counts only):
 
@@ -521,13 +559,12 @@ P2's checks then offer to rename the chat to `zbtest/p1 · <automatic title>` or
 `zbtest/p2-<size> · …`, after the usual dialog. These names are not addresses, so the
 tree probes ignore them. Spike a2302f6.
 
-### Still open for the next clicks
+### Left open at the close
 
-- **Attachment chip:** still unknown; P2's long text should show it. After each
-  insertion the probes list every new `data-testid` on the page.
-- **Long text:** whether a single large `execCommand` call stays inline (P2).
-- **claude.ai's `summary` field:** what it holds (P5, 0.0.5, test chats only).
-- **Page title:** format unknown; P4 "Read title" shows it.
+- **claude.ai's `summary` field:** what it holds. Not looked at (it needs a `zbtest/`
+  chat and P5 in 0.0.5 or later).
+- **Page title:** its format; P4 "Read title" was not run.
+- **An attachment made by a paste:** never seen, since no insertion became one.
 
 ## Files
 

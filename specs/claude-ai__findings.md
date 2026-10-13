@@ -187,9 +187,8 @@ QoL's: rename after the first reply has finished, then read the title back.
   ([intellectronica gist, 2025-12-08](https://gist.github.com/intellectronica/96ec4201f2538ac42bcaa93665580b30);
   [Greasy Fork "Chunked Paste" v1.5](https://greasyfork.org/en/scripts/567635-claude-chunked-paste-bypass-attachment-detection)).
   This suggests that claude.ai's paste handler does the conversion and that text typed in
-  with `execCommand` stays inline. Short text does (P1, 2026-10-13); long text
-  *(to verify, P2)*. Whether a single large `execCommand` call also stays inline: not
-  found.
+  with `execCommand` stays inline. It does: in one call, 20,000 and 100,000 characters
+  stayed inline text and reached the model (P1, P2, 2026-10-13).
 - Merged accounts *(to verify)*, per the bard README of 2026-10-08:
   - text attachments travel inline, up to 4 MB;
   - an attachment too big for the model's context window "upgrades" the chat to a
@@ -377,3 +376,26 @@ and write. That makes the same-page default, or a URL, the simpler handoff. test
 "Bot checks": the headless Chromium plan holds only with `channel: 'chromium'` (or Chrome
 for Testing), never branded Chrome. The spec's Firefox path should be `web-ext run` or
 Selenium, not Playwright. trust-audit__findings "One codebase, no build" is confirmed.
+
+## 9. Checked on Pascal's account (Milestone 0)
+
+Pascal's merged ("one Claude") account, in Chrome, on 2026-10-13, by hand, with the
+spike's probe panel. Details:
+[milestone-0__findings](done/milestone-0/milestone-0__findings.md).
+
+| What | Found |
+|---|---|
+| Organisation | `GET /api/organizations`; take the one whose capabilities include `chat` (Pascal has 2, 1 with chat) |
+| Conversation list | `GET …/chat_conversations_v2?limit=100&offset=0` returns `{data, has_more}`: 67 conversations in one request, 0.25 to 0.8 s. Items carry `name`, `summary` (filled for 49 of 67), `current_leaf_message_uuid`, `platform` (`CLAUDE_AI`, `VOICE`), `project_uuid`. No Cowork or Code sessions in it. |
+| One conversation | `GET …/chat_conversations/<id>?tree=True&rendering_mode=messages&render_all_tools=true`: the whole tree. Pasted text is in `attachments[].extracted_content`, files in `files_v2`. |
+| Rename | `PUT …/chat_conversations/<id>` with `{"name"}`: works before the first reply ends and after the automatic title, answers with the conversation, 0.7 to 0.9 s. The server keeps it (the phone shows it); the open tab shows it only after a reload. |
+| Message box, Send | `[data-testid="chat-input"][contenteditable="true"]`, `[data-testid="chat-input-send"]` |
+| Insertion | One `execCommand('insertText')` call: exact, line breaks and indentation kept, no Markdown shortcuts. 19,931 characters in 0.1 s, 99,973 in 0.8 s, both inline text that reached the model. |
+| New chat | `[data-testid="sidebar"] a[href="/new"][data-row-main-button]`, clicked by the content script: no page load, the script's memory survives |
+| Turns on the page | user `[data-testid="user-message"]`, Claude `[data-testid="assistant-message"]` (or `.font-claude-response`); rows `[data-testid="transcript-row"]` with `data-index` and `data-perf-row` (`human`, `assistant`) |
+| Virtualization | 11 of 80 messages in the DOM for a long chat |
+| Sidebar | `[data-testid="sidebar-recents"] a[href*="/chat/"]`: recent chats only (15 of 67) |
+| Bot checks | none, in five sessions by hand |
+
+Not checked: the page title's format, what `summary` holds, an attachment made by a
+paste, Firefox.

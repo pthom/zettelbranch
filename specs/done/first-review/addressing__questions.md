@@ -71,4 +71,4 @@ letters and numbers below. AD-1 chose a tree name instead. Same Oulipo example, 
 - **AD-D5** · After `z`, letters continue `aa`, `ab`…
 - **AD-D6** · The topic part of the title is claude.ai's automatic title; the extension
   only adds the address prefix. Depends on the Milestone 0 rename test (P4 in
-  [milestone-0__specs](../../milestone-0__specs.md)).
+  [milestone-0__specs](../milestone-0/milestone-0__specs.md)).

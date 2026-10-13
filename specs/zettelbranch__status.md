@@ -7,28 +7,30 @@ work leaves this file for the [done log](done/README.md).
 
 ## Where things are
 
-Milestone 0 spike ([plan](milestone-0__specs.md), [findings](milestone-0__findings.md)):
-every probe done except P2 (long text). Optional: a look at claude.ai's own `summary`
-field (P5). Spike version 0.0.6.
-
-Pascal finds the hand probes tedious and asked about automating them. The terms forbid
-automated access, and support did not clear tests; only a person at Anthropic can
-(see [terms__findings](terms__findings.md#open)). P2 is the last hand session.
+Milestone 0 is closed: every probe passed
+([in brief](done/milestone-0/milestone-0__findings.md#in-brief)). The facts Milestone 1
+builds on are in
+[claude-ai__findings](claude-ai__findings.md#9-checked-on-pascals-account-milestone-0).
+Next: Milestone 1, not planned yet.
 
 ## Waiting on Pascal
 
-1. **Reload** the extension (⟳ in `chrome://extensions`; the panel must say 0.0.6), then
-   the claude.ai tab.
-2. **P2**, following the panel's steps: "20k", Send, "Check after sending", OK; then
-   the same with "100k". The panel opens each new chat itself.
-3. **P5**: "List conversations" (shows the test chats' summaries).
-4. "Copy results" and paste them to Claude.
-5. **Clean up:** delete every `zbtest/` chat, and the P1 chat if still there.
-6. **Optional:** ask a person at Anthropic about automated tests (draft from Claude).
+1. **Clean up:** delete every `zbtest/` chat (`zbtest/1`, `2`, `2a`, `2b`, `p2-20k`,
+   `p2-100k`), and the P1 chat if still there (Claude answered it "ok").
+2. **Optional:** ask a person at Anthropic about automated tests (draft from Claude).
 
 ## Next for Claude
 
-1. Record P2, then close Milestone 0: its files to `done/milestone-0/`, an entry in the
-   done log, the spike's lessons in the spec.
-2. Milestone 1. Open design point: how the open tab shows a rename (an API rename looks
+1. Plan Milestone 1 in `milestone-1__specs.md`: reliable extraction (from the API, with
+   the page as fallback) and a "branch from here" button with a preview. Fixtures: saved
+   by hand (TS-1), now mostly API answers.
+2. A question for Pascal: how the open tab shows a rename made through the API (it looks
    like a failure until the page reloads).
+3. When Milestone 1 starts: delete `spike/` (it stays in git history), after Pascal
+   removes the spike extension from the test profile.
+
+## Not checked, for later
+
+- What claude.ai's own `summary` field holds (filled for most chats): could feed the
+  banner's one-line summaries.
+- The page title's format; an attachment made by a paste; Firefox.

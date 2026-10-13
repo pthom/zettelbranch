@@ -8,8 +8,8 @@ Claude maintains these files. Pascal answers questions inline and may edit anyth
 ## Conventions
 
 - **File names:** `<subject>__<kind>.md`. Subjects are lowercase with hyphens. Kinds:
-  - `specs`: the spec itself, the source of truth; also sub-plans such as
-    [milestone-0__specs](milestone-0__specs.md).
+  - `specs`: the spec itself, the source of truth; also a milestone's plan, such as
+    [milestone-0__specs](done/milestone-0/milestone-0__specs.md).
   - `findings`: analysis, risks, facts gathered. Claims about claude.ai's behaviour that
     have not been checked on the real page are tagged *(to verify)*.
   - `questions`: decisions needed from Pascal.
@@ -45,14 +45,13 @@ Claude maintains these files. Pascal answers questions inline and may edit anyth
 
 - Spec: [zettelbranch__specs](zettelbranch__specs.md)
 - Status: [zettelbranch__status](zettelbranch__status.md)
-- Milestone 0: [plan](milestone-0__specs.md), [findings](milestone-0__findings.md)
 - Branch prompt draft: [forking__prompt](forking__prompt.md)
-- What public sources say about claude.ai, and what the probes confirmed:
-  [claude-ai__findings](claude-ai__findings.md)
+- What public sources say about claude.ai, and what Milestone 0 confirmed on the real
+  site: [claude-ai__findings](claude-ai__findings.md)
 - Anthropic's terms and support's answer: [terms__findings](terms__findings.md)
 - Finished work: the [done log](done/README.md). It holds the first review of the spec
-  (findings and questions per subject, all decided) and the original design
-  conversation with its check against the vault.
+  (findings and questions per subject, all decided), the original design conversation
+  with its check against the vault, and Milestone 0 (plan and results).
 
 ## Open questions
 

@@ -2,7 +2,7 @@
 
 A short spike before Milestone 1, to settle the unknowns that can change the design.
 Decided (ZB-2 = A). Context:
-[zettelbranch__findings](done/first-review/zettelbranch__findings.md#milestone-order).
+[zettelbranch__findings](../first-review/zettelbranch__findings.md#milestone-order).
 
 Throwaway code in `spike/`, never shipped. Results go to
 [milestone-0__findings](milestone-0__findings.md), and each *(to verify)* tag in the vault
@@ -12,7 +12,7 @@ is updated.
 
 No script or automated browser touches claude.ai, not even for one page load: the
 Consumer Terms forbid it, and Anthropic support did not clear automated tests
-([terms__findings](terms__findings.md)). So:
+([terms__findings](../../terms__findings.md)). So:
 
 - **Offline work** (Claude, in the background): the spike's code runs on pages Pascal
   saved by hand, in a headless browser that serves the saved files with every network
@@ -27,26 +27,10 @@ editor's internals. Testing from the page's own world would prove the wrong thin
 
 ## Done
 
-P0 (reading a saved share page, offline), P1 (inserting text), P3 (new chat without a
-reload), P4 (renaming), P5 (the conversation list), P6 (page versus API), P7 (extraction
-on a chat page) and P8 (two real branches): results in
-[milestone-0__findings](milestone-0__findings.md),
-entries in the [done log](done/README.md). The test setup is done too: the Chrome
-profile "Zettelbranch test", the spike extension loaded unpacked, test chats in the
-`zbtest` tree.
-
-## Probes left
-
-Ordered by how much the answer can change the design. All run by Pascal's clicks, in
-ordinary chats of the `zbtest` tree.
-
-| # | Question | Pass means | Affects |
-|---|---|---|---|
-| P2 | What happens with long text? Try 5k, 20k, 100k characters. | Know whether and when text becomes an attachment, and whether it stays in the model's context. | [forking__prompt](forking__prompt.md) layout, FK-2 |
-| P5 (extra) | What does claude.ai's own `summary` field hold? Test chats only. | Know whether it could feed the banner. | Banner |
-
-P8 is the only probe that needs Claude to answer well; P2 and P4 need sent messages but
-not good replies.
+Every probe, P0 to P8, on 2026-10-13: results in
+[milestone-0__findings](milestone-0__findings.md). Not run: P1's paste fallback and P2's
+three-part insert (not needed, since one `execCommand` call works), P7 in French (the
+selectors use no visible text), and a look at claude.ai's own `summary` field.
 
 ## Running the probes (Pascal)
 

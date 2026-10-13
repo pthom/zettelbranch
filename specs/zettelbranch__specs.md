@@ -148,10 +148,11 @@ has readable addresses, cross-references, or code short enough to audit.
 - The sidebar only shows recent conversations (14 of Pascal's 63). The registry reads
   the full list through the API, which returns all of them in one request (Milestone 0,
   P5).
-- The message input is a rich-text editor. `execCommand('insertText')` works on the real
-  page: Send enables and the sent message is exact, line breaks and indentation included
-  (Milestone 0, P1). Long text may still become an attachment, and on the new experience
-  fall outside the model's context *(to verify, P2)*.
+- The message input is a rich-text editor. One `execCommand('insertText')` call works on
+  the real page: Send enables, and the sent message is exact, line breaks and indentation
+  included, up to at least 100,000 characters, which stay inline and reach the model
+  (Milestone 0, P1, P2). A paste would turn long text into an attachment; the extension
+  never pastes.
 - Renaming goes through the API; the UI is the fallback. An API rename works, even
   before the first reply ends, and survives claude.ai's automatic title (Milestone 0,
   P4). But the open tab keeps showing the old title until it reloads, and Pascal took
@@ -188,12 +189,18 @@ forbid automated access, and support did not clear automated tests
 
 ## Milestone 0
 
-A short spike before Milestone 1 on the unknowns that can change the design: title
-renaming and automatic naming, reading the full conversation list, inserting text into
-the message box (including long text). Throwaway code. Plan:
-[milestone-0__specs](milestone-0__specs.md).
+Done on 2026-10-13: a short spike on the unknowns that could change the design. Every
+probe passed. What it established:
+[claude-ai__findings](claude-ai__findings.md#9-checked-on-pascals-account-milestone-0);
+the plan and the full results are in the [done log](done/README.md). The throwaway code
+in `spike/` is deleted when Milestone 1 starts, and stays in git history.
 
 ## First milestone
+
+From Milestone 0: extraction reads the conversation through the API (the page holds only
+part of a long chat); the prompt goes into the message box in one `execCommand` call; the
+new chat opens through the app's own New chat link, the prompt held in memory. To decide:
+how the open tab shows a rename made through the API.
 
 Reliable extraction of the conversation (by role, with code blocks intact) from the
 fixtures, plus a "branch from here" button that opens a new chat with a previewed,
