@@ -31,7 +31,7 @@ See also: → zb/2a, → zb/1a3
 
 Messages are numbered along the path the page shows, both roles counted, starting at 1. The quote is there because the numbers shift if the parent's native tree is switched to another path later.
 
-The header has no topic. The topic in the title comes from claude.ai's automatic title, and the extension only adds the `zb/1b1 · ` prefix *(depends on the Milestone 0 rename test)*.
+The header has no topic. The topic in the title is proposed when you name the branch: claude.ai's automatic title, or the first words of your first question in the branch when that title repeats the parent's; you can change it.
 
 ## Transcript
 

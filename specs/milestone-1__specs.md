@@ -11,7 +11,7 @@ Builds on Milestone 0 ([what it established](claude-ai__findings.md#9-checked-on
 3. If the conversation is not in a tree yet, the extension proposes a tree name (from its title, for example `oulipo`) and turns it into the root, `oulipo/1 · <its title>`.
 4. A preview shows the exact first message of the branch, with its size. You confirm or cancel.
 5. A new chat opens with that message in the box. You read it, change it if you like, and press Send yourself.
-6. Once Claude has replied, you open the panel and click "Name this branch" (M1-3). A browser dialog proposes `oulipo/1a · <claude.ai's automatic title>`; you can change the topic, the address part stays. After the rename, a notice says the open tab shows the new name after a reload, with a "Reload now" button (M1-4). Nothing happens on its own.
+6. Once Claude has replied, you open the panel and click "Name this branch" (M1-3). A browser dialog proposes `oulipo/1a · <topic>`: claude.ai's automatic title, or, when that title just repeats the parent's (it usually does, since the first message holds the parent's transcript), the first words of your first question in the branch. You can change the topic; the address part stays. After the rename, a notice says the open tab shows the new name after a reload, with a "Reload now" button (M1-4). Nothing happens on its own.
 
 Not in Milestone 1: a button on each message, the banner (path, siblings, children, summaries), the whole-tree view, cross-references, backlinks, the trigger from the apps, the "summary only" and "last N turns" modes, projects.
 
@@ -25,7 +25,7 @@ Not in Milestone 1: a button on each message, the banner (path, siblings, childr
 | Message text | the API's message blocks | text and code kept, pasted text too; thinking and tool calls left out (FK-D1); images, files and artifacts become placeholders (`[file: photo.png, not copied]`) |
 | The new chat | the app's own New chat link | no page load; the prompt held in memory (DA-D1) |
 | Filling the box | one `execCommand('insertText')` call | exact, up to at least 100,000 characters; a warning above that |
-| Naming | a browser dialog, then `PUT …/chat_conversations/<id>` | pre-filled `<tree>/<address> · <automatic title>`; the topic can change, the address part must stay; then the reload notice |
+| Naming | a browser dialog, then `PUT …/chat_conversations/<id>` | pre-filled `<tree>/<address> · <topic>`, the topic from claude.ai's title or your first question in the branch; the topic can change, the address part must stay; then the reload notice. "Rename this branch" changes it later |
 | Tree root | a browser dialog for the tree name, then the same `PUT` | pre-filled from the title (`oulipo`); the parent becomes `oulipo/1 · <its title>` |
 
 ## Code
