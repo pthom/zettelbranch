@@ -8,17 +8,15 @@ What is open, and the next steps. Updated by Claude at the end of each session. 
 
 Milestone 0 is closed ([in brief](done/milestone-0/milestone-0__findings.md#in-brief)); the facts Milestone 1 builds on are in [claude-ai__findings](claude-ai__findings.md#9-checked-on-pascals-account-milestone-0).
 
-Milestone 1 ([plan](milestone-1__specs.md), [build notes](milestone-1__findings.md)): built, tested offline (audit 45/45, unit 35/35, end-to-end 19/19), fixtures from a real chat, and the checklist done by Pascal on the real site: the whole flow works. Found: the sidebar lags behind a rename even after a reload; three small fixes. The three fixes are made (tests: audit 45/45, unit 36/36, end-to-end 19/19). NF-1 = A: the public notes say claude.ai's own "continue branch as new chat" copies a chat as real messages, images included; the probe (P9) shows it works only through a chat's last message ([findings](native-fork__findings.md)). Open: NF-2.
+Milestone 1 ([plan](milestone-1__specs.md), [build notes](milestone-1__findings.md)): built, tested offline (audit 45/45, unit 35/35, end-to-end 19/19), fixtures from a real chat, and the checklist done by Pascal on the real site: the whole flow works. Found: the sidebar lags behind a rename even after a reload; three small fixes. The three fixes are made (tests: audit 45/45, unit 36/36, end-to-end 19/19). NF-1 = A: the public notes say claude.ai's own "continue branch as new chat" copies a chat as real messages, images included; the probe (P9) shows it works only through a chat's last message ([findings](native-fork__findings.md)). NF-2 = A: use it from the last reply, the copy elsewhere.
 
 ## Waiting on Pascal
 
-1. **Answer NF-2** in `specs/native-fork__questions.md`: use claude.ai's own fork when branching from the last reply?
-2. **Clean up:** delete every `zbtest/` chat (the fork's copy has the same title as `zbtest/1 . fixture`). Turn the spike off and Zettelbranch on again.
-3. **Optional:** ask a person at Anthropic about automated tests (draft from Claude).
+1. **Optional:** ask a person at Anthropic about automated tests (draft from Claude).
 
 ## Next for Claude
 
-1. NF-2, as Pascal answers.
+1. Step 6b of the plan: claude.ai's own fork from the last reply (NF-2 = A), offline, then a short check by Pascal.
 2. Then Firefox (step 9) and the 0.1.0 release (step 10).
 
 ## Not checked, for later
