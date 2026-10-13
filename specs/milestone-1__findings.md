@@ -24,7 +24,7 @@ Nothing here touched claude.ai. Every test ran in headless Chromium against a fa
 
 ## What was built
 
-Line counts after step 6b was removed (NF-3).
+Line counts after the fixes from Pascal's first real use (`df2a4ff`).
 
 | File | Lines | What |
 |---|---|---|
@@ -32,13 +32,13 @@ Line counts after step 6b was removed (NF-3).
 | [api.js](../extension/api.js) | 140 | The only network file: the four calls, an allowed list checked before each request, renames only to tree titles |
 | [tree.js](../extension/tree.js) | 102 | Addresses by segments, titles (` · `, or ` . ` and ` - ` typed by hand), next child, next root, the proposed tree name |
 | [conversation.js](../extension/conversation.js) | 296 | Messages from the API (path, text, placeholders); the page fallback, as Markdown |
-| [prompt.js](../extension/prompt.js) | 152 | The prompt of [forking__prompt](forking__prompt.md); parsing it back |
-| [branch.js](../extension/branch.js) | 314 | The flow: read, branch, open the new chat, name |
-| [ui.js](../extension/ui.js) | 286 | The pill, the panel, the preview, the notices |
+| [prompt.js](../extension/prompt.js) | 233 | The prompt of [forking__prompt](forking__prompt.md); parsing it back; the topic proposed for a branch's name |
+| [branch.js](../extension/branch.js) | 328 | The flow: read, branch, open the new chat, name |
+| [ui.js](../extension/ui.js) | 318 | The pill, the panel, the preview, the steps after Open new chat, the notices |
 | [content.js](../extension/content.js) | 7 | Mounts the pill, except on `/share/` pages |
-| **extension/** | **1,316** | |
+| **extension/** | **1,443** | |
 | [AUDIT.md](../AUDIT.md) | 179 | 18 points, 26 commands, what they cannot prove, an LLM prompt |
-| `tests/` | 1,702 | Audit, unit and end-to-end tests, the fake claude.ai (`tests/fake/`), real fixtures |
+| `tests/` | 1,866 | Audit, unit and end-to-end tests, the fake claude.ai (`tests/fake/`), real fixtures |
 
 The code uses only standard web APIs, so the same files should run in Chrome and Firefox. Not tried in Firefox yet (step 9).
 
@@ -99,7 +99,7 @@ What it shows:
 - **Pascal's suggestion:** a name proposed from what the branch is about (here, fish and birds). Possible: the first words of the first question asked in the branch.
 - **No navigation between branches.** Intended for Milestone 1; the banner (parent, siblings, children) comes later. Pascal's question: is that intended?
 
-Fixes under way: guidance after "Open new chat", a visible reminder to name the branch, and a name proposed from the branch's first question when claude.ai's title repeats the parent's.
+Built offline the same day (`df2a4ff`), not yet checked on the real site: after "Open new chat" the panel shows two steps (type your question at the end of the box, then "Name this branch" once Claude has replied), the hidden panel's pill reads "Zettelbranch: name this branch" until the branch is named, and after a reload the panel opens with "Name this branch" at the top. When claude.ai's title is empty or repeats the parent's, the proposed name comes from the first question asked in the branch, the dialog says where the proposal comes from, and a named branch can be renamed; offline tests: audit 45/45, unit 44/44, end-to-end 21/21.
 
 ## For Pascal
 
