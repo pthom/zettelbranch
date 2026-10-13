@@ -60,5 +60,18 @@ Safety: it presses Enter only in a plain text field found after picking Rename, 
 
 ### Results
 
-Not run yet.
+2026-10-13, by Pascal, Firefox, spike 0.0.10, on `zbtest/1 · Initial greeting (old API)`: **it works.** The server, the sidebar and the title at the top showed `zbtest/1 · Initial greeting (menu)` at once, without a reload (1.9 s in all).
+
+| Step | What claude.ai has |
+|---|---|
+| Title button | `[data-testid="chat-title-split"] button[aria-haspopup="menu"]` (no test id of its own; 2 buttons in that block) |
+| Menu | opens on pointer events (a Radix menu), `role="menu"` |
+| Items | `star-chat-trigger`, `rename-chat-trigger`, `share-chat-trigger`, `delete-chat-trigger` (labels in the UI's language: Épingler, Renommer, Partager la conversation, Supprimer) |
+| Rename field | `input[data-testid="name-chat"]`, focused when it appears |
+| Typing | one `execCommand('insertText')` call: the value is the new title |
+| Confirm | Enter in that field |
+
+So option B works: renaming through claude.ai's own menu updates the open tab at once. "Delete" sits next to "Rename" in that menu: the extension must click only the exact `rename-chat-trigger`.
+
+Pascal, the same day: "yes!" to making it the way Zettelbranch renames (version 0.1.1), with today's request as the fallback.
 

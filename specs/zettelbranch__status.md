@@ -12,20 +12,19 @@ Zettelbranch 0.1.0 is released (2026-10-13): Milestone 1 is closed ([plan and bu
 
 ## Waiting on Pascal
 
-1. **P11, the rename through claude.ai's own menu:** `specs/done/milestone-1/rename-api__findings.md`, section "P11" (about 3 minutes, in Firefox with the spike).
-2. **Use 0.1.0 for real:** load it in your main browser (Chrome: "Load unpacked" from a folder you keep; Firefox: a temporary add-on until a signed version exists), and note what bothers you.
-3. **Clean up:** delete the `zbtest/` and `zbtest2/` chats.
-4. **Optional:** ask a person at Anthropic about automated tests (draft from Claude).
+1. **Use 0.1.0 for real:** load it in your main browser (Chrome: "Load unpacked" from a folder you keep; Firefox: a temporary add-on until a signed version exists), and note what bothers you.
+2. **Clean up:** delete the `zbtest/` and `zbtest2/` chats.
+3. **Optional:** ask a person at Anthropic about automated tests (draft from Claude).
 
 ## Next for Claude
 
-1. Plan Milestone 2 from Pascal's real use. Candidates, from the spec and the sessions:
+1. Version 0.1.1: rename through claude.ai's own menu (P11 works in Firefox), today's request as the fallback; then Pascal's check in Chrome and Firefox, and the release.
+2. Plan Milestone 2 from Pascal's real use. Candidates, from the spec and the sessions:
    - the banner in each branch (path, siblings, children, with links);
    - a "Branch from here" button on each message (M1-2 = C);
    - cross-references between distant branches (`→ 2b`) and backlinks;
    - a Firefox version signed by Mozilla (needs Pascal's addons.mozilla.org account);
-   - renaming through claude.ai's own menu, so the open tab shows a new name at once (RN-1, possible improvement).
-2. `spike/` is kept for now: its probe panel served twice after the build (P9, P10). Delete it when it is no longer useful (git keeps it).
+3. `spike/` is kept for now: its probe panel served twice after the build (P9, P10). Delete it when it is no longer useful (git keeps it).
 
 ## Not checked, for later
 
