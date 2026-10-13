@@ -127,6 +127,7 @@ try {
   check('P5 picks the organization with chat', r.organization && r.organization.withChat === 1 && r.organization.organizations === 2, r.organization);
   check('P5 result holds no private title', noSecrets(r).length === 0, noSecrets(r));
   check('P5 counts sidebar entries', r.sidebar && r.sidebar.chatEntries === 30 && r.sidebar.selector === '[data-testid="sidebar-recents"] a[href*="/chat/"]', r.sidebar);
+  check('P5 counts the kinds of conversations', r.mix && r.mix.platform && Object.values(r.mix.platform).reduce((a, b) => a + b, 0) === 124, r.mix);
 
   r = await probe('p6', 'Compare page and API');
   check('P6 on a short chat: every message on the page', r.everyPathMessageOnPage === true && r.api.pathMessages === 4 && r.page.messages === 4, r.api);
@@ -156,6 +157,7 @@ try {
   await pageSend();
   r = await probe('p1', 'Check last sent message');
   check('P1 check: the sent message is exactly the inserted text', r.ok === true && r.exact === true && r.source === 'api', r);
+  check('P1 check offers zbtest/p1, cancelled: nothing renamed', r.testTree && r.testTree.cancelled === true && dialogs[dialogs.length - 1].message.includes('New title: zbtest/p1 · Auto: '), r.testTree);
   r = await probe('p4', 'Rename now', { dialog: 'accept' });
   const p4Title = r.newTitle;
   check('P4 renames a chat born in this tab, after a confirm', r.renamed === true && r.ok === true && /^zbtest\/11 · Auto: /.test(r.newTitle) && r.readBack === r.newTitle, r);
@@ -179,8 +181,9 @@ try {
   r = await probe('p2', '5k');
   check('P2 5k stays inline', r.verdict === 'stayed inline' && r.insertedChars <= 5000 && r.insertedChars > 4800, { verdict: r.verdict, chars: r.insertedChars });
   await pageSend();
-  r = await probe('p2', 'Check after sending');
+  r = await probe('p2', 'Check after sending', { dialog: 'accept' });
   check('P2 check: full text sent, reply has line 3', r.sentMessage.textChars === r.expected.chars && r.sentMessage.lastLineNumberInText === r.expected.lines && r.reply.hasLine3 === true, r);
+  check('P2 check renames the chat to zbtest/p2-5k after a confirm', r.testTree && r.testTree.renamed === true && /^zbtest\/p2-5k · Auto: /.test(r.testTree.newTitle) && r.testTree.readBack === r.testTree.newTitle, r.testTree);
   await newChat();
   r = await probe('p2', 'Header + transcript (20k)');
   check('P2 parts: header, transcript and instruction all in the box', r.ok && r.partsStillInTheBox.header && r.partsStillInTheBox.transcript && r.partsStillInTheBox.instruction && r.steps.length === 3, r.partsStillInTheBox);

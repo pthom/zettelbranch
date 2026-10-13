@@ -377,7 +377,7 @@
     const last = lastOf(cp, 'user');
     if (!last) return { ok: false, error: 'no message of yours found', source: cp.source };
     const ins = state.lastInserted.text;
-    return {
+    const out = {
       ok: true,
       source: cp.source,
       apiError: cp.apiError,
@@ -387,6 +387,8 @@
       diff: diffSummary(ins, last.text),
       attachmentsOfThatMessage: last.msg ? C().attachmentFacts(last.msg) : 'unknown (no API)',
     };
+    out.testTree = await intoTestTree(pk.id, g.title, state.lastInserted.how === 'paste' ? 'p1-paste' : 'p1', 'insertion test');
+    return out;
   }
 
   // ---------------------------------------------------------------- P2
@@ -469,7 +471,7 @@
     const atts = user && user.msg ? user.msg.attachments || [] : [];
     const exp = state.p2 ? state.p2.expectedLine3 : null;
     const flat = (t) => String(t || '').replace(/\s+/g, ' ').trim();
-    return {
+    const out = {
       ok: !!user,
       source: cp.source,
       apiError: cp.apiError,
@@ -490,6 +492,9 @@
           }
         : 'no reply yet',
     };
+    const size = state.p2 ? state.p2.label.replace(/ in parts$/, '-parts') : 'size-unknown';
+    out.testTree = await intoTestTree(pk.id, g.title, 'p2-' + size, 'long text test');
+    return out;
   }
 
   // ---------------------------------------------------------------- P3
@@ -548,6 +553,17 @@
     return { ok: back.name === newTitle, renamed: true, oldTitle, newTitle, readBack: back.name, answer: answer.answer, ms: Math.round(performance.now() - t0) };
   }
 
+  // After its check, a P1 or P2 chat joins the test tree under the probe's name (not an
+  // address, so tree probes ignore it), keeping claude.ai's automatic title as the topic.
+  async function intoTestTree(id, title, name, fallbackTopic) {
+    if (C().isTestTitle(title)) return { renamed: false, reason: 'already in the test tree' };
+    try {
+      return await confirmAndRename(id, title, `${C().TEST_TREE}/${name} · ${title || fallbackTopic}`);
+    } catch (e) {
+      return { ok: false, renamed: false, error: A().errorInfo(e) };
+    }
+  }
+
   function convFacts(conv) {
     const p = C().pathOf(conv);
     const last = p.path[p.path.length - 1];
@@ -601,6 +617,32 @@
 
   // ---------------------------------------------------------------- P5
 
+  // Counts only: which kinds of conversations the list mixes (chats, Cowork, Code sessions?).
+  // A field's values are shown only when they look like identifiers, never free text.
+  function listMix(items) {
+    const countBy = (f) => {
+      const out = {};
+      for (const c of items) {
+        const v = c[f];
+        const k = v === null || v === undefined ? 'none' : typeof v === 'string' && /^[A-Za-z0-9_.-]{1,40}$/.test(v) ? v : 'other';
+        out[k] = (out[k] || 0) + 1;
+      }
+      return out;
+    };
+    const count = (fn) => items.filter(fn).length;
+    return {
+      platform: countBy('platform'),
+      latestOutputKind: countBy('latest_assistant_output_kind'),
+      inAProject: count((c) => c.project_uuid),
+      withSessionId: count((c) => c.session_id),
+      withWorkspaceSession: count((c) => c.workspace_session_id),
+      temporary: count((c) => c.is_temporary),
+      archived: count((c) => c.is_archived),
+      starred: count((c) => c.is_starred),
+      withSummary: count((c) => typeof c.summary === 'string' && c.summary.trim()),
+    };
+  }
+
   async function p5() {
     const t0 = performance.now();
     const r = await A().listConversations();
@@ -622,6 +664,7 @@
       ms: Math.round(performance.now() - t0),
       answerShape: r.shape,
       fieldsOfOneItem: r.items[0] ? Object.keys(r.items[0]).sort() : [],
+      mix: listMix(r.items),
       organization: await A().org(),
       sidebar: {
         selector: side.selector,

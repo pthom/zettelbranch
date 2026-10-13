@@ -5,7 +5,7 @@
 (function (global) {
   'use strict';
 
-  const VERSION = '0.0.2';
+  const VERSION = '0.0.3';
   const Z = () => global.ZBProbes;
   const log = [];
   let host = null;
@@ -163,7 +163,7 @@
     body.append(
       section('p1', 'P1 · Insert text', [
         'Open a new chat (New chat in the sidebar). Click "Insert test text" and look at the message box.',
-        'Press Send yourself. After the reply, click "Check last sent message". Try "paste" only in another new chat.',
+        'Press Send yourself. After the reply, click "Check last sent message": it then offers to rename the chat to zbtest/p1 (click OK).',
       ], [
         ['Insert test text', () => p.p1Insert()],
         ['Try paste instead', () => p.p1Paste()],
@@ -171,7 +171,7 @@
       ]),
       section('p2', 'P2 · Long text', [
         'In a new chat, click one size. See whether the text stays in the box or turns into an attachment.',
-        'Press Send, wait for the reply, then click "Check after sending". One size per chat.',
+        'Press Send, wait for the reply, then click "Check after sending": it then offers to rename the chat to zbtest/p2-… (click OK). One size per chat.',
       ], [
         ['5k', () => p.p2Insert(5000, '5k')],
         ['20k', () => p.p2Insert(20000, '20k')],
