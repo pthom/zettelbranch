@@ -57,6 +57,7 @@ Each step ends with offline tests passing and a commit. Steps 1 to 3 and 5 to 7 
 5. **Prompt.** `prompt.js`, from the spike, with flattening and the first-message rule. *Done, faeb448.*
 6. **Branch flow and UI.** `branch.js`, `ui.js`: button, message picker, preview, new chat, fill; "Name this branch" with its dialog; the reload notice. *Done, bfd6867.*
    - **6b. claude.ai's own fork from the last reply (NF-2 = A).** *Built offline (`ba045c4`), then removed after Pascal's check (NF-3): claude.ai only continues an earlier version of a chat in a new one, never a chat from where it stands. Details: `specs/done/native-fork/native-fork__findings.md`.*
+   - **6c. The tree in the panel (decided 2026-10-13, after Pascal's first real use).** When the panel opens on a chat of a tree, it lists every chat of that tree, ordered and indented by address (`oulipo/1`, `oulipo/1a`, `oulipo/1a1`, `oulipo/1b`…), the current one marked, each a link to open it. It reads the conversation list on that click (one request, as Branch already does). Addresses used twice are flagged. A first, small version of the banner planned for later.
 7. **Audit.** `AUDIT.md` and its greps; the same checks as the spike's, adapted. *Done, 0c39e64.*
 8. **Real-page checklist (Pascal, by hand, about 15 minutes).** In the Chrome test profile, in `zbtest/` chats: a root, a branch from a reply, a branch from your own message, a branch of a branch, a long chat.
 9. **Firefox.** The same checklist in a separate Firefox profile, the extension loaded from `about:debugging`.
