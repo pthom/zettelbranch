@@ -168,7 +168,7 @@ Built offline by Claude on 2026-10-13, commit `1300f3b`, from Pascal's second re
 - **"New branch from this chat"**, a heading above "Choose where the branch starts", with a line above it.
 - **After a rename:** "Named <name>. Reload to see the new name in the sidebar." with Reload now. The panel shows the new name at once, from memory, with no request.
 - **The proposed name:** your first question in the branch whenever there is one, then claude.ai's title, then Claude's first reply. The dialog says which.
-- **Always the chat on screen.** Opening the panel and the refresh button read the chat the tab shows. The panel does not follow on its own: that would be a read without a click, left for Pascal to decide.
+- **Always the chat on screen.** Opening the panel and the refresh button read the chat the tab shows. The panel does not follow on its own yet: Pascal decided that it will, in step 6e.
 
 ### Numbers
 
