@@ -1,0 +1,12 @@
+{
+  "addons": {
+    "zettelbranch@pthom.github.io": {
+      "updates": [
+        {
+          "version": "0.1.2",
+          "update_link": "https://github.com/pthom/zettelbranch/releases/download/v0.1.2/zettelbranch-0.1.2.xpi"
+        }
+      ]
+    }
+  }
+}

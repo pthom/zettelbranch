@@ -10,7 +10,7 @@ Everything that runs is in `extension/`: `manifest.json` and eight scripts, abou
 
 | File | What it does |
 |---|---|
-| `manifest.json` | Declares the scripts, for `https://claude.ai/*` only. No permissions. |
+| `manifest.json` | Declares the scripts, for `https://claude.ai/*` only. No permissions. For Firefox, the address where Firefox looks for updates (point 18). |
 | `api.js` | The only file that uses the network: four calls to claude.ai's own API, listed at its top. |
 | `tree.js` | Titles and addresses (`oulipo/1b1`). Pure functions. |
 | `conversation.js` | Turns the API's answer (or, as a fallback, the page) into a list of messages. |
@@ -153,11 +153,12 @@ grep -n '\.click()' extension/branch.js | grep -vF 'newChatLink.click();'
 [ "$(grep -c '\.click()' extension/menu.js)" = 1 ] && grep -qF '    if (el) el.click();' extension/menu.js || echo 'menu.js does not click exactly once, in clickOn'
 ```
 
-**18. The manifest asks for nothing**: no permissions, no background script, no access to other sites, no scripts in the page's own world, and every script is listed.
+**18. The manifest asks for nothing**: no permissions, no background script, no access to other sites, no scripts in the page's own world, and every script is listed. Its only other address (version 0.1.2) is `update_url`, `https://raw.githubusercontent.com/pthom/zettelbranch/main/updates.json`: Firefox itself, not the extension, reads that file about once a day, to install a new signed version when there is one. So Firefox talks to GitHub; the extension still talks only to claude.ai. Chrome ignores it.
 
 ```sh
 grep -nE '"(permissions|optional_permissions|host_permissions|optional_host_permissions|background|web_accessible_resources|externally_connectable|content_security_policy|world)"' extension/manifest.json
 grep -n '"matches"' extension/manifest.json | grep -vF '"matches": ["https://claude.ai/*"],'
+grep -noE 'https?://[^"]*' extension/manifest.json | grep -vE ':https://claude\.ai/\*$|:https://raw\.githubusercontent\.com/pthom/zettelbranch/main/updates\.json$'
 for f in extension/*.js; do grep -qF "\"$(basename "$f")\"" extension/manifest.json || echo "$f is not in the manifest"; done
 ```
 

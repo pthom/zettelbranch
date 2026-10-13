@@ -123,7 +123,13 @@ if (scripts.some((c) => c.world && c.world !== 'ISOLATED')) m('a content script 
 const listed = scripts.flatMap((c) => c.js || []);
 for (const f of files) if (!listed.includes(f)) m(`${f} is not listed in content_scripts`);
 for (const f of listed) if (!files.includes(f)) m(`${f} is listed but does not exist`);
-check('Manifest: MV3, no permissions, no background, claude.ai only, every file listed', mProblems);
+// One other address: where Firefox (not the extension) looks for updates of the signed version.
+const UPDATE_URL = 'https://raw.githubusercontent.com/pthom/zettelbranch/main/updates.json';
+const gecko = (manifest.browser_specific_settings || {}).gecko || {};
+if ('update_url' in gecko && gecko.update_url !== UPDATE_URL) m(`update_url is ${gecko.update_url}`);
+const addresses = JSON.stringify(manifest).match(/https?:\/\/[^"]*/g) || [];
+for (const a of addresses) if (a !== 'https://claude.ai/*' && a !== UPDATE_URL) m(`an address: ${a}`);
+check('Manifest: MV3, no permissions, no background, claude.ai only (and the update address), every file listed', mProblems);
 
 // Part 2: the commands of AUDIT.md.
 const auditMd = fs.readFileSync(path.join(ROOT_DIR, 'AUDIT.md'), 'utf8');
