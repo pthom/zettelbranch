@@ -54,12 +54,23 @@ This is an independent project, not made or endorsed by Anthropic.
 
 ## Install
 
-From the [latest release](https://github.com/pthom/zettelbranch/releases/latest). No build step: what is in `extension/` is what runs, and the release lists the SHA-256 of every file.
+**Firefox** (on a computer, version 140 or later), signed by Mozilla:
 
-- **Firefox:** download `zettelbranch-0.1.2.xpi` (signed by Mozilla) and open it in Firefox: it installs like any add-on. Then allow Zettelbranch on claude.ai (the puzzle icon in the toolbar).
-- **Chrome:** download `zettelbranch-0.1.2.zip` and unzip it into a folder you keep. Open `chrome://extensions`, turn on Developer mode, click "Load unpacked" and pick that folder.
+1. Click **[Install Zettelbranch for Firefox](https://github.com/pthom/zettelbranch/releases/latest/download/zettelbranch.xpi)**.
+2. Firefox says it "prevented this site from asking you to install software": that is expected for an add-on that does not come from Mozilla's store. Click **Continue to Installation**, then **Add**.
+3. Allow Zettelbranch on claude.ai: click the puzzle icon in the toolbar, then Zettelbranch.
 
-Then open claude.ai: a "Zettelbranch" button sits at the bottom right.
+Firefox then keeps it up to date by itself.
+
+**Chrome** (developer mode, for now):
+
+1. Download **[zettelbranch.zip](https://github.com/pthom/zettelbranch/releases/latest/download/zettelbranch.zip)** and unzip it into a folder you keep.
+2. Open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked** and pick that folder.
+3. To update later: replace the folder's files with a newer zip, then click ⟳ on Zettelbranch in `chrome://extensions`.
+
+Then open claude.ai: a **Zettelbranch** button sits at the bottom right.
+
+No build step: what is in `extension/` is what runs. Each [release](https://github.com/pthom/zettelbranch/releases/latest) lists the SHA-256 of every file.
 
 ## Trust
 

@@ -15,7 +15,7 @@ Milestone 1 (0.1.0) is closed ([plan and build notes](done/milestone-1/milestone
 ## Waiting on Pascal
 
 1. **Use 0.1.2 for real** in your main browser (Firefox: the signed `.xpi` from the release; Chrome: "Load unpacked" from a folder you keep), and note what bothers you. In Firefox, a first rename through the menu checks it there too.
-2. **Each new version for Firefox:** upload its zip to addons.mozilla.org ("Envoyer une nouvelle version", unlisted), save the signed `.xpi` into `tests/out/`; Claude then updates `updates.json` and the release. A person at Mozilla may review the add-on at any time.
+2. **Each new version for Firefox:** upload its zip to addons.mozilla.org ("Envoyer une nouvelle version", unlisted), save the signed `.xpi` into `tests/out/`; Claude then updates `updates.json` and the release. Each release also carries `zettelbranch.xpi` and `zettelbranch.zip` (same files, no version in the name): the README's install links point to `releases/latest/download/` with those names. A person at Mozilla may review the add-on at any time.
 3. **Optional:** post the demo (the MP4 is on the release page; a draft post was given in chat).
 4. **Clean up:** delete the `zbtest/` and `zbtest2/` chats.
 5. **Optional:** ask a person at Anthropic about automated tests (draft from Claude).
