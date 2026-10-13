@@ -2,38 +2,48 @@
 
 What is open, and the next steps. Updated by Claude at the end of each session. Finished work leaves this file for the [done log](done/README.md).
 
-**Last update:** 2026-10-14
+**Last update:** 2026-10-14, end of session.
 
-**Repository:** https://github.com/pthom/zettelbranch (public). Claude pushes only when Pascal asks.
+**Repository:** https://github.com/pthom/zettelbranch (public, MIT). Claude pushes only when Pascal asks.
 
 ## Where things are
 
-Zettelbranch 0.1.3 is released (2026-10-14), an urgent fix for Firefox, signed by Mozilla: claude.ai's box there joined the lines of the prompt into one, so a branch made in Firefox could not be named. Now the prompt goes in line by line when one insertion loses the line breaks, branches made by 0.1.2 in Firefox are read anyway, and the panel can be dragged by its title bar ([notes](firefox-insertion__findings.md)). Offline tests: audit 67/67, unit 59/59, end-to-end 35/35, real Tiptap editor in Chromium and Firefox 6/6. Checked by Pascal in Firefox and Chrome on 2026-10-14; Firefox users of 0.1.2 get it through `updates.json`.
+Zettelbranch **0.1.3** is the latest release (2026-10-14), announced by Pascal on X on 2026-10-13 (with 0.1.2).
 
-Zettelbranch 0.1.2 is released (2026-10-13): a Firefox version signed by Mozilla (unlisted, add-on 3095566 on addons.mozilla.org, "tentatively approved" by automatic validation), with automatic updates through `updates.json` in this repository; the README says to expect breakage and invites readers to audit the code with their own LLM. Zettelbranch 0.1.1 (2026-10-13): renames go through claude.ai's own title menu, so the open tab shows the new name at once, with the API as the fallback ([notes](done/milestone-1/rename-api__findings.md#built-into-zettelbranch-011)); a chat opened from the panel's tree opens with the panel. The README has an animated demo and four illustrated steps; a user manual is in `docs/MANUAL.md`. Checked by Pascal in Chrome; the menu rename was seen working in Firefox with the spike (P11), 0.1.1 itself not yet in Firefox.
+- **Firefox:** signed by Mozilla (unlisted, add-on 3095566 on addons.mozilla.org), one-click install from the README, automatic updates through `updates.json` in this repository.
+- **Chrome:** developer mode ("Load unpacked"), updated by hand; the README tells Chrome users to watch the repository's releases.
+- **What 0.1.3 fixed:** in Firefox, claude.ai's box joined the prompt's lines into one, so branches made in Firefox could not be named. Now the box is refilled line by line when that happens, branches made by 0.1.2 are read anyway, and the panel can be dragged by its title bar ([findings](firefox-insertion__findings.md)). Checked by Pascal in Firefox and Chrome.
+- **Tests:** audit 67/67, unit 59/59, end-to-end 35/35, a real Tiptap editor in Chromium and Firefox 6/6 (`cd tests && npm test`, offline).
+- **The repository:** README with an animated demo, four illustrated steps and one-click install; user manual in `docs/MANUAL.md`; Discussions on; a "Something broke" issue form; private security reports (`SECURITY.md`); a link-preview image.
 
-Milestone 1 (0.1.0) is closed ([plan and build notes](done/milestone-1/milestone-1__specs.md)). The facts about claude.ai it builds on are in [claude-ai__findings](claude-ai__findings.md#9-checked-on-pascals-account-milestone-0).
+The story of the day (0.1.0 to 0.1.3, the native fork explored and dropped, the rename through claude.ai's menu, the Firefox fix) is in the [done log](done/README.md). The facts about claude.ai it all builds on: [claude-ai__findings](claude-ai__findings.md#9-checked-on-pascals-account-milestone-0).
 
 ## Waiting on Pascal
 
-1. **Use 0.1.2 for real** in your main browser (Firefox: the signed `.xpi` from the release; Chrome: "Load unpacked" from a folder you keep), and note what bothers you. In Firefox, a first rename through the menu checks it there too.
-2. **Each new version for Firefox:** upload its zip to addons.mozilla.org ("Envoyer une nouvelle version", unlisted), save the signed `.xpi` into `tests/out/`; Claude then updates `updates.json` and the release. Each release also carries `zettelbranch.xpi` and `zettelbranch.zip` (same files, no version in the name): the README's install links point to `releases/latest/download/` with those names. A person at Mozilla may review the add-on at any time.
-3. **Optional:** post the demo (the MP4 is on the release page; a draft post was given in chat).
-4. **Clean up:** delete the `zbtest/` and `zbtest2/` chats.
-5. **Optional:** ask a person at Anthropic about automated tests (draft from Claude).
+1. **Use Zettelbranch for real** and note what bothers you; watch the post's replies, the GitHub issues and Discussions. That feedback sets Milestone 2.
+2. **Optional:** reply under the post that 0.1.3 fixes Firefox (draft in chat: "Update: Zettelbranch 0.1.3 fixes branching in Firefox…").
+3. **Clean up:** delete the `zbtest/` and `zbtest2/` chats.
+4. **Optional:** ask a person at Anthropic about automated tests, and about Zettelbranch now that others use it (draft from Claude).
+
+## How a release goes (for the next version)
+
+1. Claude builds and tests offline, Pascal checks on the real site (Firefox and Chrome).
+2. Pascal uploads the zip to addons.mozilla.org ("Envoyer une nouvelle version", "À vous de jouer", source code: Non) and saves the signed `.xpi` into `tests/out/` (right-click, "Enregistrer la cible du lien sous…": unlisted files are served only to the signed-in owner).
+3. Claude checks the `.xpi` against `extension/`, adds the version to `updates.json` (with its SHA-256), and publishes the GitHub release with the versioned files and the version-free copies `zettelbranch.xpi` and `zettelbranch.zip` (the README's install links point to `releases/latest/download/` with those names), `SHA256SUMS` and the demo video; then verifies the update chain.
 
 ## Next for Claude
 
-1. Plan Milestone 2 from Pascal's real use. Candidates, from the spec and the sessions:
+1. Plan Milestone 2 from Pascal's real use and the first feedback. Candidates, from the spec and the sessions:
    - the banner in each branch (path, siblings, children, with links);
    - a "Branch from here" button on each message (M1-2 = C);
    - cross-references between distant branches (`→ 2b`) and backlinks;
-   - a listing on addons.mozilla.org (a public store page), once the extension has proved stable;
-   - a GitHub Pages site, once non-developers can install it (a signed Firefox version or a store), or for an announcement outside GitHub.
-2. `spike/` is kept for now: its probe panel served after the build (P9 to P11). Delete it when it is no longer useful (git keeps it).
+   - store listings (Mozilla, Chrome Web Store), once the extension has proved stable;
+   - a GitHub Pages site, once non-developers can install it, or for an announcement outside GitHub.
+2. `spike/` is kept for now: its probe panel served after the build (P9 to P11) and for the Firefox bug (P1, line by line). Delete it when it is no longer useful (git keeps it).
 
 ## Not checked, for later
 
 - Firefox applying an update by itself (`updates.json`): the chain is checked from GitHub's side, but no installed copy has updated yet. At the next version, Pascal's installed 0.1.3 should update (or at once: `about:addons`, the gear menu, "Check for Updates").
 - What claude.ai's own `summary` field holds (filled for most chats): could feed the banner's one-line summaries.
 - The page title's format; an attachment made by a paste.
+- Other Chromium browsers (Edge, Brave, Arc), and Firefox for Android.
