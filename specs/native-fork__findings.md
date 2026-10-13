@@ -67,3 +67,24 @@ By Pascal, in `zbtest/1 . fixture`: 6 messages on the shown path, 8 in the tree 
 | In the open tab | not in the sidebar, as with renames: the page does not learn about it | |
 
 So it works, through the end of a branch at least, and keeps images. Forking through your own message is refused. Open: whether it works through an **earlier** reply (a branch usually starts mid-chat); spike 0.0.8 adds "Fork through Claude's first reply". Pascal also looks at the copy itself (the link, or the phone).
+
+### Second run, 2026-10-13 (spike 0.0.8)
+
+| | Through Claude's first reply (message 2 of 6) |
+|---|---|
+| Answer | **refused**: 400 `failed_precondition`, "This version can't be continued in a new session." |
+
+Pascal also looked at the copy of the first run (`/chat/b2dfa946…`): the same messages as the original, shown as a normal chat. It was missing from Chrome's sidebar until a Shift+Reload, then listed next to the original under the same title; the phone showed both at once.
+
+## What it means
+
+claude.ai forks into a new chat **only through the last message of the shown branch**: through message 6 of 6 it worked; through message 5 (yours) and message 2 (Claude's) it refused. Probably what the help center means by "Branching a conversation from an earlier point isn't available": the action duplicates a conversation as it ends now (or, per the notes, an older "version" through its own end).
+
+For Zettelbranch:
+
+- **From the last reply** (the panel's default choice): the native fork gives a real chat, with its images and Claude's own turns. Then your first message carries only the header, the summary request and your question.
+- **From anywhere else**, or **instead of your own message**: only the copy (a quoted transcript) can do it.
+- The native copy keeps the parent's title and settings but not the model (the default model instead).
+
+Decision: NF-2 in `specs/native-fork__questions.md`.
+
