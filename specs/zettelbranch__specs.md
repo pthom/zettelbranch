@@ -205,3 +205,5 @@ how the open tab shows a rename made through the API.
 Reliable extraction of the conversation (by role, with code blocks intact) from the
 fixtures, plus a "branch from here" button that opens a new chat with a previewed,
 correctly filled prompt. Addresses, banner, cross-references and app trigger come after.
+Draft plan, with four open questions (whether addresses come now, among them):
+[milestone-1__specs](milestone-1__specs.md).
