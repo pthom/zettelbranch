@@ -4,7 +4,8 @@
       "updates": [
         {
           "version": "0.1.2",
-          "update_link": "https://github.com/pthom/zettelbranch/releases/download/v0.1.2/zettelbranch-0.1.2.xpi"
+          "update_link": "https://github.com/pthom/zettelbranch/releases/download/v0.1.2/zettelbranch-0.1.2.xpi",
+          "update_hash": "sha256:2d00048853f17e060a05a4b5de014a0924b29f53e78507c2d93b97c0cf5df892"
         }
       ]
     }
