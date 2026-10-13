@@ -15,7 +15,7 @@ Context: [testing__findings](testing__findings.md).
 
 ## TS-2 · Sign-in method for the test profile
 
-**Status:** open
+**Status:** decided (2026-10-13): C, nothing to change. No automated browser ever signs in; Pascal signs in to the test profile by hand.
 
 - **A.** Email code. *(recommended: Google sign-in often refuses automated browsers)*
 - **B.** Google.

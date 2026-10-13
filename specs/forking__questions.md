@@ -27,7 +27,7 @@ Context: [forking__findings](forking__findings.md).
 
 ## FK-3 · What branching from your own message means
 
-**Status:** open
+**Status:** decided (2026-10-13): A, in chat. Folded into the [spec](zettelbranch__specs.md#core-design).
 
 - **A.** An alternative to that message: context is everything before it, and your
   message is pre-filled in the new chat for you to change. *(recommended)*

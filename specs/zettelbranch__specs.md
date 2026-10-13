@@ -29,9 +29,15 @@ target. See [claude-ai__findings](claude-ai__findings.md).
 ## Core design
 
 **Branching = forking into a new claude.ai conversation.** The user picks a branch
-point (any message). The extension extracts the conversation up to that point,
+point (any message). From one of Claude's replies, the new chat continues after it.
+From the user's own message, the new chat is an alternative to it: the context is
+everything before it, and the message is pre-filled for the user to change (sent
+unchanged, it gets a fresh answer). The extension extracts the conversation up to that point,
 opens a new chat in the parent's project, and pre-fills a prompt containing that
-context. The user reviews and sends it.
+context. The user reviews and sends it. The prompt reaches the new chat inside the same
+page, held in the extension's memory. If a real page load turns out to be needed, it is
+parked in the browser's memory-only session storage, erased when the browser closes.
+Never in the address bar, never on disk.
 
 **State lives in claude.ai, not in the extension.** The extension should be stateless:
 
@@ -65,9 +71,13 @@ The exact prompt, header and summary formats: [forking__prompt](forking__prompt.
 
 A Zettelbranch must remain readable if the extension disappears.
 
-**Cross-references** (renvois): an explicit link from one card to a distant one.
-Storage format is an open question (XR-1; probably an address mention in message text,
-e.g. `→ 1a1` within a tree and `→ oulipo/1a1` across trees, parsed by the extension).
+**Cross-references** (renvois): an explicit link from one card to a distant one. You
+write it in your own messages, as part of a normal prompt: `→ 2b` within a tree,
+`→ oulipo/2b` across trees; `->` works too, since `→` is awkward to type. It costs no
+extra message and stays readable as plain text. The extension turns it into a link in
+sent messages, and a branch's header can carry a "See also" line at fork time.
+Backlinks (which branches point here) come from reading the tree's conversations
+through the API, only when you ask for them.
 
 **Trigger from the Claude apps** (desktop/mobile cannot run extensions): the
 extension reacts to a special URL marker (e.g. `https://claude.ai/chat/<id>#zb-branch`)
@@ -83,19 +93,29 @@ verification trivial:
 - Short, readable code. No dependencies, no bundler, no minification, no build step:
   what is on GitHub is exactly what runs.
 - Minimal permissions: claude.ai only. No other host.
-- No network calls of any kind (`fetch`, `XMLHttpRequest`, `WebSocket`, `sendBeacon`...).
-  Under discussion (DA-1): allowing same-origin calls to claude.ai's own API, in one
-  file, provable by grep.
+- Network: only same-origin requests to claude.ai's own API, all in one file that lists
+  the few addresses it calls, provable by grep. Reads, plus renaming conversations;
+  never sending messages, never deleting. No other host, ever (`fetch`,
+  `XMLHttpRequest`, `WebSocket`, `sendBeacon`, image or link loads...).
+- The API is undocumented and can change: if an answer does not look as expected, the
+  extension says so clearly ("claude.ai changed, Zettelbranch needs an update"). Basic
+  branching (copy from the page, fill the new chat) keeps working without the API; only
+  the whole tree, banner summaries and backlinks pause.
 - Never read, store or send claude.ai credentials or session tokens: no `cookies`
   permission, no `document.cookie`. Anthropic support named this as the line not to
   cross ([terms__findings](terms__findings.md)).
 - No persistent storage of conversation content.
 - Never inject conversation text with `innerHTML`; use `textContent` or DOM nodes.
 - The extension acts only when the user clicks. Nothing is sent automatically.
+- It reads messages once they are part of the conversation, never while you type: no
+  keyboard or input listeners. It writes into the message box only when you branch.
 - `AUDIT.md`: lists what the code never does, with the `grep` commands that prove it,
   plus a ready-to-use prompt for asking an LLM to audit the code.
 - Before each branch, show a preview of the exact text that will be pasted.
-- Releases from tagged GitHub versions, with SHA-256 of each file.
+- Releases from tagged GitHub versions, with SHA-256 of each file. Distribution through
+  GitHub only: Chrome users load the folder ("Load unpacked"), Firefox users install a
+  Mozilla-signed unlisted `.xpi`. Store listings maybe later: a public listing makes it a
+  product others use, no longer just personal use.
 
 ## Lessons from prior art (do not repeat)
 
@@ -115,15 +135,15 @@ cross-references. Useful as a reference for how claude.ai behaves; do not copy i
 - claude.ai DOM is undocumented and changes. Isolate all selectors in one module,
   test them against saved fixtures, fail loudly when they break.
 - The page renders only part of a long conversation (a virtualized list; the new
-  experience first loads only recent messages) *(to verify)*. Extraction from the page
-  alone may miss messages; the API would not (DA-1).
+  experience first loads only recent messages) *(to verify)*. So extraction reads the
+  conversation through the API when it answers as expected, and from the page otherwise.
 - The sidebar only shows recent conversations. Check early whether the title-based
   registry needs the search or the full conversation list page.
 - The message input is a rich-text editor: inserting text so the app's state actually
   updates must be verified on the real page. Long pasted text may become an attachment,
   and on the new experience may fall outside the model's context *(to verify)*.
-- Renaming a conversation title programmatically must go through the UI, unless DA-1
-  allows the API (DA-2 = A: reads plus renaming, nothing else).
+- Renaming goes through the API; the UI is the fallback. Whether a rename survives
+  claude.ai's automatic title must be checked (Milestone 0, P4).
 - claude.ai exists in two versions during the rollout, with different internal APIs.
   Everything that talks to claude.ai lives in one file; fixtures record which version
   they come from.

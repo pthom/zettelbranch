@@ -4,7 +4,7 @@ Context: [cross-references__findings](cross-references__findings.md).
 
 ## XR-1 · Where cross-references are written
 
-**Status:** open. Depends on DA-1.
+**Status:** decided (2026-10-13): A, in chat. Folded into the [spec](zettelbranch__specs.md#core-design).
 
 - **A.** You write `→ 1a1` in your own messages as part of a normal prompt; the extension
   parses and links them, plus "see also" links in the header at fork time. Backlinks
@@ -17,4 +17,4 @@ Context: [cross-references__findings](cross-references__findings.md).
 ## Defaults (object if you disagree)
 
 - **XR-D1** · Syntax `→ <address>` within a tree, `→ <tree>/<address>` across trees
-  (follows AD-1).
+  (follows AD-1). `->` is accepted too.

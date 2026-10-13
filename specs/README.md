@@ -50,18 +50,8 @@ Claude maintains these files. Pascal answers questions inline and may edit anyth
 
 ## Open questions
 
-| ID | Question | Where it stands |
-|---|---|---|
-| [DA-1](data-access__questions.md) | May the extension call claude.ai's own API? | Pascal leans A; Claude owes a plain explanation (secure? stable?) |
-| [DA-D1](data-access__questions.md) | How the prompt reaches the new chat | Pascal asked for a plain explanation |
-| [TA-1](trust-audit__questions.md) | Distribution channels | Pascal asked for a plain explanation |
-| [TS-2](testing__questions.md) | Sign-in method for the test profile | Probably moot now; Claude proposes C |
-| [ZB-3](zettelbranch__questions.md) | `CLAUDE.md` versus Claude's project memory | Rules moved to `CLAUDE.md`; to discuss |
-| [FK-3](forking__questions.md) | What branching from your own message means | |
-| [XR-1](cross-references__questions.md) | Where cross-references are written | Depends on DA-1 |
-
-Decided on 2026-10-13: ZB-1, ZB-2, ZB-3 (main part), AD-1, AD-2, FK-1, FK-2, DA-2 (if
-DA-1 = A), TS-1. Each question file says where the decision went.
+None right now. All questions of 2026-10-13 are decided; each question file says where
+the decision went.
 
 ## History
 
@@ -71,3 +61,5 @@ DA-1 = A), TS-1. Each question file says where the decision went.
   `zettelbranch__`. Added the branch prompt draft, the Milestone 0 plan, public research on
   claude.ai, and Anthropic support's answer about the terms. Decided: no script or
   automated browser ever touches claude.ai.
+- 2026-10-13, end of session: remaining questions decided in chat (DA-1, DA-D1, TA-1,
+  TS-2, FK-3, ZB-3, XR-1) and folded into the spec.

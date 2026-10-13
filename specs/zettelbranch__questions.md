@@ -31,7 +31,7 @@ box (including long text). Throwaway code, results written to findings.
 
 ## ZB-3 · CLAUDE.md for agent working rules
 
-**Status:** decided (2026-10-13). Rules removed from the [spec](zettelbranch__specs.md); they live in `CLAUDE.md`. Still to discuss: `CLAUDE.md` versus Claude's project memory.
+**Status:** decided (2026-10-13): A. Project rules live in `CLAUDE.md` (shared, versioned, public); Claude's notes on how to work with Pascal live in its project memory on his Mac.
 
 A `CLAUDE.md` now exists at the repo root, with the working rules copied from the spec
 ("work autonomously, in the background", account hygiene, CAPTCHA handling). Remove them

@@ -22,6 +22,8 @@ Current state of the work and next steps. Updated by Claude at the end of each s
   target.
 - Spike P0 built in `spike/` and tested offline on a hand-made sample, with all network
   blocked. Not yet run on the real page: it waits for Pascal's files.
+- All open questions decided in chat with plain explanations (DA-1, DA-D1, TA-1, TS-2,
+  FK-3, ZB-3, XR-1) and folded into the spec. The README's open-questions table is empty.
 
 ## Waiting on Pascal
 
@@ -30,22 +32,18 @@ Current state of the work and next steps. Updated by Claude at the end of each s
    [milestone-0__findings](milestone-0__findings.md#files-pascal-saves), or open
    `https://claude.ai/api/chat_snapshots/b6ff02e2-cfa2-49f7-a7f5-8557f0ebca66?rendering_mode=messages&render_all_tools=true`
    in the browser and save it.
-2. **Confirm TS-2 = C** (sign in to the test profile any way you like), see
-   [testing__questions](testing__questions.md).
-3. **FK-3** (branching from your own message).
-4. **Conversation:** `CLAUDE.md` versus Claude's project memory (ZB-3).
+2. **Before P1:** create the claude.ai test project and a separate browser profile, see
+   [milestone-0__specs](milestone-0__specs.md#what-pascal-does-first-p1-onwards).
 
 ## Next for Claude
 
-1. Write plain explanations, in the question files, for DA-1 (is calling claude.ai's
-   API secure and stable enough?), DA-D1 (how the prompt reaches the new chat) and TA-1
-   (how people install the extension).
-2. When the P0 files are there: run `cd spike && npm run p0 && node snapshot-to-md.mjs`,
+1. When the P0 files are there: run `cd spike && npm run p0 && node snapshot-to-md.mjs`,
    fix the selectors offline, fill in the P0 results in
    [milestone-0__findings](milestone-0__findings.md).
-3. With the original conversation available: check every finding against it, mark what
-   it already settled.
-4. Build the probe panel of the spike extension (P1 to P8, Pascal clicks).
+2. With the original conversation available: check every finding and decision against
+   it, and flag anything it contradicts.
+3. Build the probe panel of the spike extension (P1 to P8, Pascal clicks). The API calls
+   go in one file, reads plus renaming only, no cookies, no typing listeners.
 
 ## Session notes
 

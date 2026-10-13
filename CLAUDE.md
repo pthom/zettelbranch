@@ -24,7 +24,8 @@ Browser extension for claude.ai, idea stage. No code yet.
 
 ## Working rules
 
-These rules live only here, not in the spec (ZB-3).
+These rules live only here, not in the spec (ZB-3). Project rules go here; Claude's notes
+on how to work with Pascal go in its project memory.
 
 - Work autonomously, in the background. Never take over Pascal's screen.
 - No scripts or automated browsers on claude.ai, not even for one page load (Consumer

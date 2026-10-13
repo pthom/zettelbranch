@@ -2,8 +2,8 @@
 
 The text the extension puts in the new chat's message box when you branch. Draft of
 2026-10-13. Built on the decisions FK-1 = A (Claude writes the summary), FK-2 = A (full
-transcript) and AD-1 = A (`<tree>/<address>` titles). It still assumes FK-3 = A
-(branching from your message replaces it), which is open. Context:
+transcript), FK-3 = A (branching from your message replaces it) and AD-1 = A
+(`<tree>/<address>` titles). Context:
 [forking__findings](forking__findings.md), [forking__questions](forking__questions.md).
 
 ## Layout
