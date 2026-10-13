@@ -25,4 +25,20 @@ In the spike's panel, version 0.0.9 (spike commit in the done log once run): two
 
 ## Results
 
-Not run yet.
+2026-10-13, by Pascal, in Chrome, spike 0.0.9, on `zbtest/1 · Initial greeting`. (A first try on `zbtest2/1 · Greeting` was refused, as designed: `zbtest2/` is not the test tree.)
+
+| | Newer API (`renameConversation`) | Older API (`PUT`) |
+|---|---|---|
+| Answer | `{}` in 0.5 s | the conversation, in 0.5 s |
+| Read back from claude.ai | the new title | the new title |
+| Open tab, without reloading: sidebar | old title | old title |
+| Open tab, without reloading: title at the top | old title | old title |
+
+So the newer API does not help: **the open tab only shows the changes its own interface makes.** It keeps its own copy of the titles; a rename from outside, through either API, reaches the server (the phone shows it) but not that copy, until claude.ai reloads its list (in Chrome after a reload or a few minutes; in Firefox sometimes not even after a reload).
+
+What is left, to make the open tab show a new name at once:
+
+- **claude.ai's own rename menu** (the title at the top of a chat, then Rename), driven by Zettelbranch: the tab would update as when Pascal renames by hand. But the extension would drive claude.ai's interface (open the menu, fill the field, confirm), which breaks when claude.ai changes it, and must work in French and English. A probe first.
+- **Keep today's rename** (the older API, documented by use) and the reload notice, and live with the lag.
+
+Decision: RN-1 (in chat).
