@@ -129,12 +129,13 @@
   // After each rename (M1-4). The open tab's sidebar shows the new name after a reload.
   // kind: 'root' (a chat made the root of a tree), 'branch' (a branch named for the first
   // time), 'rename' (a named branch given another topic).
+  // A root is renamed in the middle of a branch: no reload offered there, since a reload
+  // would drop the preview below it (memory only; Pascal clicked it, 2026-10-13).
   function showRenamed(name, kind) {
     const what = { root: `This chat is now the tree root ${name}.`, branch: `You just created the branch ${name}.`, rename: `Renamed to ${name}.` }[kind];
     ui.notice.replaceChildren(
       el('p', { text: what }),
-      el('p', { text: 'Reload the page to see the new name.' }),
-      button('Reload now', 'reload', () => location.reload(), 'primary')
+      ...(kind === 'root' ? [] : [el('p', { text: 'Reload the page to see the new name.' }), button('Reload now', 'reload', () => location.reload(), 'primary')])
     );
     ui.notice.hidden = false;
   }

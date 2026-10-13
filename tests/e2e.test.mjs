@@ -559,7 +559,7 @@ test('a chat not in a tree: an invalid tree name is asked again; accepted, the c
   assert.match(again.message, /"Oulipo Club" cannot be a tree name/);
   assert.equal(confirm.message, 'Zettelbranch: rename this chat?\n\nOld title: Oulipo and constraints\nNew title: oulipo/1 · Oulipo and constraints');
   assert.equal(puts().at(-1).name, 'oulipo/1 · Oulipo and constraints');
-  assert.equal(await text('notice'), 'This chat is now the tree root oulipo/1 · Oulipo and constraints.Reload the page to see the new name.Reload now');
+  assert.equal(await text('notice'), 'This chat is now the tree root oulipo/1 · Oulipo and constraints.');
   assert.equal(await text('preview-title'), 'Preview: the first message of oulipo/1a');
   assert.equal((await Z('preview').textContent()).split('\n')[2].slice(0, 63), 'Forked from: oulipo/1 · Oulipo and constraints, after message 2');
 });

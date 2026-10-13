@@ -259,7 +259,7 @@ In the Chrome test profile, after ⟳ on Zettelbranch in `chrome://extensions` a
 
 Two issues:
 
-- **First try: no preview after the root rename.** After the tree-name and rename dialogs, the panel showed the chat again ("Tree root zbtest/1"), with neither the notice nor the preview, so no new chat. A second Branch, on the chat already named, went through. Not seen in Chrome; the cause is not visible in the code. To reproduce once.
+- **First try: no preview after the root rename.** After the tree-name and rename dialogs, the panel showed the chat again ("Tree root zbtest/1"), with neither the notice nor the preview, so no new chat. A second Branch, on the chat already named, went through. Explained by Pascal's next try, in Chrome: after a root rename, the notice offered "Reload now" above the preview, and he clicked it, as the most visible button; the reload drops the preview (memory only). Fixed the same day: after a root rename the notice has no reload button, only "This chat is now the tree root <name>."; "Reload now" comes only once the branch is named.
 - **Firefox's sidebar keeps the old name**, even after a reload, a Shift+Reload and a new tab; the phone shows the new name. Pascal: "Are we fighting with the local storage?" Likely claude.ai's own cache of the list in the browser (Zettelbranch stores nothing): the open tab only learns of a rename made through the older API when it fetches the list again. Possible fix to probe: rename through claude.ai's newer API (`renameConversation`), the call its own client makes, which may update every open tab.
 
 ## For Pascal
