@@ -5,7 +5,7 @@
 (function (global) {
   'use strict';
 
-  const VERSION = '0.0.10';
+  const VERSION = '0.0.11';
   const Z = () => global.ZBProbes;
   const log = [];
   let host = null;
@@ -196,6 +196,7 @@
         'Press Send yourself. After the reply, click "Check last sent message": it then offers to rename the chat to zbtest/p1 (click OK).',
       ], [
         ['Insert test text', () => p.p1Insert()],
+        ['Insert line by line', () => p.p1Lines()],
         ['Try paste instead', () => p.p1Paste()],
         ['Check last sent message', () => p.p1Check()],
       ]),

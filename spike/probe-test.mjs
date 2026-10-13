@@ -179,6 +179,11 @@ try {
   r = await probe('p4', 'Read title');
   check('P4 read title after reload: API, document title and sidebar agree', r.api === p4Title && r.documentTitle.startsWith(p4Title) && r.sidebar === p4Title && r.guard.includes('zbtest/'), r);
 
+  // ------------------------------------------------ D0. P1 line by line
+  await newChat();
+  r = await probe('p1', 'Insert line by line');
+  check('P1 line by line: the box holds the sample, Send enabled', r.ok === true && r.insertion.method.startsWith('execCommand insertText per line') && r.editor.equalsInserted === true && r.send.after.enabled === true, r.editor);
+
   // ------------------------------------------------ D. P1 paste fallback
   await newChat();
   r = await probe('p1', 'Try paste instead');

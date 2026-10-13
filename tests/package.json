@@ -10,6 +10,9 @@
     "test": "node audit.mjs && node --test unit.test.mjs && node --test --test-concurrency=1 e2e.test.mjs"
   },
   "devDependencies": {
+    "@tiptap/core": "^2.27.3",
+    "@tiptap/starter-kit": "^2.27.3",
+    "esbuild": "^0.24.2",
     "jsdom": "^29.1.1",
     "playwright": "^1.64.0"
   }

@@ -262,6 +262,19 @@
     return { method: 'execCommand insertText', returned, ms: Math.round(performance.now() - t0) };
   }
 
+  // Line by line: each line with insertText, a new paragraph between lines (Firefox lost the
+  // line breaks of a single insertText in claude.ai's box, 2026-10-13).
+  function insertLines(el, text) {
+    caretToEnd(el);
+    const t0 = performance.now();
+    let returned = true;
+    text.split('\n').forEach((line, i) => {
+      if (i > 0) returned = document.execCommand('insertParagraph', false) && returned;
+      if (line) returned = document.execCommand('insertText', false, line) && returned;
+    });
+    return { method: 'execCommand insertText per line, insertParagraph between', returned, ms: Math.round(performance.now() - t0) };
+  }
+
   function pasteText(el, text) {
     caretToEnd(el);
     const dt = new DataTransfer();
@@ -280,7 +293,7 @@
     const chipsBefore = chipCount();
     const charsBefore = editorText(comp.el).length;
     const sendBefore = sendState();
-    const ins = how === 'paste' ? pasteText(comp.el, text) : insertText(comp.el, text);
+    const ins = how === 'paste' ? pasteText(comp.el, text) : how === 'lines' ? insertLines(comp.el, text) : insertText(comp.el, text);
     await sleep(600);
     const added = newTestids(before, testidCounts());
     const chipsAfter = chipCount();
@@ -388,7 +401,7 @@
       diff: diffSummary(ins, last.text),
       attachmentsOfThatMessage: last.msg ? C().attachmentFacts(last.msg) : 'unknown (no API)',
     };
-    out.testTree = await intoTestTree(pk.id, g.title, state.lastInserted.how === 'paste' ? 'p1-paste' : 'p1', 'insertion test');
+    out.testTree = await intoTestTree(pk.id, g.title, state.lastInserted.how === 'paste' ? 'p1-paste' : state.lastInserted.how === 'lines' ? 'p1-lines' : 'p1', 'insertion test');
     return out;
   }
 
@@ -1150,6 +1163,7 @@
     pageKind,
     p1Insert: () => p1Insert('insert'),
     p1Paste: () => p1Insert('paste'),
+    p1Lines: () => p1Insert('lines'),
     p1Check: checkLastSent,
     p2Insert,
     p2Parts,
