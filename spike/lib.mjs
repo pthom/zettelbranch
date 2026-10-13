@@ -11,7 +11,11 @@ export const PROFILE_DIR = path.join(os.homedir(), '.cache', 'zettelbranch', 'ch
 export const SHARE_URL = 'https://claude.ai/share/b6ff02e2-cfa2-49f7-a7f5-8557f0ebca66';
 
 // Files Pascal saves by hand in his own browser.
-export const SAVED_HTML = path.join(OUT_DIR, 'share-page.html'); // Cmd+S, "Webpage, Complete"
+// Cmd+S, "Webpage, Complete". Chrome proposes the name we asked for; Firefox saves
+// `Claude.html`. The first one that exists is the default.
+export const SAVED_HTML =
+  ['share-page.html', 'Claude.html'].map((f) => path.join(OUT_DIR, f)).find((f) => fs.existsSync(f)) ||
+  path.join(OUT_DIR, 'share-page.html');
 export const SAVED_SNAPSHOT = path.join(OUT_DIR, 'snapshot.json'); // the page's API response
 
 // Minimal `--name value` argument parsing.

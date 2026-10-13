@@ -9,6 +9,7 @@ Results of the Milestone 0 spike ([milestone-0__specs](milestone-0__specs.md)). 
 | 2026-10-13 | Setup: Playwright 1.64.0, Chromium 156.0.8078.4, spike extension and scripts | 0 | n/a | 0 |
 | 2026-10-13 | Dry runs on a hand-made sample page, served from disk at the share URL, headless | 0 | n/a | 0 |
 | 2026-10-13 | P0 on the files Pascal saved by hand in Firefox (`Claude.html`, `snapshot.json`), offline: jsdom and headless Chromium | 0 | none in the saved page | 0 |
+| 2026-10-13 | Probe panel (P1 to P8), offline tests against a fake claude.ai, headless | 0 | n/a | 0 |
 
 ## P0 · Read a shared conversation
 
@@ -53,7 +54,7 @@ Seen by Pascal on the real site, in his own test browser (no automation).
   be renamed? This decides whether addresses in titles work inside projects (AD-1,
   FK-D2).
 
-## Files Pascal saves
+### Files Pascal saves
 
 Both go into `spike/out/`, which git ignores.
 
@@ -61,6 +62,9 @@ Both go into `spike/out/`, which git ignores.
 |---|---|
 | `spike/out/share-page.html`, with its folder `spike/out/share-page_files/` | Open the share link. Wait until the conversation shows. Do not scroll. Cmd+S, format "Webpage, Complete", name `share-page`. |
 | `spike/out/snapshot.json` | The JSON the page loads. DevTools (Cmd+Opt+I), Network tab, filter `chat_snapshots`, reload the page. Right-click the request, Copy, Copy response. Paste into a new file `snapshot.json`. The request name comes from public notes *(to verify)*. If nothing matches, filter on `b6ff02e2`. |
+
+Firefox saves the page as `Claude.html` with a `Claude_files/` folder; the scripts take
+either name by default, or any name with `--html`.
 
 Not scrolling keeps the DOM as the page first renders it, which is what the
 virtualization check needs. If Pascal is logged in, the saved page may hold his sidebar
@@ -94,13 +98,10 @@ The browser run:
 - The content script does the extraction in the isolated world and writes the result to
   `<html data-zb-p0-result>`. Playwright only reads that attribute.
 
-The spike extension has no permissions, no background script, no network calls and no
-storage. It never reads, stores or sends credentials or session tokens: no cookies, no
-web storage. Check, which found nothing in the code on 2026-10-13:
-
-```
-grep -nE "document\.cookie|localStorage|sessionStorage|indexedDB|chrome\.|browser\.|fetch\(|XMLHttpRequest|new WebSocket|sendBeacon|\.innerHTML|outerHTML|\.innerText|insertAdjacentHTML" spike/extension/*.js
-```
+For P0 (version 0.0.1) the spike extension had no permissions, no background script, no
+network calls and no storage. Version 0.0.2 adds the probe panel and one network file,
+`claude-api.js`; the rules and their checks are under [Probe panel](#probe-panel-p1-to-p8).
+On share pages it still does only the P0 extraction.
 
 ### Setup checks
 
@@ -187,108 +188,149 @@ the saved DOM, with no virtual rows or spacers. Chat pages may still differ (P6)
   first version of the spec.
 - `attachments`, `files` and `working_documents` are empty.
 
-## Files Pascal saves
+## Probe panel (P1 to P8)
 
-Both go into `spike/out/`, which git ignores.
+Built 2026-10-13, extension version 0.0.2. Pascal runs the probes by hand on the real site:
+see [Running the probes](milestone-0__specs.md#running-the-probes-pascal). No script
+touches claude.ai.
 
-| File | How |
+### What it is
+
+A small panel at the bottom right of every claude.ai page except share pages. "ZB probes"
+opens it. One section per probe: plain instructions, buttons, and the result. "Copy
+results" copies every result of the tab as JSON.
+
+| File in `spike/extension/` | What |
 |---|---|
-| `spike/out/share-page.html`, with its folder `spike/out/share-page_files/` | Open the share link. Wait until the conversation shows. Do not scroll. Cmd+S, format "Webpage, Complete", name `share-page`. |
-| `spike/out/snapshot.json` | The JSON the page loads. DevTools (Cmd+Opt+I), Network tab, filter `chat_snapshots`, reload the page. Right-click the request, Copy, Copy response. Paste into a new file `snapshot.json`. The request name comes from public notes *(to verify)*. If nothing matches, filter on `b6ff02e2`. |
+| `manifest.json` | MV3, content script on `https://claude.ai/*`, no permissions, no background |
+| `extract.js` | Extraction from the page (P0), now also on chat pages |
+| `compare.js` | Text comparison, as in P0 |
+| `conv.js` | Titles and addresses by segments; the message path and text from the API's tree |
+| `claude-api.js` | The only network file: four calls, listed at its top |
+| `prompt.js` | The branch prompt, per [forking__prompt](forking__prompt.md) |
+| `probes.js` | P1 to P8 and their guards |
+| `panel.js` | The panel |
+| `content.js` | Share pages: P0. Other pages: the panel |
 
-Not scrolling keeps the DOM as the page first renders it, which is what the
-virtualization check needs. If Pascal is logged in, the saved page may hold his sidebar
-and account name. Those stay in `spike/out/`. The extension in Pascal's own browser could
-also change the page, so the extensions that were active matter.
+### Rules it follows
 
-### How it runs
+- **Network:** only same-origin requests to claude.ai, all in `claude-api.js`:
+  - `GET /api/organizations`, then the organization whose capabilities include chat;
+  - `GET …/chat_conversations_v2?limit=100&offset=…`, the list, page by page;
+  - `GET …/chat_conversations/<id>?tree=True&rendering_mode=messages&render_all_tools=true`;
+  - `PUT …/chat_conversations/<id>` with `{"name": "zbtest/…"}`.
 
-| Step | Command (in `spike/`) | Output in `spike/out/` |
-|---|---|---|
-| Extract with jsdom | `node offline-extract.mjs` | `extracted-offline.json` |
-| Extract in headless Chromium, with the extension | `node p0-read-share.mjs` | `extracted.json`, `page.png`, `requests.json`, `browser-run.json`, `page-served.html` |
-| Compare with the JSON | `node compare.mjs` | `compare.json` |
-| Describe the JSON | `node inspect-snapshot.mjs` | `snapshot-summary.json` |
-| Write the conversation | `node snapshot-to-md.mjs` | `specs/zettelbranch__origin-conversation.md` |
+  Any other request is refused before it is sent. Reads and renaming only: it never sends
+  a message and never deletes.
+- **No host permission needed.** Chrome makes content-script requests "on behalf of the
+  web origin that the content script has been injected into", under that page's
+  same-origin policy
+  ([Chrome docs](https://developer.chrome.com/docs/extensions/develop/concepts/network-requests)).
+  The browser attaches the login cookie by itself; the code never reads it.
+- No cookies, no web storage, no IndexedDB, no `innerHTML`, no keyboard or input
+  listeners. In P8 the fork point is set with − and + buttons, so nothing is typed into
+  the panel.
+- **Write probes** (P1 to P4, P8) run only on a new empty chat, on a chat whose title
+  starts with `zbtest/`, or on a chat the tab saw being started from a new chat. The last
+  case is needed for P4 (rename before the first reply ends) and to turn a new chat into
+  a P8 root. It lasts until the page reloads.
+- **Read-only probes** (P5 to P7) run anywhere and say "read-only, nothing is changed".
+  Their results hold counts and structure, never message text. P5 shows only `zbtest/`
+  titles.
+- **Renames** go only to `zbtest/…` names, after a confirm dialog with the old and the new
+  title. `claude-api.js` enforces the prefix too.
+- **Unexpected answers** become a clear error: the status and the first 200 characters for
+  an HTTP error; for an answer of the wrong shape, only its keys and types, so no message
+  text leaks into a result.
 
-`npm run p0` runs the first four. `npm run sample` runs everything on the hand-made
-sample in `spike/fixtures/`.
+### Offline tests
 
-The browser run:
+`npm run test:probes` (`spike/probe-test.mjs`) runs headless Chromium with the extension
+against a fake claude.ai (`spike/fixtures/chat-app/`, `spike/fixtures/fake-claude.mjs`),
+answered from memory at claude.ai addresses. Every request is answered locally or
+aborted, and the run fails if one escapes. The fake has:
 
-- Playwright's own Chromium 156 (revision 1248) in the new headless mode
-  (`channel: 'chromium'`), on the dedicated profile `~/.cache/zettelbranch/chromium-profile`.
-  Never a window.
-- A route handler answers every request. It serves the saved page at the share URL with
-  its scripts, preload links and inline event handlers removed, so the saved app does not
-  run. It serves files from `share-page_files/` and aborts everything else. WebSockets are
-  closed without connecting. Service workers are blocked.
-- `--host-resolver-rules=MAP * ~NOTFOUND`: no host name resolves, as a second guard.
-- The run fails if any request did not go through the route handler.
-- The content script does the extraction in the isolated world and writes the result to
-  `<html data-zb-p0-result>`. Playwright only reads that attribute.
+- a message box that enables Send when it holds text, and turns long pastes into an
+  attachment chip;
+- a New chat link that changes the address without a reload, and a sidebar;
+- private chats with secret text, 118 more to force paging, and a 60-message chat that
+  shows only its last 30 messages;
+- a small `zbtest` tree with an edited message and a real branch.
 
-The spike extension has no permissions, no background script, no network calls and no
-storage. It never reads, stores or sends credentials or session tokens: no cookies, no
-web storage. Check, which found nothing in the code on 2026-10-13:
+Result on 2026-10-13: **56 of 56 checks pass.** 86 requests, none escaped. The extension
+made 59 GET and 3 PUT calls, all of the four allowed kinds, and every rename went to a
+`zbtest/` name.
 
-```
-grep -nE "document\.cookie|localStorage|sessionStorage|indexedDB|chrome\.|browser\.|fetch\(|XMLHttpRequest|new WebSocket|sendBeacon|\.innerHTML|outerHTML|\.innerText|insertAdjacentHTML" spike/extension/*.js
-```
+| Probe | Checked offline |
+|---|---|
+| Guards | P1, P2, P3, P4 and P8 refuse on a private chat and change nothing. Refusals hold no private text. |
+| P1 | The box holds exactly the sample, Send enables, no attachment. The paste fallback works. "Check last sent message" finds the sent text exact. |
+| P2 | 5k stays inline; the check finds the full text, and line 3 in the reply. The three-part insert keeps all three parts. 100k inserts in about 1.6 s. |
+| P3 | New chat through the app's own link, no reload, the variable survives, the marker is in the box. |
+| P4 | Rename after a confirm. The next free root is found by segments (`1` and `10` exist, so `11`). After a reload, the API, the page title and the sidebar agree. |
+| P5 | 124 conversations in 2 list requests. Only the 4 `zbtest/` titles shown. The organization with chat is picked over another one. |
+| P6 | 60 messages in the API, 30 on the page, and it says so. An attachment's text is in the API but not on the page. |
+| P7 | The P0 selectors match. Similarity with the API path: 1.0. The lookups that matched are listed. |
+| P8 | Next address `1b`: `1a` exists, and `1a1` and `10` are not children of `1`. Header, transcript and escaping of `<zb-` are right; the old version of an edited message is left out. "From my own message" works; a fork point of the wrong kind is refused. Open and insert, summary check and rename work. A branch parent is flattened. A new chat becomes root `12`. |
+| Copy results | The test denies clipboard writes, so the panel shows the JSON instead. The whole log holds no private text. |
 
-### Setup checks
+Not tested offline: the real clipboard copy. Headless Chrome might share the macOS
+clipboard, so the test denies it.
 
-Done on the hand-made sample, 2026-10-13.
+The fake app imitates claude.ai from the saved share page and from public notes. It tests
+the code, not claude.ai.
+
+### Audit
+
+`npm run audit` (`spike/audit.mjs`): **12 of 12 checks pass** on 2026-10-13. Comments are
+ignored. A copy with six planted violations fails six checks, as it should. The audit
+also prints a plain `grep` for each check.
 
 | Check | Result |
 |---|---|
-| Extension loads in the new headless mode | Yes. Playwright adds `--disable-extensions` by default, but `--disable-extensions-except` with `--load-extension` still loads it. |
-| Nothing on screen | No window. During a run, macOS lists the browser process as `BackgroundOnly` (`lsappinfo`), so no Dock icon either. |
-| Content script runs on `https://claude.ai/share/*` | Yes, in the isolated world. |
-| Probe trigger | Works: Playwright sets `data-zb-probe`, the content script answers in `data-zb-probe-result`. |
-| Network | 4 requests: 2 served from disk, 2 aborted, 0 unhandled. The page's script and inline handler did not run. |
-| jsdom and browser agree | Same Markdown for all 4 messages. |
-| Error paths | Missing files: the scripts stop before launching anything. A saved "Just a moment..." page is detected. No selector match: the content script gives up after 30 s and returns its diagnostics. |
+| `fetch`, `XMLHttpRequest`, `sendBeacon`, `WebSocket`… only in `claude-api.js` | pass |
+| Only GET and PUT | pass |
+| No host other than `https://claude.ai` | pass |
+| No cookies or credentials | pass |
+| No web storage, IndexedDB or extension storage | pass |
+| No `innerHTML`, `outerHTML`, `insertAdjacentHTML`, `document.write` | pass |
+| No `innerText` | pass |
+| No keyboard or input listeners | pass |
+| `MutationObserver` only for the P0 trigger on share pages | pass |
+| No `eval` | pass |
+| No extension APIs (`chrome.*`) | pass |
+| Manifest: no permissions, no background, claude.ai only | pass |
 
-The sample is made by hand from memory of claude.ai's class names. It tests the code, not
-the selectors.
+### Open for the first real click
 
-### Selectors
+Each lookup tries a short list, and the result says which one matched.
 
-Candidates, tried in order. All *(to verify)* until the run on the saved page.
-
-| What | Candidates |
-|---|---|
-| User turn | `[data-testid="user-message"]`, `.font-user-message`, `[data-message-author-role="user"]` |
-| Assistant turn | `.font-claude-response`, `.font-claude-message`, `[data-testid="assistant-message"]`, `[data-message-author-role="assistant"]` |
-| Assistant message body | `.standard-markdown`, `.progressive-markdown`. Anything else in the message (thinking, tool use) is left out and logged. |
-| Code block | `pre`. Language from `code.language-*`, else the short label next to it. |
-| Math | `annotation[encoding="application/x-tex"]` inside `.katex` or `.katex-display` |
-| Artifact | `[class*="artifact"]`, `[data-testid*="artifact"]` |
-| Turn and list containers | Recorded from the page in `diag.turns` and `diag.listContainer` |
-
-### Results
-
-Pending: waits for Pascal's two files. To fill in:
-
-- whether the saved page renders in headless Chromium with the extension, and how long
-  the extraction took (offline, so this measures the saved DOM, not claude.ai);
-- the selectors that matched, the turn and list containers;
-- extraction against the JSON: message count, role sequence, text similarity, code
-  blocks, tables, math, links;
-- what was lost or wrong;
-- virtualization: whether the saved DOM holds every message. If it holds fewer than the
-  JSON, look for rows with `data-index`, absolute positioning or spacer heights
-  ([claude-ai__findings](claude-ai__findings.md#2-internal-web-api)). This decides
-  whether extraction from the DOM alone can work;
-- the snapshot JSON: fields, tree shape (`parent_message_uuid`), shown path or whole
-  tree, how artifacts, attachments and tool use appear.
+- **Message box and Send button:** candidates from public notes
+  (`[data-testid="chat-input"]`, `div.ProseMirror[contenteditable="true"]`,
+  `[data-testid="chat-input-send"]`). The saved share page has no message box, so none is
+  confirmed.
+- **Attachment chip:** unknown. After each insertion the probes list every new
+  `data-testid` on the page.
+- **Insertion:** whether `execCommand('insertText')` keeps line breaks, indentation and
+  code fences in claude.ai's editor, or whether its Markdown shortcuts turn `- ` into a
+  list.
+- **New chat link:** `a[href="/new"]` in the sidebar, seen in the saved page. Whether a
+  click from the script opens the new chat without a reload is P3's question.
+- **API:** whether the legacy REST calls still answer on Pascal's account (the new "one
+  Claude" layout), the list's shape and paging, and the rename's answer. If they do not,
+  P4, P5, P6 and P8 show a clear error; P1, P2 and P7 fall back to the page.
+- **Addresses of pages:** the probes expect `/chat/<id>` for a conversation and `/new`
+  (or `/`) for a new chat, as in the saved page's links.
+- **Page title:** format unknown; P4 shows it as is.
+- **Panel styles:** applied through a constructed stylesheet, which a strict page CSP
+  does not block. Not seen on claude.ai yet.
+- **Clipboard:** if "Copy results" fails, the panel shows the JSON to copy by hand.
 
 ## Files
 
 | Path | What |
 |---|---|
-| `spike/extension/` | `manifest.json`, `extract.js` (selectors and Markdown conversion, also run by jsdom), `content.js` |
+| `spike/extension/` | The spike extension: P0 extraction and the probe panel (files listed under [Probe panel](#probe-panel-p1-to-p8)) |
 | `spike/p0-read-share.mjs` | Headless browser run, offline |
 | `spike/offline-extract.mjs` | jsdom run |
 | `spike/compare.mjs` | Comparison with the JSON |
@@ -298,6 +340,11 @@ Pending: waits for Pascal's two files. To fill in:
 | `spike/fixtures/` | Hand-made sample page and JSON |
 | `spike/out/sample/page.png` | What the headless browser showed for the sample |
 | `spike/out/page.png` | What it shows for the saved share page, after the P0 run |
+| `spike/probe-test.mjs` | Offline test of the probe panel |
+| `spike/audit.mjs` | The audit greps |
+| `spike/fixtures/chat-app/`, `spike/fixtures/fake-claude.mjs` | Fake claude.ai for the probe tests |
+| `spike/out/probe-test/panel.png` | The panel as the headless browser showed it |
+| `spike/out/probe-test/report.json`, `results-log.json` | Test checks, the extension's API calls, the panel's results log |
 
 `spike/out/` is ignored by git. Files there may hold account details from the saved page,
 so they stay local.

@@ -70,6 +70,46 @@ ordinary chats of the `zbtest` tree.
 P8 is the only probe that needs Claude to answer well; P1, P2 and P4 need sent messages
 but not good replies.
 
+## Running the probes (Pascal)
+
+Everything happens on your clicks, in the "Zettelbranch test" profile. The panel never
+sends a message: you press Send yourself.
+
+1. **Reload the extension.** Open `chrome://extensions`, find "Zettelbranch spike
+   (Milestone 0 probes)" and click its ⟳ button. The first time: turn on Developer mode,
+   click "Load unpacked", pick `spike/extension/`.
+2. **Open claude.ai** in the test profile. A small "ZB probes" button sits at the bottom
+   right. Click it to open the panel; "Hide" folds it away.
+3. **Run the probes in the panel's order.** Each section says what to do in one to three
+   lines. Stay in the same tab and do not reload between a probe and its check: the panel
+   keeps what it inserted only in memory.
+
+| Probe | What you do | New chats | Messages you send |
+|---|---|---|---|
+| P1 | New chat, "Insert test text", Send, then "Check last sent message". Then "Try paste instead" in another new chat. | 2 | 1 or 2 |
+| P2 | One new chat per button: 5k, 20k, 100k, "Header + transcript". Send each, then "Check after sending". | up to 4 | up to 4, long |
+| P3 | In a `zbtest/` chat, "Open new chat". Do not send the marker. | 0 | 0 |
+| P4 | Chat A: send a first message, then "Rename now" at once. Chat B: wait for the automatic title, then "Rename now". Reload, "Read title", then look at the titles on your phone. | 2 | 2 |
+| P5 | "List conversations". Read-only. | 0 | 0 |
+| P6 | Open a long chat, or one with a pasted file, then "Compare page and API". Read-only, any chat. | 0 | 0 |
+| P7 | "Run extractor" on a chat, once with the UI in French and once in English. Read-only, any chat. | 0 | 0 |
+| P8 | In a `zbtest/` chat with a few messages (chat B of P4 will do), branch twice: once "from Claude's reply", once "from my own message". Send each, then "Check summary" and "Rename branch". | 2 | 2 |
+
+About 10 new chats and 10 sent messages, plus Claude's replies.
+
+4. **Naming.** Test chats get titles that start with `zbtest/`. The panel renames only
+   after a dialog that shows the old and the new title: read it, then click OK. The
+   probes that type or rename (P1 to P4, P8) refuse to run on any other chat. A chat you
+   start from New chat counts as a test chat until you reload, so rename it first (P4
+   "Rename now", or P8 "Make it a tree root").
+5. **Read-only probes** (P5, P6, P7) work on any chat and change nothing. They show
+   counts, never message text, and only `zbtest/` titles.
+6. **At the end,** click "Copy results" and paste them to Claude. If the copy fails, the
+   panel shows the text; select it and copy it by hand.
+7. **Clean up:** delete every `zbtest/` chat (in the sidebar, the chat's ⋯ menu, Delete).
+
+If a bot check or an error from claude.ai appears, stop and tell Claude.
+
 ## Budget
 
 - About 6 conversations and 15 sent messages, all `zbtest/` chats, with short prompts,

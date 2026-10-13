@@ -326,12 +326,18 @@
 
   function artifactBlock(el, ctx) {
     ctx.counts.artifact++;
+    // First real text in the card: skips icons (aria-hidden, private-use glyphs) and buttons.
     let title = '';
     (function walk(n) {
       for (const c of n.childNodes) {
         if (title) return;
-        if (c.nodeType === TEXT) title = c.nodeValue.trim();
-        else if (c.nodeType === ELEMENT && !/^(SVG|STYLE|SCRIPT)$/.test(tagOf(c)) && !hasClass(c, 'sr-only')) walk(c);
+        if (c.nodeType === TEXT) {
+          const v = c.nodeValue.trim();
+          if (v && !/^[-\s]+$/.test(v)) title = v;
+        } else if (c.nodeType === ELEMENT && !/^(SVG|STYLE|SCRIPT|BUTTON)$/.test(tagOf(c)) &&
+            !hasClass(c, 'sr-only') && c.getAttribute('aria-hidden') !== 'true') {
+          walk(c);
+        }
       }
     })(el);
     return `[artifact: ${title || 'untitled'}, not copied]`;
