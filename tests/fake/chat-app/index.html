@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<!-- Fake claude.ai chat app for the offline tests. Hand-made: element names imitate
+     what was seen in a saved claude.ai page (sidebar, transcript list, message test ids) and
+     what public notes say about the message box. It is not claude.ai. -->
+<html lang="en"><head><meta charset="utf-8"><title>Claude</title>
+<style>
+  body { margin: 0; font: 14px/1.5 Georgia, serif; display: flex; height: 100vh; background: #f5f4ef; color: #222; }
+  aside { width: 240px; border-right: 1px solid #ccc; padding: 10px; overflow: auto; }
+  aside a { display: block; color: #333; text-decoration: none; padding: 2px 0; }
+  main { flex: 1; display: flex; flex-direction: column; }
+  [data-testid="chat-column-body"] { flex: 1; overflow: auto; padding: 10px 20px; }
+  [data-testid="user-message"] { background: #e8e5d8; border-radius: 10px; padding: 4px 10px; margin: 8px 0; }
+  .whitespace-pre-wrap { white-space: pre-wrap; }
+  fieldset { border: 1px solid #bbb; margin: 10px; border-radius: 10px; }
+  .ProseMirror { min-height: 40px; white-space: pre-wrap; outline: none; max-height: 200px; overflow: auto; }
+  [data-testid="file-thumbnail"] { display: inline-block; border: 1px solid #999; padding: 2px 6px; margin: 2px; }
+</style></head>
+<body>
+<aside data-testid="sidebar">
+  <a href="/new" class="flex items-center">Claude</a>
+  <div><a href="/new" data-roving-item="" data-row-main-button="">New chat</a></div>
+  <div data-testid="sidebar-recents"></div>
+</aside>
+<main>
+  <div data-testid="chat-column-body"><div data-testid="transcript-list"></div></div>
+  <fieldset>
+    <div data-testid="composer-files"></div>
+    <div data-testid="chat-input"><div class="ProseMirror" contenteditable="true" role="textbox"><p><br class="ProseMirror-trailingBreak"></p></div></div>
+    <button data-testid="chat-input-send" type="button" disabled>Send</button>
+  </fieldset>
+</main>
+<script src="/fixture-app/app.js"></script>
+</body></html>
