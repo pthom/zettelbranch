@@ -4,6 +4,8 @@ What is open, and the next steps. Updated by Claude at the end of each session. 
 
 **Last update:** 2026-10-13
 
+**Repository:** https://github.com/pthom/zettelbranch (public, created 2026-10-13). Claude pushes only when Pascal asks.
+
 ## Where things are
 
 Milestone 0 is closed ([in brief](done/milestone-0/milestone-0__findings.md#in-brief)); the facts Milestone 1 builds on are in [claude-ai__findings](claude-ai__findings.md#9-checked-on-pascals-account-milestone-0).
