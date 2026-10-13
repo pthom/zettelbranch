@@ -386,6 +386,8 @@
         settle(head);
         return { ok: false, text: `The name did not change: ${conv.name}. Nothing was renamed.` };
       }
+      const before = T().parseTitle(conv.name);
+      const wasNamed = !!before && before.tree === head.tree && before.address === head.address;
       await rename(pk.id, asked.name);
       settle(head);
       // What the panel read for this chat, with its new name: shown without reading again.
@@ -395,7 +397,7 @@
         describe(mem);
         chat = mem;
       }
-      return { ok: true, renamed: asked.name, chat: mem };
+      return { ok: true, renamed: asked.name, wasNamed, chat: mem };
     } catch (e) {
       return { ok: false, text: 'Could not name this branch.', error: explain(e) };
     }

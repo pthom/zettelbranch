@@ -199,7 +199,7 @@ In the Chrome test profile, after ⟳ on Zettelbranch in `chrome://extensions` a
 
 ## Following the chat, and Claude's branch title (step 6e)
 
-Built offline by Claude on 2026-10-13, commit `a3891bd`, from Pascal's two decisions of the same day. Nothing touched claude.ai. Pascal, before the commit: "It works nicely at this step."
+Built offline by Claude on 2026-10-13, commit `a3891bd`, from Pascal's two decisions of the same day. Nothing touched claude.ai.
 
 ### What changed
 
@@ -235,6 +235,15 @@ In the Chrome test profile, after ⟳ on Zettelbranch in `chrome://extensions` a
 2. Branch, Open new chat, type a question, Send: the panel moves to the new chat by itself. Right after Send, does it show the steps, the box with "When Claude has replied:", or the branch with its Name button?
 3. Claude's first reply ends with "Branch title: …". Name this branch proposes it ("Proposed by Claude in its first reply.").
 4. Branch from that branch: the preview's transcript holds Claude's reply without the summary and without the "Branch title:" line.
+
+## Third real use: steps 6d and 6e checked
+
+2026-10-13, by Pascal, on his `oulipo` tree (`oulipo/1a1a · Quel est mon prénom`).
+
+- **Opening the panel:** about one second the first time, then instant when reopened.
+- **Following:** with the panel open, a move in the sidebar shows the other chat; hidden, nothing happens; reopened, it shows the chat on screen.
+- **After Send:** claude.ai showed "Pondering" for a few seconds, then the reply, which ended with "Branch title: Quel est mon prénom". "Name this branch" proposed it ("Proposed by Claude in its first reply").
+- **Asked by Pascal:** a "Reload now" that stands out, and a clearer notice. Done the same day: the notice now says "You just created the branch <name>." (or "Renamed to <name>." for a named branch, "This chat is now the tree root <name>." for a new root), then "Reload the page to see the new name.", with "Reload now" as a filled button. Tests: audit 49/49, unit 52/52, end-to-end 30/30.
 
 ## For Pascal
 

@@ -353,7 +353,7 @@ test('after Send, the panel follows to the new branch; Name this branch proposes
   assert.equal(d.defaultValue, 'zbtest/1b · Fish and birds on one page');
   assert.equal(d.message, 'Zettelbranch: name this branch. Proposed by Claude in its first reply. You can change the topic; the address part stays.');
   assert.equal(puts().at(-1).name, 'zbtest/1b · Fish and birds on one page');
-  assert.equal(await text('notice'), 'Named zbtest/1b · Fish and birds on one page. Reload to see the new name in the sidebar.Reload now');
+  assert.equal(await text('notice'), 'You just created the branch zbtest/1b · Fish and birds on one page.Reload the page to see the new name.Reload now');
   assert.equal(await text('identity'), 'Branch zbtest/1b, from zbtest/1 after message 4', 'this is the branch just made');
   assert.equal(await text('chat-title'), 'zbtest/1b · Fish and birds on one page');
   assert.equal(await Z('name-box').count(), 0);
@@ -398,7 +398,7 @@ test('branch from your own message: it is pre-filled; next address 1c; Name with
   assert.equal(dialogs.at(-1).defaultValue, 'zbtest/1c · How does branching work');
   assert.match(dialogs.at(-1).message, / Proposed from your first question in this branch\. /);
   assert.equal(puts().at(-1).name, 'zbtest/1c · My own topic');
-  assert.match(await text('notice'), /^Named zbtest\/1c · My own topic\./);
+  assert.match(await text('notice'), /^You just created the branch zbtest\/1c · My own topic\./);
   await click('hide');
   assert.equal(await text('pill'), 'Zettelbranch', 'named: no more reminder');
   assert.equal(await Z('pill').getAttribute('title'), null);
@@ -559,7 +559,7 @@ test('a chat not in a tree: an invalid tree name is asked again; accepted, the c
   assert.match(again.message, /"Oulipo Club" cannot be a tree name/);
   assert.equal(confirm.message, 'Zettelbranch: rename this chat?\n\nOld title: Oulipo and constraints\nNew title: oulipo/1 · Oulipo and constraints');
   assert.equal(puts().at(-1).name, 'oulipo/1 · Oulipo and constraints');
-  assert.equal(await text('notice'), 'Named oulipo/1 · Oulipo and constraints. Reload to see the new name in the sidebar.Reload now');
+  assert.equal(await text('notice'), 'This chat is now the tree root oulipo/1 · Oulipo and constraints.Reload the page to see the new name.Reload now');
   assert.equal(await text('preview-title'), 'Preview: the first message of oulipo/1a');
   assert.equal((await Z('preview').textContent()).split('\n')[2].slice(0, 63), 'Forked from: oulipo/1 · Oulipo and constraints, after message 2');
 });
@@ -638,7 +638,7 @@ test('Rename this branch, once named: its current name proposed; unchanged, noth
   assert.equal(listCalls(before), 0, 'the list is not read again after a rename');
   assert.deepEqual(await node('1c'), { address: '1c', topic: '· Branching, revisited', tags: 'you are here', href: null, current: true, indent: '22px' });
   assert.equal(puts().at(-1).name, 'zbtest/1c · Branching, revisited');
-  assert.match(await text('notice'), /^Named zbtest\/1c · Branching, revisited\./);
+  assert.match(await text('notice'), /^Renamed to zbtest\/1c · Branching, revisited\./);
   assert.equal(await text('chat-title'), 'zbtest/1c · Branching, revisited');
   assert.equal(await Z('info').isVisible(), false);
 });

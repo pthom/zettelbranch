@@ -127,10 +127,14 @@
   }
 
   // After each rename (M1-4). The open tab's sidebar shows the new name after a reload.
-  function showRenamed(name) {
+  // kind: 'root' (a chat made the root of a tree), 'branch' (a branch named for the first
+  // time), 'rename' (a named branch given another topic).
+  function showRenamed(name, kind) {
+    const what = { root: `This chat is now the tree root ${name}.`, branch: `You just created the branch ${name}.`, rename: `Renamed to ${name}.` }[kind];
     ui.notice.replaceChildren(
-      el('p', { text: `Named ${name}. Reload to see the new name in the sidebar.` }),
-      button('Reload now', 'reload', () => location.reload())
+      el('p', { text: what }),
+      el('p', { text: 'Reload the page to see the new name.' }),
+      button('Reload now', 'reload', () => location.reload(), 'primary')
     );
     ui.notice.hidden = false;
   }
@@ -348,7 +352,7 @@
       return showFailure(r);
     }
     if (!r.ok) return showFailure(r);
-    if (r.renamed) showRenamed(r.renamed);
+    if (r.renamed) showRenamed(r.renamed, 'root');
     showPreview(r);
   }
 
@@ -390,7 +394,7 @@
     // What the panel read for this chat, with the new name; else read it (not the list again).
     if (r.chat) showChat(r.chat);
     else await refresh({ reuseList: true });
-    showRenamed(r.renamed);
+    showRenamed(r.renamed, r.wasNamed ? 'rename' : 'branch');
   }
 
   // ---------------------------------------------------------------- mount
