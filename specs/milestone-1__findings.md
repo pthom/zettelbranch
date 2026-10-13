@@ -90,6 +90,17 @@ What it shows:
 - Fixed the same day: the notice now says the phone shows the new name at once, the title at the top after a reload, the sidebar a few minutes later; the header quotes a branch's first reply without the summary marker; quotes and list labels drop code-fence marks.
 - Pascal's question during the checklist: "we are using new chats instead of forking, i.e. re-editing a message?" Yes, by design. See the status file for the follow-up.
 
+## First real use
+
+2026-10-13, by Pascal, on one of his own chats: "Poème en forme de chat" became `oulipo/1 · Poème en forme de chat`, and its branch `oulipo/1a`, about fish and birds.
+
+- **The branch got the parent's name.** claude.ai names a new chat from its first message, which holds the whole parent conversation, so its automatic title was the parent's ("a new story with the old name"). Pascal renamed it by hand: `oulipo/1a · Poisson et oiseau`.
+- **No guidance after "Open new chat".** Nothing said to type the question at the end of the box, nor, after Claude's replies, to name the branch with Zettelbranch.
+- **Pascal's suggestion:** a name proposed from what the branch is about (here, fish and birds). Possible: the first words of the first question asked in the branch.
+- **No navigation between branches.** Intended for Milestone 1; the banner (parent, siblings, children) comes later. Pascal's question: is that intended?
+
+Fixes under way: guidance after "Open new chat", a visible reminder to name the branch, and a name proposed from the branch's first question when claude.ai's title repeats the parent's.
+
 ## For Pascal
 
 **To check on the real page (step 8):**
