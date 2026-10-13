@@ -76,6 +76,10 @@ Start your first reply with a single blockquote paragraph that begins with
 "Parent zb/1b in brief:" and says in 2 to 4 sentences where the conversation stood at
 that point, in the language of the conversation. Then answer my message below. If there
 is no message below, reply with the summary only.
+
+If there is a message below, end your first reply with a separate last line: "Branch title:"
+followed by 3 to 6 words naming what this branch is about, from my message below, in the
+language of the conversation.
 </zb-instructions>
 ```
 
@@ -111,6 +115,9 @@ The extension reads this blockquote for the banner's "where this came from". The
 
 Parsing is lenient. The extension takes the first blockquote of the first reply that starts with `Parent`. If there is none, the banner shows no summary; nothing else breaks.
 
+
+The last line, `Branch title: Un enfant au ballon`, is Claude's suggestion for the branch's name (Pascal, 2026-10-13): claude.ai's automatic title describes the parent, since the first message holds its transcript, and the first words of a question rarely make a good name. It is asked only when the first message holds a question; when the question comes in a later message, the proposal falls back to that question's first words.
+
 ## What the extension parses
 
 The header message is message 1 in a copy. In a branch claude.ai copied, it is the first message of yours that starts with the branch's header, after the copied messages ([below](#when-claudeai-copied-the-conversation)).
@@ -124,6 +131,7 @@ The header message is message 1 in a copy. In a branch claude.ai copied, it is t
 | Earlier turns | The header message of a copy | `<zb-turn>` elements inside `<zb-transcript>` |
 | Your own text | The header message | everything after `</zb-instructions>` |
 | Summary | The reply after the header message | first blockquote starting with `Parent` |
+| Branch title | The same reply, its last line | `^Branch title: (.+)$`: "Name this branch" proposes it first; dropped from the reply when it is copied into another branch |
 
 If the transcript became an attachment, reading it back needs the attachment's text. The API holds it (`extracted_content`); the page only while that message is on screen (Milestone 0, P6). So it is read through the API.
 
