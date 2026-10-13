@@ -26,7 +26,7 @@ Pascal's account is on the new experience, which every account ends up on: it is
   - The first branch from a conversation that is not in a tree yet renames it to the root, `<tree>/1 · <its title>`. The new chat becomes `<tree>/1a`.
 - The conversation list is the registry of the tree. Addresses are split into number and letter segments (`1b10` = `[1, b, 10]`): a child has its parent's segments plus exactly one more. Never compare addresses as string prefixes.
 - Addresses are permanent: never renumbered; deleted branches leave gaps. After `z`, letters continue `aa`, `ab`… Duplicate addresses (two devices forking at once) are flagged in the banner, not prevented.
-- A header goes in the first message of each branch, written at fork time: address, path to root (`zb/1 › 1b › 1b1 › 1b1a`), and the fork point (message number and a short quote). Because it is plain text in the conversation, it is readable everywhere, including the mobile app, without the extension.
+- A header goes in the first message of each branch, written at fork time: address, path to root (`zb/1 › 1b › 1b1 › 1b1a`), and the fork point (message number and a short quote). In a branch claude.ai copied, that is the first message the user sends there, after the copied ones. Because it is plain text in the conversation, it is readable everywhere, including the mobile app, without the extension.
 - The summary of the parent is written by Claude: the branch prompt asks it to start its first reply with a short summary in a fixed format the extension can parse.
 - The branch carries the full transcript from the root to the fork point. "Summary only" and "last N turns" modes come later. Branching from a branch flattens the transcript into one sequence instead of nesting it.
 - The extension adds the dynamic part as an in-page banner at the top of the conversation: path to root, siblings, children, cross-references, each with a one-line summary, plus a "show whole tree" link.
@@ -45,7 +45,7 @@ A self-audit proves nothing (malicious code can lie about itself), so make exter
 
 - Short, readable code. No dependencies, no bundler, no minification, no build step: what is on GitHub is exactly what runs.
 - Minimal permissions: claude.ai only. No other host.
-- Network: only same-origin requests to claude.ai's own API, all in one file that lists the few addresses it calls, provable by grep. Reads, plus renaming conversations; never sending messages, never deleting. No other host, ever (`fetch`, `XMLHttpRequest`, `WebSocket`, `sendBeacon`, image or link loads...).
+- Network: only same-origin requests to claude.ai's own API, all in one file that lists the few addresses it calls, provable by grep. Reads, renaming conversations, and asking claude.ai to copy the conversation on screen into a new chat (NF-2); never sending messages, never deleting. No other host, ever (`fetch`, `XMLHttpRequest`, `WebSocket`, `sendBeacon`, image or link loads...).
 - The API is undocumented and can change: if an answer does not look as expected, the extension says so clearly ("claude.ai changed, Zettelbranch needs an update"). Basic branching (copy from the page, fill the new chat) keeps working without the API; only the whole tree, banner summaries and backlinks pause.
 - Never read, store or send claude.ai credentials or session tokens: no `cookies` permission, no `document.cookie`. Anthropic support named this as the line not to cross ([terms__findings](terms__findings.md)).
 - No persistent storage of conversation content.

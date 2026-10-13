@@ -1,6 +1,6 @@
 // Zettelbranch: a conversation as a list of messages [{ n, role, text }], numbered from 1
-// along the path the page shows. Read from the API's answer, or, when the API fails, from
-// the page, which holds only the messages near the screen.
+// along the path the page shows. Read from the API's answer (with each message's `uuid`), or,
+// when the API fails, from the page, which holds only the messages near the screen.
 // Reads only: no network (api.js does that), no storage, no innerText, no innerHTML.
 (function (global) {
   'use strict';
@@ -53,7 +53,7 @@
     return parts.join('\n\n');
   }
 
-  const fromApi = (conv) => pathOf(conv).map((m, i) => ({ n: i + 1, role: roleOf(m), text: messageText(m) }));
+  const fromApi = (conv) => pathOf(conv).map((m, i) => ({ n: i + 1, role: roleOf(m), text: messageText(m), uuid: m.uuid }));
 
   // ---------------------------------------------------------------- from the page
 

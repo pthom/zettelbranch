@@ -93,7 +93,7 @@ function stubApi(routes, url = 'https://claude.ai/chat/' + CONV) {
       w.fetch = async (u, init = {}) => {
         const method = init.method || 'GET';
         const p = String(u).replace('https://claude.ai', '');
-        calls.push({ method, path: p, body: init.body, credentials: init.credentials });
+        calls.push({ method, path: p, body: init.body, credentials: init.credentials, headers: init.headers });
         const r = routes.find((x) => x.method === method && x.re.test(p));
         const status = r ? r.status || 200 : 404;
         const body = r ? (typeof r.body === 'function' ? r.body(p, init) : r.body) : { error: 'not found' };
@@ -201,6 +201,59 @@ describe('api.js', () => {
     const { api, calls } = stubApi([ORGS], 'https://example.com/');
     await rejectsWith(api.listConversations(), 'origin', api.ApiError);
     assert.equal(calls.length, 0);
+  });
+
+  const MSG = 'bbbbbbbb-0000-4000-8000-000000000004';
+  const FORK_PATH = '/claudeai-rpc/anthropic.bard.api.v1alpha.ConversationService/PerformAction';
+  const forkRoute = (body, status) => ({ method: 'POST', re: /PerformAction$/, body, status });
+
+  test('the fork: one POST, only continueBranchAsNewChat in its body, the new id chosen here', async () => {
+    const { api, calls } = stubApi([ORGS, forkRoute({})]);
+    const id = await api.forkConversation(CONV, MSG);
+    assert.match(id, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+    const post = calls.find((c) => c.method === 'POST');
+    assert.equal(post.path, FORK_PATH);
+    assert.equal(post.credentials, 'same-origin');
+    const body = JSON.parse(post.body);
+    assert.match(body.header.mutationId.sessionId, /^sess_[0-9a-f]{24}$/);
+    assert.deepEqual(body, {
+      header: { conversationId: id, mutationId: { sessionId: body.header.mutationId.sessionId, version: 1 } },
+      continueBranchAsNewChat: { sourceConversationId: CONV, throughMessageId: MSG },
+    });
+    assert.deepEqual({ ...post.headers }, {
+      'content-type': 'application/json',
+      'connect-protocol-version': '1',
+      'x-organization-uuid': ORG,
+      'anthropic-client-platform': 'web_claude_ai',
+    });
+    assert.notEqual(await api.forkConversation(CONV, MSG), id, 'a new id each time');
+  });
+
+  test('the fork: bad ids are refused before any request; errors keep the Connect code, never the message', async () => {
+    let s = stubApi([ORGS, forkRoute({})]);
+    for (const [src, msg] of [['x', MSG], [CONV, 'x'], [CONV, MSG + '/../x'], [null, MSG], [CONV, undefined]]) {
+      await rejectsWith(s.api.forkConversation(src, msg), 'refused', s.api.ApiError);
+    }
+    assert.equal(s.calls.length, 0, 'no request at all');
+    s = stubApi([ORGS, forkRoute({ code: 'failed_precondition', message: `${SECRET} This version can't be continued in a new session.` }, 400)]);
+    const e = await rejectsWith(s.api.forkConversation(CONV, MSG), 'http', s.api.ApiError);
+    assert.equal(e.details.status, 400);
+    assert.equal(e.details.code, 'failed_precondition');
+    assert.ok(!JSON.stringify({ m: e.message, d: e.details }).includes(SECRET));
+    s = stubApi([ORGS, forkRoute({ code: `${SECRET} not a code` }, 500)]);
+    assert.equal((await rejectsWith(s.api.forkConversation(CONV, MSG), 'http', s.api.ApiError)).details.code, undefined);
+    s = stubApi([ORGS, forkRoute([SECRET])]);
+    await rejectsWith(s.api.forkConversation(CONV, MSG), 'shape', s.api.ApiError);
+    s = stubApi([ORGS, forkRoute('')]);
+    assert.match(await s.api.forkConversation(CONV, MSG), /^[0-9a-f-]{36}$/, 'an empty answer is fine');
+  });
+
+  test('openCreatedChat loads no page but the chat the last fork created', async () => {
+    const { api } = stubApi([ORGS, forkRoute({})]);
+    await rejectsWith(Promise.resolve().then(() => api.openCreatedChat(CONV)), 'refused', api.ApiError);
+    await api.forkConversation(CONV, MSG);
+    await rejectsWith(Promise.resolve().then(() => api.openCreatedChat(CONV)), 'refused', api.ApiError);
+    await rejectsWith(Promise.resolve().then(() => api.openCreatedChat('../settings')), 'refused', api.ApiError);
   });
 });
 
@@ -480,6 +533,173 @@ describe('prompt.js', () => {
   test('refuses a bad address or a missing message', () => {
     assert.throws(() => P.build({ ...base, newAddress: 'b1', fork: 3 }), /bad address/);
     assert.throws(() => P.build({ ...base, fork: 9 }), /no message/);
+  });
+
+  // ---- branches claude.ai copied (step 6b)
+
+  const startOf = (o) => P.buildStart(o).text;
+  // zbtest/1b, copied by claude.ai from zbtest/1 through message 4, then started and continued.
+  const START_1B = startOf({ tree: 'zbtest', parentTitle: 'zbtest/1 · Root topic', parentAddress: '1', newAddress: '1b', messages: ROOT });
+  const NATIVE = [
+    ...ROOT.map((m) => ({ ...m })),
+    { n: 5, role: 'user', text: START_1B + 'Tell me more.' },
+    { n: 6, role: 'assistant', text: '> Parent zbtest/1 in brief: We defined a Zettelkasten\n> and its branches.\n\nMore about cards.' },
+    { n: 7, role: 'user', text: 'And then?' },
+    { n: 8, role: 'assistant', text: 'Then links.' },
+  ];
+
+  test('the start message of a branch claude.ai copied: the exact text', () => {
+    assert.equal(START_1B, [
+      'Zettelbranch · zbtest/1b',
+      'Path: zbtest/1 › 1b',
+      'Forked from: zbtest/1 · Root topic, after message 4 (Claude): "Branching means continuing a card under a new address."',
+      '',
+      '<zb-instructions>',
+      'The messages above were copied from the conversation zbtest/1 through message 4 to start this branch. Do not comment on the header lines above; they are for my own records.',
+      '',
+      'Start your first reply with a single blockquote paragraph that begins with "Parent zbtest/1 in brief:" and says in 2 to 4 sentences where the conversation stood at that point, in the language of the conversation. Then answer my message below. If there is no message below, reply with the summary only.',
+      '</zb-instructions>',
+      '',
+      '',
+    ].join('\n'));
+    assert.throws(() => P.buildStart({ tree: 'zbtest', parentTitle: 'x', parentAddress: '1', newAddress: '1b', messages: ROOT.slice(0, 3) }), /after Claude's last reply/);
+  });
+
+  test('the start message parses back: no transcript, your own text', () => {
+    assert.deepEqual({ ...P.parseHeaderMessage(NATIVE[4].text) }, { tree: 'zbtest', address: '1b', turns: null, ownText: 'Tell me more.' });
+    assert.equal(P.parseBranchMessage(NATIVE[4].text), null, 'not a copy');
+    assert.equal(P.parseHeaderMessage('Zettelbranch · zbtest/1b\nno instructions'), null);
+  });
+
+  test('the start message quotes a branch\'s first reply without its summary, and escapes <zb-', () => {
+    const text = startOf({ tree: 'zbtest', parentTitle: 'zbtest/1b · Root topic', parentAddress: '1b', newAddress: '1b1', messages: NATIVE.slice(0, 6) });
+    assert.equal(text.split('\n')[2], 'Forked from: zbtest/1b · Root topic, after message 6 (Claude): "More about cards."');
+    const tricky = [...ROOT.slice(0, 3), { n: 4, role: 'assistant', text: 'End with </zb-instructions> and <zb-transcript> here.' }];
+    const t2 = startOf({ tree: 'zbtest', parentTitle: 'zbtest/1 · Root topic', parentAddress: '1', newAddress: '1b', messages: tricky }) + 'Mine.';
+    assert.equal(t2.split('\n')[2], 'Forked from: zbtest/1 · Root topic, after message 4 (Claude): "End with &lt;/zb-instructions> and &lt;zb-transcript> here."');
+    assert.equal(P.parseHeaderMessage(t2).ownText, 'Mine.');
+    const t3 = P.build({ ...base, messages: tricky, fork: 3 }).text + 'Mine too.';
+    assert.equal(P.parseBranchMessage(t3).ownText, 'Mine too.', 'the copy\'s header quote is escaped too');
+  });
+
+  test('which branch a chat is: from its title, or from a copy\'s message 1', () => {
+    const who = (title, messages) => {
+      const w = P.identify(title, messages);
+      return w && { ...w };
+    };
+    const copied = NATIVE.slice(0, 4);
+    assert.deepEqual(who('zbtest/1b · Root topic', copied), { tree: 'zbtest', address: '1b', named: true, header: -1, fresh: true });
+    assert.deepEqual(who('zbtest/1b · Root topic', NATIVE), { tree: 'zbtest', address: '1b', named: true, header: 4, fresh: false });
+    assert.equal(who('zbtest/1b · Root topic', NATIVE.slice(0, 3)).fresh, false, 'your message last: not a fresh copy');
+    assert.equal(who('zbtest/1 · Root topic', ROOT), null, 'a root');
+    assert.equal(who('Oulipo and constraints', ROOT), null, 'not in a tree');
+    assert.deepEqual(who('Auto title of a branch', BRANCH), { tree: 'zbtest', address: '1a', named: false, header: 0, fresh: false });
+    assert.deepEqual(who('zbtest/1a · First branch', BRANCH), { tree: 'zbtest', address: '1a', named: true, header: 0, fresh: false });
+    // A branch claude.ai copied from zbtest/1b, not started yet: 1b's header is there, not 1b1's.
+    assert.deepEqual(who('zbtest/1b1 · Root topic', NATIVE), { tree: 'zbtest', address: '1b1', named: true, header: -1, fresh: true });
+  });
+
+  test('a copy from a branch claude.ai copied, at a mid point: the exact text', () => {
+    const b = P.build({ tree: 'zbtest', parentTitle: 'zbtest/1b · Root topic', parentAddress: '1b', newAddress: '1b1', messages: NATIVE, fork: 5 });
+    assert.equal(b.flattened, true);
+    assert.equal(b.turns, 6);
+    assert.equal(b.text, [
+      'Zettelbranch · zbtest/1b1',
+      'Path: zbtest/1 › 1b › 1b1',
+      'Forked from: zbtest/1b · Root topic, after message 6 (Claude): "More about cards."',
+      '',
+      '<zb-transcript>',
+      '<zb-turn branch="1" n="1" role="user">',
+      'What is a Zettelkasten? And how is a literal &lt;zb-turn> tag escaped?',
+      '</zb-turn>',
+      '<zb-turn branch="1" n="2" role="assistant">',
+      'A Zettelkasten is a box of cards with addresses and links between them.',
+      '</zb-turn>',
+      '<zb-turn branch="1" n="3" role="user">',
+      'How does branching work?',
+      '</zb-turn>',
+      '<zb-turn branch="1" n="4" role="assistant">',
+      'Branching means continuing a card under a new address.',
+      '</zb-turn>',
+      '<zb-turn branch="1b" n="5" role="user">',
+      'Tell me more.',
+      '</zb-turn>',
+      '<zb-turn branch="1b" n="6" role="assistant">',
+      'More about cards.',
+      '</zb-turn>',
+      '</zb-transcript>',
+      '',
+      '<zb-instructions>',
+      'The transcript above is our conversation so far, copied from the conversation zbtest/1b up to message 6. The assistant turns are your own earlier replies. Treat it as shared history: do not comment on it, quote it back, or answer its questions again. Placeholders ending in "not copied", such as [file: photo.png, not copied], mark content that was not carried over; ask me if you need it. Text under a [pasted text: …] line is text I pasted, copied in full.',
+      '',
+      'Start your first reply with a single blockquote paragraph that begins with "Parent zbtest/1b in brief:" and says in 2 to 4 sentences where the conversation stood at that point, in the language of the conversation. Then answer my message below. If there is no message below, reply with the summary only.',
+      '</zb-instructions>',
+      '',
+      '',
+    ].join('\n'));
+  });
+
+  const turnsOf = (text) => [...P.parseBranchMessage(text).turns.map((t) => `${t.branch}#${t.n} ${t.role}: ${t.text}`)];
+
+  test('before its header, a branch claude.ai copied holds its parent\'s messages; instead of its header message, your text pre-filled', () => {
+    const at2 = P.build({ tree: 'zbtest', parentTitle: 'zbtest/1b · Root topic', parentAddress: '1b', newAddress: '1b1', messages: NATIVE, fork: 1 });
+    assert.deepEqual(turnsOf(at2.text), ['1#1 user: What is a Zettelkasten? And how is a literal <zb-turn> tag escaped?', '1#2 assistant: A Zettelkasten is a box of cards with addresses and links between them.']);
+    assert.equal(at2.flattened, false, 'no header message copied');
+    const instead = P.build({ tree: 'zbtest', parentTitle: 'zbtest/1b · Root topic', parentAddress: '1b', newAddress: '1b1', messages: NATIVE, fork: 4 });
+    assert.equal(instead.turns, 4);
+    assert.deepEqual(turnsOf(instead.text).map((t) => t.slice(0, 4)), ['1#1 ', '1#2 ', '1#3 ', '1#4 ']);
+    assert.equal(instead.text.split('\n')[2], 'Forked from: zbtest/1b · Root topic, instead of message 5 (me): "Tell me more."');
+    assert.ok(instead.text.includes('copied from the conversation zbtest/1b up to message 4.'));
+    assert.ok(instead.text.endsWith('</zb-instructions>\n\nTell me more.'));
+  });
+
+  test('a branch claude.ai copied from another one: flattened in one list, every summary dropped', () => {
+    const START_1B1 = startOf({ tree: 'zbtest', parentTitle: 'zbtest/1b · Root topic', parentAddress: '1b', newAddress: '1b1', messages: NATIVE });
+    const NESTED = [
+      ...NATIVE,
+      { n: 9, role: 'user', text: START_1B1 + 'Go deeper.' },
+      { n: 10, role: 'assistant', text: '> Parent zbtest/1b in brief: Links between cards.\n\nDeeper.' },
+      { n: 11, role: 'user', text: 'Last question?' },
+      { n: 12, role: 'assistant', text: 'Last answer.' },
+    ];
+    const b = P.build({ tree: 'zbtest', parentTitle: 'zbtest/1b1 · Root topic', parentAddress: '1b1', newAddress: '1b1a', messages: NESTED, fork: 9 });
+    assert.deepEqual(turnsOf(b.text), [
+      '1#1 user: What is a Zettelkasten? And how is a literal <zb-turn> tag escaped?',
+      '1#2 assistant: A Zettelkasten is a box of cards with addresses and links between them.',
+      '1#3 user: How does branching work?',
+      '1#4 assistant: Branching means continuing a card under a new address.',
+      '1b#5 user: Tell me more.',
+      '1b#6 assistant: More about cards.',
+      '1b#7 user: And then?',
+      '1b#8 assistant: Then links.',
+      '1b1#9 user: Go deeper.',
+      '1b1#10 assistant: Deeper.',
+    ]);
+    assert.equal(b.text.split('\n')[1], 'Path: zbtest/1 › 1b › 1b1 › 1b1a');
+    assert.equal((b.text.match(/^Zettelbranch · /gm) || []).length, 1, 'no nested header');
+    assert.equal((b.text.match(/<zb-instructions>/g) || []).length, 1, 'no nested instructions');
+    assert.ok(!b.text.includes('in brief: Links') && !b.text.includes('in brief: We defined'));
+    // Still to be started (1b1 not sent yet): the copied messages keep their branches.
+    const fresh = P.build({ tree: 'zbtest', parentTitle: 'zbtest/1b1 · Root topic', parentAddress: '1b1', newAddress: '1b1a', messages: NATIVE, fork: 7 });
+    assert.deepEqual(turnsOf(fresh.text).map((t) => t.split(' ')[0]), ['1#1', '1#2', '1#3', '1#4', '1b#5', '1b#6', '1b#7', '1b#8']);
+  });
+
+  test('a branch claude.ai copied from a copy: the copy\'s transcript expands in place', () => {
+    const START_1A1 = startOf({ tree: 'zbtest', parentTitle: 'zbtest/1a · First branch', parentAddress: '1a', newAddress: '1a1', messages: BRANCH });
+    assert.equal(START_1A1.split('\n')[2], 'Forked from: zbtest/1a · First branch, after message 4 (Claude): "They continue with aa, ab."');
+    const MIXED = [...BRANCH, { n: 5, role: 'user', text: START_1A1 + 'Native question' }, { n: 6, role: 'assistant', text: '> Parent zbtest/1a in brief: Letters.\n\nNative answer.' }];
+    const b = P.build({ tree: 'zbtest', parentTitle: 'zbtest/1a1 · First branch', parentAddress: '1a1', newAddress: '1a1a', messages: MIXED, fork: 5 });
+    assert.deepEqual(turnsOf(b.text), [
+      '1#1 user: What is a Zettelkasten? And how is a literal <zb-turn> tag escaped?',
+      '1#2 assistant: A Zettelkasten is a box of cards with addresses and links between them.',
+      '1a#1 user: Tell me about addresses.',
+      '1a#2 assistant: Addresses look like 1, 1a, 1a1.',
+      '1a#3 user: And letters after z?',
+      '1a#4 assistant: They continue with aa, ab.',
+      '1a1#5 user: Native question',
+      '1a1#6 assistant: Native answer.',
+    ]);
+    assert.equal(b.text.split('\n')[2], 'Forked from: zbtest/1a1 · First branch, after message 6 (Claude): "Native answer."');
   });
 });
 

@@ -57,7 +57,7 @@ Backlinks need every conversation of the tree. …
 - `branch` and `n` say which conversation and which message each turn comes from, so later references like `zb/1b#4` stay possible.
 - Message text is Markdown (FK-D3). Content that was not copied gets a placeholder (FK-D1).
 - **Flattening.** A branch's first message contains its own transcript. When you branch from a branch, the extension does not nest that transcript inside the new one. It parses the first message back into the earlier turns plus your own text, and lists them in one flat sequence from the root. Claude's summary at the top of the branch's first reply is dropped: with the full transcript it says nothing new. If parsing fails, the first message is copied as is, nested; worse, but still correct.
-- **Escaping.** Message text containing `<zb-` or `</zb-` (likely in conversations about this very prompt) has `<` written as `&lt;` there. The extension reverses it when parsing back.
+- **Escaping.** Message text containing `<zb-` or `</zb-` (likely in conversations about this very prompt) has `<` written as `&lt;` there, in the transcript and in the header's quote. The extension reverses it when parsing back.
 
 ## Instructions
 
@@ -113,17 +113,61 @@ Parsing is lenient. The extension takes the first blockquote of the first reply 
 
 ## What the extension parses
 
+The header message is message 1 in a copy. In a branch claude.ai copied, it is the first message of yours that starts with the branch's header, after the copied messages ([below](#when-claudeai-copied-the-conversation)).
+
 | Item | Where | How |
 |---|---|---|
-| Tree, address | Message 1, line 1 | `^Zettelbranch · ([a-z0-9-]+)/([0-9a-z]+)$` |
-| Path | Message 1, line 2 | after `Path: `, split on ` › ` |
-| Parent, fork point | Message 1, line 3 | after `Forked from: ` |
-| Cross-references | Message 1, line 4; any message | `→ <address>` or `→ <tree>/<address>` |
-| Earlier turns | Message 1 | `<zb-turn>` elements inside `<zb-transcript>` |
-| Your own text | Message 1 | everything after `</zb-instructions>` |
-| Summary | Message 2 | first blockquote starting with `Parent` |
+| Tree, address | The header message, line 1 (and the title, in a branch claude.ai copied) | `^Zettelbranch · ([a-z0-9-]+)/([0-9a-z]+)$` |
+| Path | The header message, line 2 | after `Path: `, split on ` › ` |
+| Parent, fork point | The header message, line 3 | after `Forked from: ` |
+| Cross-references | The header message, line 4; any message | `→ <address>` or `→ <tree>/<address>` |
+| Earlier turns | The header message of a copy | `<zb-turn>` elements inside `<zb-transcript>` |
+| Your own text | The header message | everything after `</zb-instructions>` |
+| Summary | The reply after the header message | first blockquote starting with `Parent` |
 
 If the transcript became an attachment, reading it back needs the attachment's text. The API holds it (`extracted_content`); the page only while that message is on screen (Milestone 0, P6). So it is read through the API.
+
+## When claude.ai copied the conversation
+
+From a chat's last message, Claude's reply, claude.ai copies the conversation into the new chat itself (NF-2 = A, [native-fork__findings](native-fork__findings.md)). The earlier messages are then real messages in the new chat. So the first message you send there has no transcript: only the header, the instructions, and your text. Built in Milestone 1, step 6b.
+
+`zbtest`, `1d`, `1`, `4` and the quote are filled in by the extension:
+
+```
+Zettelbranch · zbtest/1d
+Path: zbtest/1 › 1d
+Forked from: zbtest/1 · Root topic, after message 4 (Claude): "Branching means continuing a card under a new address."
+
+<zb-instructions>
+The messages above were copied from the conversation zbtest/1 through message 4 to start this branch. Do not comment on the header lines above; they are for my own records.
+
+Start your first reply with a single blockquote paragraph that begins with "Parent zbtest/1 in brief:" and says in 2 to 4 sentences where the conversation stood at that point, in the language of the conversation. Then answer my message below. If there is no message below, reply with the summary only.
+</zb-instructions>
+
+```
+
+Then an empty line, where you type your message.
+
+- The extension names the copy `<tree>/<address> · <topic>` at once, with the parent's topic. So the branch's address is in its title from the start, and its header is not in message 1: it is in the first message of yours that starts with `Zettelbranch · <tree>/<address>`, right after the copied messages.
+- Message numbers stay the same: claude.ai copies the shown path in order, so the parent's message 4 is the copy's message 4.
+- The quote follows the copy's rules: plain text, the first 60 characters, without Claude's summary if message n is a branch's first reply, `<zb-` escaped.
+- After the page load, the extension rebuilds this message from claude.ai alone: the address from the title, the parent's title from your list of chats (`<tree>/<parent address>` if it is not there), the fork point from the last message.
+- claude.ai does not copy the model: the new chat uses the default one.
+
+### Flattening and attribution
+
+When you make a copy (a quoted transcript) from a chat that holds such messages:
+
+- Every message of yours that starts with a Zettelbranch header is reduced to your own text, what follows `</zb-instructions>`. If it holds a `<zb-transcript>` (a copy's first message), its turns come in its place.
+- The reply right after it loses Claude's "Parent … in brief:" blockquote. A turn left empty is dropped.
+
+Each turn says where it comes from, `<zb-turn branch="…" n="…">`:
+
+- A message belongs to the branch of the last header message before it (the header message too), and `n` is its place in the chat.
+- Messages before a chat's first header message were copied by claude.ai from that branch's parent. They get the parent's address (the header's address minus its last segment), and their place, which is the same in both chats.
+- A chat with no header message at all (a root, or a branch claude.ai copied that is not started yet) gives its own address.
+
+Example: `zbtest/1d1` was copied by claude.ai from `zbtest/1d`, itself copied from `zbtest/1` through message 4. A copy from `zbtest/1d1` after its message 10 lists `1#1` to `1#4`, then `1d#5` (your text in 1d's first message) to `1d#8`, then `1d1#9` (your text in 1d1's first message) and `1d1#10` (without its summary). One flat list, one header, one set of instructions.
 
 ## Size
 

@@ -1,6 +1,7 @@
-// Fake claude.ai for the offline tests: the app shell (chat-app/), the four API endpoints the
-// extension calls, and the app's own /fake/ endpoints. Everything is answered from memory by
-// a Playwright route handler; no request leaves the machine.
+// Fake claude.ai for the offline tests: the app shell (chat-app/), the API endpoints the
+// extension calls (four REST calls and claude.ai's own fork, an RPC), and the app's own
+// /fake/ endpoints. Everything is answered from memory by a Playwright route handler; no
+// request leaves the machine.
 //
 // Seed data:
 //   - private chats: one with SECRET text, 118 fillers (so the list needs 2 pages), a
@@ -13,6 +14,13 @@
 //
 // `fail` makes the API misbehave on purpose: 'shape' (an answer claude.ai would give if it
 // changed, holding SECRET text) or 'status' (a 500 whose body holds SECRET text).
+//
+// The fork (PerformAction with continueBranchAsNewChat) behaves as seen on Pascal's account
+// (P9): it copies the shown path through the given message into a new chat with the id the
+// caller chose, with new message ids and the same title, and answers {} at once; the copy
+// shows half its messages for `fork.delay` ms, then all. Through any message but the last of
+// the shown path it answers 400 failed_precondition. `fork.fail`: 'status' (a 500 whose body
+// holds SECRET text) or 'never' (it answers {} but the copy never fills).
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -38,6 +46,7 @@ export function createFakeClaude() {
   const apiLog = [];
   const fail = { conversation: null, list: null, rename: null };
   const options = { autoTitle: true };
+  const fork = { fail: null, delay: 1500 };
 
   function newConv(name) {
     const c = { uuid: uuid(), name, created_at: now(), updated_at: null, messages: [], leaf: null };
@@ -108,6 +117,8 @@ export function createFakeClaude() {
     len += line.length + 1;
   }
   add(big, 'assistant', filler.join('\n'));
+  add(big, 'human', 'Thanks.');
+  add(big, 'assistant', 'You are welcome.');
 
   const mixed = newConv('zbtest/3 · Mixed content');
   add(mixed, 'human', 'Here are my notes and a photo.', {
@@ -124,6 +135,8 @@ export function createFakeClaude() {
       { type: 'text', text: 'Here is a plan, as an artifact.', citations: [] },
     ],
   });
+  add(mixed, 'human', 'Thanks for the plan.');
+  add(mixed, 'assistant', 'You are welcome.');
 
   const root = newConv('zbtest/1 · Root topic');
   add(root, 'human', 'What is a Zettelkasten? And how is a literal <zb-turn> tag escaped?');
@@ -185,7 +198,12 @@ export function createFakeClaude() {
   const summaryOf = (c) => (String(c.name).startsWith('zbtest/') ? `Test summary of ${c.name}.` : 'SECRET-PRIVATE-TEXT in a summary');
   const listItem = (c) => ({ uuid: c.uuid, name: c.name, summary: summaryOf(c), model: 'claude-fake', created_at: c.created_at, updated_at: c.updated_at, is_starred: false, project_uuid: null, current_leaf_message_uuid: c.leaf, platform: 'CLAUDE_AI' });
   const apiMessage = ({ pageText, ...m }) => m;
-  const convJson = (c) => ({ ...listItem(c), settings: {}, chat_messages: c.messages.map(apiMessage) });
+  // A fork's copy fills in over time: before `readyAt`, only its first half (none if never).
+  function convJson(c) {
+    if (c.readyAt === undefined || Date.now() >= c.readyAt) return { ...listItem(c), settings: {}, chat_messages: c.messages.map(apiMessage) };
+    const msgs = c.readyAt === Infinity ? [] : c.messages.slice(0, Math.ceil(c.messages.length / 2));
+    return { ...listItem(c), current_leaf_message_uuid: msgs.length ? msgs[msgs.length - 1].uuid : null, settings: {}, chat_messages: msgs.map(apiMessage) };
+  }
   const byRecent = () => [...convs.values()].sort((a, b) => (a.updated_at < b.updated_at ? 1 : -1));
 
   // ---------------------------------------------------------------- route handler
@@ -240,6 +258,54 @@ export function createFakeClaude() {
     return done(405, { type: 'error', error: { type: 'method_not_allowed' } });
   }
 
+  // claude.ai's own fork (P9): Connect JSON, the new id chosen by the caller, {} at once.
+  async function rpc(route, req, url) {
+    const h = req.headers();
+    const entry = {
+      method: req.method(),
+      path: url.pathname,
+      headers: { 'content-type': h['content-type'], 'connect-protocol-version': h['connect-protocol-version'], 'x-organization-uuid': h['x-organization-uuid'] === ORG_CHAT ? '<org>' : h['x-organization-uuid'], 'anthropic-client-platform': h['anthropic-client-platform'] },
+    };
+    apiLog.push(entry);
+    const done = (status, body) => {
+      entry.status = status;
+      return json(route, status, body);
+    };
+    if (url.pathname !== '/claudeai-rpc/anthropic.bard.api.v1alpha.ConversationService/PerformAction' || req.method() !== 'POST') return done(404, { code: 'not_found', message: 'Not found' });
+    let body;
+    try {
+      body = JSON.parse(req.postData() || '{}');
+    } catch (e) {
+      return done(400, { code: 'invalid_argument', message: 'bad JSON' });
+    }
+    entry.body = body;
+    if (h['content-type'] !== 'application/json' || h['connect-protocol-version'] !== '1' || h['x-organization-uuid'] !== ORG_CHAT || h['anthropic-client-platform'] !== 'web_claude_ai') {
+      return done(400, { code: 'invalid_argument', message: 'missing headers' });
+    }
+    const act = body.continueBranchAsNewChat;
+    const newId = body.header && body.header.conversationId;
+    const mut = body.header && body.header.mutationId;
+    if (!act || !newId || !mut || !/^sess_[0-9a-f]{24}$/.test(mut.sessionId || '') || convs.has(newId)) return done(400, { code: 'invalid_argument', message: 'bad request' });
+    if (fork.fail === 'status') return done(500, { code: 'internal', message: 'SECRET-PRIVATE-TEXT in an error body' });
+    const src = convs.get(act.sourceConversationId);
+    if (!src) return done(404, { code: 'not_found', message: 'conversation not found' });
+    const shown = pathOf(src);
+    if (!shown.length || shown[shown.length - 1].uuid !== act.throughMessageId) {
+      return done(400, { code: 'failed_precondition', message: 'This version can\'t be continued in a new session.' });
+    }
+    const copy = { uuid: newId, name: src.name, created_at: now(), updated_at: null, messages: [], leaf: null, readyAt: fork.fail === 'never' ? Infinity : Date.now() + fork.delay };
+    copy.updated_at = copy.created_at;
+    convs.set(newId, copy);
+    let parent = ROOT;
+    for (const m of shown) {
+      const c = { ...m, uuid: uuid(), parent_message_uuid: parent, index: copy.messages.length };
+      copy.messages.push(c);
+      parent = c.uuid;
+    }
+    copy.leaf = parent;
+    return done(200, {});
+  }
+
   async function fake(route, req, url) {
     const p = url.pathname;
     if (p === '/fake/list') return json(route, 200, byRecent().slice(0, 30).map((c) => ({ uuid: c.uuid, name: c.name })));
@@ -271,6 +337,10 @@ export function createFakeClaude() {
       await api(route, req, url);
       return 'fake api';
     }
+    if (url.pathname.startsWith('/claudeai-rpc/')) {
+      await rpc(route, req, url);
+      return 'fake rpc';
+    }
     if (url.pathname.startsWith('/fake/')) {
       await fake(route, req, url);
       return 'fake app endpoint';
@@ -288,5 +358,5 @@ export function createFakeClaude() {
   }
 
   const ids = { priv: priv.uuid, long: long.uuid, oulipo: oulipo.uuid, big: big.uuid, mixed: mixed.uuid, root: root.uuid, branch: branch.uuid, grand: grand.uuid, ten: ten.uuid };
-  return { handle, apiLog, convs, ids, pathOf, fail, options };
+  return { handle, apiLog, convs, ids, pathOf, fail, options, fork, add };
 }
