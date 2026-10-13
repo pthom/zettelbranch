@@ -245,6 +245,23 @@ In the Chrome test profile, after ⟳ on Zettelbranch in `chrome://extensions` a
 - **After Send:** claude.ai showed "Pondering" for a few seconds, then the reply, which ended with "Branch title: Quel est mon prénom". "Name this branch" proposed it ("Proposed by Claude in its first reply").
 - **Asked by Pascal:** a "Reload now" that stands out, and a clearer notice. Done the same day: the notice now says "You just created the branch <name>." (or "Renamed to <name>." for a named branch, "This chat is now the tree root <name>." for a new root), then "Reload the page to see the new name.", with "Reload now" as a filled button. Tests: audit 49/49, unit 52/52, end-to-end 30/30.
 
+## Firefox check (step 9)
+
+2026-10-13, by Pascal, Firefox 157.0.1 in a separate profile, Zettelbranch loaded from `about:debugging` (temporary add-on, id `zettelbranch@pthom.github.io`).
+
+| Check | Result |
+|---|---|
+| The pill and the panel's styles | yes (the constructed stylesheet works in a Firefox content script) |
+| The API with the login | yes: the panel listed the chat's messages; the requests carry the login |
+| Tree name and rename dialogs | yes, Firefox's own dialogs; `zbtest/1 · Initial greeting` |
+| Branch, preview, Open new chat, the text in the box | yes, on the second try (below) |
+| Claude's "Branch title" and its proposal | yes: "Capitale du Maroc" |
+
+Two issues:
+
+- **First try: no preview after the root rename.** After the tree-name and rename dialogs, the panel showed the chat again ("Tree root zbtest/1"), with neither the notice nor the preview, so no new chat. A second Branch, on the chat already named, went through. Not seen in Chrome; the cause is not visible in the code. To reproduce once.
+- **Firefox's sidebar keeps the old name**, even after a reload, a Shift+Reload and a new tab; the phone shows the new name. Pascal: "Are we fighting with the local storage?" Likely claude.ai's own cache of the list in the browser (Zettelbranch stores nothing): the open tab only learns of a rename made through the older API when it fetches the list again. Possible fix to probe: rename through claude.ai's newer API (`renameConversation`), the call its own client makes, which may update every open tab.
+
 ## For Pascal
 
 **To check on the real page (step 8):**
