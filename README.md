@@ -15,7 +15,7 @@ Version 0.1.0, the first everyday version (2026-10-13). Used by its author on th
 
 Known limits:
 
-- After a rename, the open tab shows the new name only after a reload, and Firefox's sidebar can take longer. Your other devices show it at once.
+- Zettelbranch renames a chat through claude.ai's own title menu, so the open tab shows the new name at once. If claude.ai changes that menu, Zettelbranch renames through the API instead: then the open tab shows the new name only after a reload, and Firefox's sidebar can take longer. Your other devices show it at once.
 - Images, files and artifacts are not copied into a branch: they become placeholders.
 - It relies on claude.ai's undocumented web API, which can change at any time.
 
@@ -30,7 +30,7 @@ The extension must be easy to audit:
 - No permissions, no background script, claude.ai only.
 - Network: only claude.ai's own API, all in one file, `extension/api.js`, which lists the four calls it makes: finding your organization, reading your conversation list, reading one conversation, renaming a conversation. It never sends a message and never deletes.
 - It never reads, stores or sends your login or session tokens, and stores no conversation content.
-- Nothing is sent automatically. It writes (renames a chat, fills the message box) only when you click, and you press Send yourself. It reads only when you open its panel or click, and while the panel is open, when you move to another chat.
+- Nothing is sent automatically. It writes (renames a chat, fills the message box) only when you click, and you press Send yourself. To rename, it uses claude.ai's own title menu on the chat on screen: the only page elements it sends events to are that menu's title button, its Rename item and its rename field (plus a click on the New chat link). It reads only when you open its panel or click, and while the panel is open, when you move to another chat.
 - [AUDIT.md](AUDIT.md) lists what the code never does, with the `grep` commands that prove it.
 
 ## Install

@@ -75,3 +75,43 @@ So option B works: renaming through claude.ai's own menu updates the open tab at
 
 Pascal, the same day: "yes!" to making it the way Zettelbranch renames (version 0.1.1), with today's request as the fallback.
 
+## Built into Zettelbranch 0.1.1
+
+Built offline by Claude on 2026-10-13, commit `3052a1e`; `extension/manifest.json` says 0.1.1. Nothing touched claude.ai: every test ran against the fake claude.ai. Not tagged or released: that waits for Pascal's check in Chrome and Firefox.
+
+### What it does
+
+- **Every rename** Zettelbranch makes (the tree root during Branch, Name this branch, Rename this branch) goes through claude.ai's own title menu, on the chat on screen. The new file `extension/menu.js` does what P11 did, cleanly: it presses the title button (`[data-testid="chat-title-split"] button[aria-haspopup="menu"]`, pointer and mouse events with the main button), waits for the menu (`[role="menu"]`, 1 s), presses and clicks the item whose test id is exactly `rename-chat-trigger`, waits for the field `input[data-testid="name-chat"]` (2 s), checks that it has the focus, selects its text, types the name with one `insertText`, checks the field's value, presses Enter in that field, and waits for the field to close (1 s).
+- **Read back.** `branch.js` then reads the name back with the usual `GET` (after 0.3 s, then every 0.6 s, for about 3 s).
+- **The fallback.** If the page does not show that chat, if any step of the menu fails, or if claude.ai did not keep the name, Zettelbranch closes what it opened (Escape in the field, Escape on the menu) and renames through the API (`PUT`), as 0.1.0 did, then reads the name back.
+- **The notices.** After a menu rename: only "You just created the branch …", "Renamed to …" or "This chat is now the tree root …": the open tab already shows the name, so no reload is offered. After a fallback: 0.1.0's notice, "Reload the page to see the new name." with Reload now (not for a root, as before), and a small line saying why: "Renamed through claude.ai's API: its title menu did not work (no menu opened)."
+- **Safety.** `menu.js` is the only file that sends events to claude.ai's page, besides the click on the New chat link in `branch.js`. It sends them through three functions only (`pressOn`, `keyOn`, `clickOn`), to four targets only, each by its exact selector (`TARGETS`), in six calls only: press the title button; press and click the Rename item; Enter and Escape in the field; Escape on the menu. It never looks for an element by its label or its place, and never names the message box, Send or Delete. AUDIT.md (checks 9, 15, 16, 17 and a new 19) and `tests/audit.mjs` allow exactly this.
+
+### Numbers
+
+| | 0.1.0 | 0.1.1 |
+|---|---|---|
+| `extension/` | 1,739 lines, 7 scripts | 1,864 lines, 8 scripts: menu.js 95 (new), branch.js 410 → 435, ui.js 453 → 458 |
+| Audit | 49 of 49 | 63 of 63 pass: 20 in JavaScript, 43 AUDIT.md commands. On copies with one planted violation each (run once): an Enter to the message box through a new target in `menu.js`, an Enter to it from `branch.js`, a click on `delete-chat-trigger`, `TARGETS` pointing at Delete, a click on the item labelled "Rename": each fails 3 to 5 checks, in JavaScript and in AUDIT.md's commands |
+| Unit tests | 52 | 55 of 55 pass. New, on a small page imitating the menu in jsdom, with every event recorded: the whole rename sends exactly the 10 expected events; each of five failing steps closes what it opened and never reaches Delete or the message box; no title button, nothing sent; the four targets |
+| End-to-end tests | 30 | 31 of 31 pass, 2 runs in a row. The fake claude.ai has the title menu with claude.ai's test ids (opens on pointerdown, four items, the field `name-chat`, Enter saves through the app's own call, then the app updates its own title and sidebar), switches for each failure, and a log of every synthetic event the page received. Seven renames through the menu (root, Name this branch, Rename this branch): no `PUT`, the fake's title and sidebar show the name at once, no reload offered, nothing left open, the message box untouched. Six fallbacks (no title button, no menu, no Rename item, no field, a field that refuses typing, a save that does not stick) and a root through the fallback: the `PUT`, the reload notice with its reason, nothing left open or typed; Reload now then shows the name in the sidebar. Every synthetic event went to the title button, the menu, the exact Rename item, the field, or the New chat link; none to Delete, Share, Star, the message box or Send |
+
+### Choices beyond the brief
+
+1. **A separate file, `menu.js`**, so that every event sent to the page is in one short file, and the audit can prove it by file.
+2. **A check of the focus** before typing: if the field does not take the focus, nothing is typed (`insertText` types where the focus is, and the message box must never get it).
+3. **The field must close on Enter** within 1 s; if it stays open, Escape, then the fallback.
+4. **The reason line** in the fallback's notice, so a check on the real site shows which step failed.
+5. **Escape on the menu only if it is still shown**, and on the field only if it is still there.
+6. **No click on the title button**, only the press (pointer and mouse events): a click could toggle the menu shut again.
+7. **The fake's events log** relies on the page seeing synthetic events as such (`isTrusted` false), which is how browsers mark events sent by script.
+
+### To check on the real site (Pascal)
+
+In the Chrome test profile, then in Firefox (temporary add-on), after ⟳ on Zettelbranch and a reload of the tab, in `zbtest/` chats:
+
+1. Name a new branch: the title at the top and the sidebar show the new name at once, and the notice has no Reload button.
+2. Rename this branch on a named branch: the same.
+3. Make a new tree root (Branch on a chat outside any tree): the same, and the preview stays.
+4. If a notice ever says "Renamed through claude.ai's API: its title menu did not work (…)", tell Claude what it says in brackets.
+5. The message box keeps what it had, and Delete is never touched.
