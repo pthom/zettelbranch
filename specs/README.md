@@ -37,6 +37,8 @@ Claude maintains these files. Pascal answers questions inline and may edit anyth
 - Branch prompt draft: [forking__prompt](forking__prompt.md)
 - What public sources say about claude.ai: [claude-ai__findings](claude-ai__findings.md)
 - Anthropic's terms and support's answer: [terms__findings](terms__findings.md)
+- The original design conversation: [zettelbranch__origin-conversation](zettelbranch__origin-conversation.md),
+  checked against the vault in [origin-conversation__findings](origin-conversation__findings.md)
 
 | Subject | Findings | Questions |
 |---|---|---|
@@ -50,8 +52,12 @@ Claude maintains these files. Pascal answers questions inline and may edit anyth
 
 ## Open questions
 
-None right now. All questions of 2026-10-13 are decided; each question file says where
-the decision went.
+| ID | Question | Where it stands |
+|---|---|---|
+| [AD-3](addressing__questions.md#ad-3--tree-identity-names-or-numbers) | Tree identity: names (`oulipo/1a`) or numbers (`2a`)? | Raised by the original conversation |
+
+Every other question of 2026-10-13 is decided; each question file says where the
+decision went.
 
 ## History
 

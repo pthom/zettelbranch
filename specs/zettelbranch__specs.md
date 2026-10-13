@@ -130,6 +130,10 @@ DOM containers that distinguish user and assistant turns, independent of UI lang
 summarized, through claude.ai's internal API. It has no addresses, tree or
 cross-references. Useful as a reference for how claude.ai behaves; do not copy its code.
 
+Also seen in the original conversation: Claude Branch Viewer (the native tree as a map),
+Nodea Tree for Claude (imports the tree into Nodea's web app), AI Chat Fork, Tangent. None
+has readable addresses, cross-references, or code short enough to audit.
+
 ## Known risks / open questions
 
 - claude.ai DOM is undocumented and changes. Isolate all selectors in one module,
@@ -147,6 +151,8 @@ cross-references. Useful as a reference for how claude.ai behaves; do not copy i
 - claude.ai exists in two versions during the rollout, with different internal APIs.
   Everything that talks to claude.ai lives in one file; fixtures record which version
   they come from.
+- The app trigger needs the conversation's URL: check the simplest way to get it from
+  the Claude apps, on desktop and on a phone.
 - Chrome and Firefox MV3 differences (host permission grants, `browser` vs `chrome`
   namespace, Firefox needs `browser_specific_settings.gecko.id` for signing).
 

@@ -24,23 +24,25 @@ Current state of the work and next steps. Updated by Claude at the end of each s
   extracted, roles right, text 99.9% identical to the JSON. Results in
   [milestone-0__findings](milestone-0__findings.md#results). The original conversation is
   in [zettelbranch__origin-conversation](zettelbranch__origin-conversation.md).
+- The vault checked against the original conversation:
+  [origin-conversation__findings](origin-conversation__findings.md). Prior art and the
+  app-link check added to the spec.
 - All open questions decided in chat with plain explanations (DA-1, DA-D1, TA-1, TS-2,
   FK-3, ZB-3, XR-1) and folded into the spec. The README's open-questions table is empty.
 
 ## Waiting on Pascal
 
-1. **Commit the original conversation or not:**
-   [zettelbranch__origin-conversation](zettelbranch__origin-conversation.md) (44 messages,
-   in French, no account details). Not committed until Pascal says so.
-2. **Before P1:** create the claude.ai test project and a separate browser profile, see
+1. **AD-3:** tree names (`oulipo/1a`) or numbers (`2a`)? Raised by the original
+   conversation, see [origin-conversation__findings](origin-conversation__findings.md).
+2. **A quick look:** in the original conversation, are there `< 2/2 >` arrows under
+   message 3 ("Version 2")?
+3. **Before P1:** create the claude.ai test project and a separate browser profile, see
    [milestone-0__specs](milestone-0__specs.md#what-pascal-does-first-p1-onwards).
 
 ## Next for Claude
 
-1. Check every finding and decision against the original conversation, especially
-   messages 43 and 44, which came after the first spec. Flag anything it contradicts.
-2. Small P0 fixes for Milestone 1: file cards' names, web-search source chips.
-3. Build the probe panel of the spike extension (P1 to P8, Pascal clicks). The API calls
+1. Small P0 fixes for Milestone 1: file cards' names, web-search source chips.
+2. Build the probe panel of the spike extension (P1 to P8, Pascal clicks). The API calls
    go in one file, reads plus renaming only, no cookies, no typing listeners.
 
 ## Session notes
