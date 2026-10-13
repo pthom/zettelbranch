@@ -36,6 +36,8 @@ The first time you branch a conversation, Zettelbranch asks for a short name for
 
 Tree names use lowercase letters, digits and `-`.
 
+![The dialog that names the tree](images/tree-name.png)
+
 ### 3. Read the preview
 
 Zettelbranch shows the exact text it will put in the new chat, and its size.
@@ -64,7 +66,15 @@ Claude starts with a short summary of the parent ("Parent sky/1 in brief: …"),
 
 ### 6. Name the branch
 
-Click **Name this branch** in the panel. A small dialog proposes `sky/1a · Why sunsets are red`. Change the topic if you like; the address stays. Click OK: the chat is renamed, and its new name shows at once in the sidebar and at the top of the chat.
+Click **Name this branch** in the panel. A small dialog proposes `sky/1a · Why sunsets are red`. Change the topic if you like; the address stays.
+
+![The dialog that names the branch, with Claude's suggestion](images/name.png)
+
+Click OK: the chat is renamed, and its new name shows at once at the top of the chat and in the sidebar. The panel now says what this chat is, and shows its tree.
+
+![After naming: the new name at the top, and the panel with the tree](images/named.png)
+
+![The sidebar, with both chats named by their address](images/sidebar.png)
 
 If claude.ai's own rename menu cannot be used, Zettelbranch renames the chat another way, and the panel tells you to reload the page to see the new name.
 

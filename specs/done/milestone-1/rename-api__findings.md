@@ -115,3 +115,8 @@ In the Chrome test profile, then in Firefox (temporary add-on), after ⟳ on Zet
 3. Make a new tree root (Branch on a chat outside any tree): the same, and the preview stays.
 4. If a notice ever says "Renamed through claude.ai's API: its title menu did not work (…)", tell Claude what it says in brackets.
 5. The message box keeps what it had, and Delete is never touched.
+
+### Checked in Chrome (0.1.1)
+
+2026-10-13, by Pascal, while taking the README's pictures: the root rename (`sky/1 · Why the sky is blue`) and "Name this branch" (`sky/1a · Why sunsets are red`) both went through the menu. The sidebar and the title at the top showed the new names at once; the notice had no reload line ("You just created the branch sky/1a · Why sunsets are red.").
+
