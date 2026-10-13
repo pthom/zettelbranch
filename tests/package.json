@@ -1,0 +1,16 @@
+{
+  "name": "zettelbranch-tests",
+  "private": true,
+  "type": "module",
+  "description": "Offline tests for the Zettelbranch extension: audit, unit tests, and end-to-end tests against a fake claude.ai. Nothing here touches the real claude.ai.",
+  "scripts": {
+    "audit": "node audit.mjs",
+    "unit": "node --test unit.test.mjs",
+    "e2e": "node --test --test-concurrency=1 e2e.test.mjs",
+    "test": "node audit.mjs && node --test unit.test.mjs && node --test --test-concurrency=1 e2e.test.mjs"
+  },
+  "devDependencies": {
+    "jsdom": "^29.1.1",
+    "playwright": "^1.64.0"
+  }
+}
