@@ -152,8 +152,10 @@ has readable addresses, cross-references, or code short enough to audit.
   page: Send enables and the sent message is exact, line breaks and indentation included
   (Milestone 0, P1). Long text may still become an attachment, and on the new experience
   fall outside the model's context *(to verify, P2)*.
-- Renaming goes through the API; the UI is the fallback. Whether a rename survives
-  claude.ai's automatic title must be checked (Milestone 0, P4).
+- Renaming goes through the API; the UI is the fallback. An API rename works, even
+  before the first reply ends, and survives claude.ai's automatic title (Milestone 0,
+  P4). But the open tab keeps showing the old title until it reloads *(to verify after
+  a reload)*: Milestone 1 decides how to handle that.
 - claude.ai exists in two versions during the rollout, with different internal APIs.
   Everything that talks to claude.ai lives in one file; fixtures record which version
   they come from. The legacy REST API still answers on Pascal's merged account (P5).

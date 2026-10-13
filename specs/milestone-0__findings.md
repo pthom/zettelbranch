@@ -11,6 +11,7 @@ Results of the Milestone 0 spike ([milestone-0__specs](milestone-0__specs.md)). 
 | 2026-10-13 | P0 on the files Pascal saved by hand in Firefox (`Claude.html`, `snapshot.json`), offline: jsdom and headless Chromium | 0 | none in the saved page | 0 |
 | 2026-10-13 | Probe panel (P1 to P8), offline tests against a fake claude.ai, headless | 0 | n/a | 0 |
 | 2026-10-13 | First probe session, by Pascal in the test profile, spike 0.0.2: P5, then P1 | by hand | none | 1 (P1), 1 message sent |
+| 2026-10-13 | Second session, spike 0.0.3: P4 (renames), stopped at P8 (its panel was unclear) | by hand | none | 2 (P4 chats A and B), 2 messages sent |
 
 ## P0 · Read a shared conversation
 
@@ -191,8 +192,8 @@ the saved DOM, with no virtual rows or spacers. Chat pages may still differ (P6)
 
 ## Probe panel (P1 to P8)
 
-Built 2026-10-13, extension version 0.0.2; 0.0.3 after the first session (see
-[below](#first-probe-session-p5-and-p1)). Pascal runs the probes by hand on the real site:
+Built 2026-10-13, extension version 0.0.2; 0.0.3 and 0.0.4 after the first two
+sessions (see [P1](#first-probe-session-p5-and-p1) and [P4](#second-probe-session-p4)). Pascal runs the probes by hand on the real site:
 see [Running the probes](milestone-0__specs.md#running-the-probes-pascal). No script
 touches claude.ai.
 
@@ -303,6 +304,52 @@ also prints a plain `grep` for each check.
 | No extension APIs (`chrome.*`) | pass |
 | Manifest: no permissions, no background, claude.ai only | pass |
 
+## Second probe session: P4
+
+2026-10-13, by Pascal, spike 0.0.3. Two new chats; the panel renamed each one through
+the API after a confirm dialog.
+
+| | Chat A: renamed at once | Chat B: renamed after the automatic title |
+|---|---|---|
+| When | Right after the first message was sent: 1 message, the reply not finished (no `stop_reason` yet) | After the reply (`end_turn`) and the automatic title |
+| Title before | none (empty) | "Renaming chat conversations" |
+| Title set | `zbtest/1 · P4 early` | `zbtest/2 · Renaming chat conversations` |
+| API read back at once | the new title | the new title |
+| Time of the rename call | 688 ms | 861 ms |
+| Phone app, later | `zbtest/1 · P4 early` | `zbtest/2 · Renaming cha…` |
+| Chrome sidebar, same tab, no reload | "Renaming chat immediately after fi…" | "Renaming chat conversations" |
+
+What it shows:
+
+- **Renaming through the API works**, before and after the automatic title. The PUT
+  answers with the whole conversation (`uuid`, `name`, `summary`, `model`, `settings`,
+  `platform`, `current_leaf_message_uuid`, `chat_messages`…), the new `name` included.
+- **The early rename survived the automatic title** on the server: the phone shows
+  `zbtest/1 · P4 early`, although claude.ai generated a title for chat A after the
+  rename ("Renaming chat immediately after fi…").
+- **The address survives truncation:** the phone cuts titles at about 20 characters, and
+  `zbtest/2` stays readable. This supports the address-first format (AD-1).
+- **The open tab does not learn about the rename.** Chrome's sidebar kept the old titles,
+  and showed chat A's automatic title. The tab had not been reloaded (the panel still
+  held both results). So it is most likely the page's own memory, not the server.
+  *(to verify: reload, then the sidebar and P4 "Read title")*. If the sidebar still
+  showed the old titles after a reload, the web app would read a title other than the
+  API's `name`, and renaming would need another way.
+
+For the extension, even in the likely case: after a rename, the user's open tab shows
+the old title until it reloads. To decide in Milestone 1: rename through claude.ai's own
+menu (the page knows at once, but it means driving the UI), or rename through the API
+and tell the user, or reload the sidebar's data some other way.
+
+**The P8 panel was unclear** (Pascal): five buttons in one row, no order, and "Make it a
+tree root" offered for chat B, which is already the root `zbtest/2`. Version 0.0.4 shows
+P4 and P8 as numbered steps, each with its own buttons, and says what the branch point
+is. Spike 1ef38f7.
+
+**Results and reloads:** the panel keeps results in memory only (no storage, by rule),
+so a reload empties it. P4's step 4 needs a reload, so 0.0.4 says to copy the results
+first, and the status line repeats it after each result.
+
 ## First probe session: P5 and P1
 
 2026-10-13, by Pascal, in the Chrome profile "Zettelbranch test", spike 0.0.2. No bot
@@ -368,9 +415,9 @@ tree probes ignore them. Spike a2302f6.
 - **Long text:** whether a single large `execCommand` call stays inline (P2).
 - **New chat link:** `a[href="/new"]` in the sidebar. Whether a click from the script
   opens the new chat without a reload is P3's question.
-- **Rename:** the API's answer, and whether claude.ai's automatic title overwrites an
-  early rename (P4).
-- **Page title:** format unknown; P4 shows it as is.
+- **Rename, after a reload:** whether the sidebar and the page title then show the new
+  titles (P4, step 4).
+- **Page title:** format unknown; P4 "Read title" shows it.
 - **The list's mix:** chats, Cowork and Code sessions (P5 again, 0.0.3).
 
 ## Files

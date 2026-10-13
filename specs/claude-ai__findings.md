@@ -91,9 +91,11 @@ Two APIs coexist *(to verify)*:
 - a Connect-RPC/protobuf API, `POST /claudeai-rpc/anthropic.bard.api.v1alpha.ConversationService/<Method>`,
   used by the merged web client. It is `v1alpha` and changes often.
 
-Endpoints. Everything in this table is *(to verify)*, except (a) in legacy REST: on
-2026-10-13 (P5), `chat_conversations_v2?limit=100&offset=0` returned `{data, has_more}`
-with all 63 of Pascal's conversations in one response.
+Endpoints. Everything in this table is *(to verify)*, except (a) and (c) in legacy REST,
+checked on Pascal's merged account on 2026-10-13:
+`chat_conversations_v2?limit=100&offset=0` returned `{data, has_more}` with all 63 of his
+conversations in one response (P5); the rename `PUT` works and answers with the whole
+conversation, new `name` included (P4).
 
 | Need | Legacy REST | Merged RPC |
 |---|---|---|
@@ -161,8 +163,10 @@ DA-1 = A, extraction should come from the tree GET instead.
   itself. QoL renames its forks after the first reply has finished, once `stop_reason` is
   set *(to verify)* (QoL claude-api.js, 2026-10-10).
 - The native fork keeps the source chat's title *(to verify)* (bard-rework.md).
-- Does an early manual rename get overwritten? Not found. Anthropic's rename article only
-  gives the manual steps
+- Does an early manual rename get overwritten? Not found in public sources. Checked on
+  Pascal's merged account on 2026-10-13 (P4): an API rename made before the first reply
+  ended was kept; the phone app shows it. The open web tab, not reloaded, kept showing
+  the automatic title. Anthropic's rename article only gives the manual steps
   ([help center, 2026-08-10](https://support.claude.com/en/articles/8230524-how-can-i-delete-or-rename-a-conversation)).
   Reports of renames reverting are about the Claude Code VS Code extension, not claude.ai.
 

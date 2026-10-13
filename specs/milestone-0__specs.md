@@ -27,8 +27,9 @@ editor's internals. Testing from the page's own world would prove the wrong thin
 
 ## Done
 
-P0 (reading a saved share page, offline), P1 (inserting text) and the first part of P5
-(the conversation list): results in [milestone-0__findings](milestone-0__findings.md),
+P0 (reading a saved share page, offline), P1 (inserting text), and the first parts of
+P5 (the conversation list) and P4 (renaming): results in
+[milestone-0__findings](milestone-0__findings.md),
 entries in the [done log](done/README.md). The test setup is done too: the Chrome
 profile "Zettelbranch test", the spike extension loaded unpacked, test chats in the
 `zbtest` tree.
@@ -42,7 +43,7 @@ ordinary chats of the `zbtest` tree.
 |---|---|---|---|
 | P2 | What happens with long text? Try 5k, 20k, 100k characters. | Know whether and when text becomes an attachment, and whether it stays in the model's context. | [forking__prompt](forking__prompt.md) layout, FK-2 |
 | P3 | Can the content script open a new chat without a full page load, and keep its variables? | The prompt reaches the new chat with no storage (DA-D1). | Handoff, DA-D1 |
-| P4 | Can a title be renamed, and when? Rename before and after claude.ai's automatic title, then reload and check from the mobile app. | The address survives automatic naming. | Addressing, AD-D6 |
+| P4 (rest) | Renaming works, before and after the automatic title, and the phone shows it. Left: after a reload, does the web page show the new titles too? | The sidebar and the page title show `zbtest/…`. | Addressing, renaming in Milestone 1 |
 | P5 (rest) | Does the list find every `zbtest/` chat of a session, and which kinds of conversations does it mix (chats, Cowork, Code sessions)? | Every `zbtest/` chat is listed. | Registry |
 | P6 | Does the page hold the text of a pasted attachment, and every message of a long chat? | It can be read from the page, or the API is needed. | Flattening in [forking__prompt](forking__prompt.md), DA-1 |
 | P7 | Which DOM containers separate user and assistant turns, independent of UI language? Check with the UI in French and in English. | Stable selectors found; fixtures saved (TS-1). | Milestone 1 extraction |
@@ -61,21 +62,22 @@ sends a message: you press Send yourself.
    click "Load unpacked", pick `spike/extension/`.
 2. **Open claude.ai** in the test profile. A small "ZB probes" button sits at the bottom
    right. Click it to open the panel; "Hide" folds it away.
-3. **Run the probes in the panel's order.** Each section says what to do in one to three
-   lines. Stay in the same tab and do not reload between a probe and its check: the panel
-   keeps what it inserted only in memory.
+3. **Run the probes in the panel's order.** Each section says what to do; P4 and P8 as
+   numbered steps. Stay in the same tab and do not reload between a probe and its check:
+   the panel keeps what it inserted, and its results, only in memory. Before any reload,
+   click "Copy results" and paste them to Claude.
 
 | Probe | What you do | New chats | Messages you send |
 |---|---|---|---|
 | P2 | One new chat per button: 5k, 20k, 100k, "Header + transcript". Send each, then "Check after sending", and OK in the rename dialog. | up to 4 | up to 4, long |
 | P3 | In a `zbtest/` chat, "Open new chat". Do not send the marker. | 0 | 0 |
-| P4 | Chat A: send a first message, then "Rename now" at once. Chat B: wait for the automatic title, then "Rename now". Reload, "Read title", then look at the titles on your phone. | 2 | 2 |
+| P4 | Step 4 only: reload, look at the sidebar, then "Read title" in `zbtest/1` and in `zbtest/2`. | 0 | 0 |
 | P5 | At the end of the session, "List conversations" again. Read-only. | 0 | 0 |
 | P6 | Open a long chat, or one with a pasted file, then "Compare page and API". Read-only, any chat. | 0 | 0 |
 | P7 | "Run extractor" on a chat, once with the UI in French and once in English. Read-only, any chat. | 0 | 0 |
-| P8 | In a `zbtest/` chat with a few messages (chat B of P4 will do), branch twice: once "from Claude's reply", once "from my own message". Send each, then "Check summary" and "Rename branch". | 2 | 2 |
+| P8 | Follow the panel's numbered steps, from `zbtest/2`: two branches, one "from Claude's reply", one "from my own message". | 2 | 2 |
 
-About 8 new chats and 8 sent messages, plus Claude's replies.
+About 6 new chats and 6 sent messages, plus Claude's replies.
 
 4. **Naming.** Test chats get titles that start with `zbtest/`. The panel renames only
    after a dialog that shows the old and the new title: read it, then click OK. The
@@ -93,8 +95,8 @@ If a bot check or an error from claude.ai appears, stop and tell Claude.
 
 ## Budget
 
-- Left after the first session: about 8 conversations and 8 sent messages, all `zbtest/`
-  chats, with short prompts, except P2's long pastes and P8.
+- Left after the second session: about 6 conversations and 6 sent messages, all
+  `zbtest/` chats, with short prompts, except P2's long pastes and P8.
 - Each session of probes is logged in [milestone-0__findings](milestone-0__findings.md):
   date, what ran, conversations created.
 - Pascal deletes the `zbtest/` chats after each probe session.
