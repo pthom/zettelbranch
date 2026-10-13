@@ -24,7 +24,7 @@ Nothing here touched claude.ai. Every test ran in headless Chromium against a fa
 
 ## What was built
 
-Line counts after step 6d, the panel's polish (`1300f3b`).
+Line counts after step 6e, following the chat and Claude's branch title (`a3891bd`).
 
 | File | Lines | What |
 |---|---|---|
@@ -32,13 +32,13 @@ Line counts after step 6d, the panel's polish (`1300f3b`).
 | [api.js](../extension/api.js) | 146 | The only network file: the four calls, an allowed list checked before each request, renames only to tree titles |
 | [tree.js](../extension/tree.js) | 135 | Addresses by segments, titles (` · `, or ` . ` and ` - ` typed by hand), next child, next root, the proposed tree name, a tree's chats in address order |
 | [conversation.js](../extension/conversation.js) | 296 | Messages from the API (path, text, placeholders); the page fallback, as Markdown |
-| [prompt.js](../extension/prompt.js) | 234 | The prompt of [forking__prompt](forking__prompt.md); parsing it back; the topic proposed for a branch's name |
-| [branch.js](../extension/branch.js) | 404 | The flow: read (with the tree), branch, open the new chat, name |
-| [ui.js](../extension/ui.js) | 418 | The pill, the panel, the refresh button, the tree, the preview, the steps after Open new chat, the notices |
+| [prompt.js](../extension/prompt.js) | 273 | The prompt of [forking__prompt](forking__prompt.md); parsing it back; the topic proposed for a branch's name |
+| [branch.js](../extension/branch.js) | 408 | The flow: read (with the tree), branch, open the new chat, name |
+| [ui.js](../extension/ui.js) | 448 | The pill, the panel, the refresh button, the tree, the preview, the steps after Open new chat, the notices |
 | [content.js](../extension/content.js) | 7 | Mounts the pill, except on `/share/` pages |
-| **extension/** | **1,659** | |
-| [AUDIT.md](../AUDIT.md) | 179 | 18 points, 26 commands, what they cannot prove, an LLM prompt |
-| `tests/` | 2,136 | Audit, unit and end-to-end tests, the fake claude.ai (`tests/fake/`), real fixtures |
+| **extension/** | **1,732** | |
+| [AUDIT.md](../AUDIT.md) | 184 | 18 points, 30 commands, what they cannot prove, an LLM prompt |
+| `tests/` | 2,303 | Audit, unit and end-to-end tests, the fake claude.ai (`tests/fake/`), real fixtures |
 
 The code uses only standard web APIs, so the same files should run in Chrome and Firefox. Not tried in Firefox yet (step 9).
 
@@ -46,7 +46,7 @@ The code uses only standard web APIs, so the same files should run in Chrome and
 
 As decided in the plan, with these details:
 
-- **Nothing before a click.** The pill is put on the page once, at load. No timers, no watching of the page. Tested: no API call in the 1.5 seconds after a page load.
+- **Nothing before a click.** The pill is put on the page once, at load. No watching of the page's content. Tested: no API call in the 1.5 seconds after a page load. While the panel is open, it follows the chat on screen ([step 6e](#following-the-chat-and-claudes-branch-title-step-6e)).
 - **Opening the panel** reads the chat and the conversation list at the same time, the organization once per page load ([step 6d](#the-panels-polish-step-6d)); the list is for the tree ([step 6c](#the-tree-in-the-panel-step-6c)). Opened again on the same chat, it shows what it read at once and reads again in the background.
 - **Branch** reads the conversation list (2 requests for 127 fake chats) to find the next address. For a chat not in a tree, the tree-name dialog comes first, then the list, then the confirm with old and new title, then the rename and its read-back.
 - **The preview** shows the exact text, its size ("1,347 characters, about 337 tokens. 4 messages copied."), and a warning above 100,000 characters.
@@ -196,6 +196,45 @@ In the Chrome test profile, after ⟳ on Zettelbranch in `chrome://extensions` a
 3. In a branch: the top line says which branch it is and where it comes from. After naming: the notice, and the top line without "(not named yet)".
 4. A new branch where you typed a question: the proposed name is your question.
 5. Move to another chat with the sidebar, then click the refresh button: the panel shows that chat.
+
+## Following the chat, and Claude's branch title (step 6e)
+
+Built offline by Claude on 2026-10-13, commit `a3891bd`, from Pascal's two decisions of the same day. Nothing touched claude.ai. Pascal, before the commit: "It works nicely at this step."
+
+### What changed
+
+- **The panel follows the chat on screen.** While it is open, a check every 0.4 seconds compares the tab's address with the page the panel shows. When you move to another chat (the sidebar, a tree link without a page load, Send in a new chat), it reads that chat and its tree, exactly as the refresh button does: reads only, never a write. On a page that is not a chat, it shows that page's state, as before. Hidden, nothing runs: Hide stops the check, and the pill starts it again.
+- **Our own flow is not followed.** Open new chat moves the tab to the new chat itself: the panel counts that page as seen and keeps its steps. After you press Send, claude.ai moves to the new chat's page, and the panel follows: it shows the branch "(not named yet)" with its Name button.
+- **Right after Send.** If claude.ai shows the new chat before it holds your message, the panel keeps the steps. If Claude has not replied yet, the box says "When Claude has replied:" before its button. The panel does not read again on its own when Claude finishes: the Name button reads the chat when you click it.
+- **Claude suggests the branch's name.** The instructions ask Claude to end its first reply with a separate last line, "Branch title:" and 3 to 6 words: when a message follows the instructions, and always for a branch from a chat's first message (your message is pre-filled there). The texts are in [forking__prompt](forking__prompt.md#instructions), word for word; a unit test compares them with the code.
+- **Name this branch** proposes, in order: the current name of a branch already named, Claude's branch title ("Proposed by Claude in its first reply."), your first question's words, claude.ai's title, Claude's reply's words. The title is read leniently from the last non-empty line of Claude's first reply: bold or italic marks, quotes and a final period are dropped.
+- **Flattening** drops the "Branch title:" line from a branch's first reply, as it drops the summary: in the transcript, in the header's quote, and in the panel's message list.
+
+### Numbers
+
+| | Before | After |
+|---|---|---|
+| `extension/` | 1,659 lines | 1,732 lines: prompt.js 234 → 273, branch.js 404 → 408, ui.js 418 → 448 |
+| Audit | 45 of 45 | 49 of 49 pass: 19 in JavaScript, 30 AUDIT.md commands. Check 11 allows exactly one interval: its line in `ui.js`, the body of `follow()`, and the refresh button calling the same `readOnScreen()`. On copies with a second interval, another body for `follow()`, or another refresh handler, the right checks fail (run once) |
+| Unit tests | 48 | 52 of 52 pass. New: the title's parsing (plain, bold label, all bold, italics and a period, quotes, French quotes, case, a question mark kept, absent, not on the last line, no words) and its removal; the five sources in order; flattening drops the line (transcript and quote); the spec's instruction texts equal the code's. Updated: the golden texts |
+| End-to-end tests | 28 | 30 of 30 pass, 2 runs in a row. New: right after Send, before the message is stored and before Claude replies (a slow send in the fake); a branch of a branch whose first reply has a title line. Updated: the panel following a sidebar move while open, and not while hidden; our own Open new chat not followed (no read in a second); after Send, the panel on the new branch; Claude's title proposed (plain, and bold with a period); the question when Claude gave none. 282 requests, none escaped |
+
+### Choices beyond the brief
+
+1. **The steps stay while the new chat is empty**, and the box waits for Claude's reply ("When Claude has replied:"): claude.ai may show the new chat before it holds the message (not seen yet; the fake can do it on purpose).
+2. **A preview left open** when you move to another chat is replaced by that chat, as any page the panel shows; Branch again there if you still want it.
+3. **The pill** shows the panel at once, even while an action finishes, then reads the chat.
+4. **The panel's element carries the page it shows** (`data-shows`, inside its Shadow DOM), so the tests can wait for it; the address is the tab's own.
+5. **The fake's Claude** answers a branch's first message with a "Branch title:" line when the message holds a question, from a small table of the tests' questions, plain or in bold with a period; it can also store a sent message, and answer it, later.
+
+### To check on the real site (Pascal)
+
+In the Chrome test profile, after ⟳ on Zettelbranch in `chrome://extensions` and a reload of the tab:
+
+1. With the panel open, move to another chat with the sidebar: the panel shows that chat within a second. Hidden, it stays as it was.
+2. Branch, Open new chat, type a question, Send: the panel moves to the new chat by itself. Right after Send, does it show the steps, the box with "When Claude has replied:", or the branch with its Name button?
+3. Claude's first reply ends with "Branch title: …". Name this branch proposes it ("Proposed by Claude in its first reply.").
+4. Branch from that branch: the preview's transcript holds Claude's reply without the summary and without the "Branch title:" line.
 
 ## For Pascal
 
