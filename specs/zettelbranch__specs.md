@@ -39,7 +39,7 @@ unchanged, it gets a fresh answer). The extension extracts the conversation up t
 opens a new chat (in the parent's project, if the parent is in an old-style chat
 project), and pre-fills a prompt containing that
 context. The user reviews and sends it. The prompt reaches the new chat inside the same
-page, held in the extension's memory. If a real page load turns out to be needed, it is
+page, held in the extension's memory (works: Milestone 0, P3). If a real page load turns out to be needed, it is
 parked in the browser's memory-only session storage, erased when the browser closes.
 Never in the address bar, never on disk.
 
@@ -154,8 +154,8 @@ has readable addresses, cross-references, or code short enough to audit.
   fall outside the model's context *(to verify, P2)*.
 - Renaming goes through the API; the UI is the fallback. An API rename works, even
   before the first reply ends, and survives claude.ai's automatic title (Milestone 0,
-  P4). But the open tab keeps showing the old title until it reloads *(to verify after
-  a reload)*: Milestone 1 decides how to handle that.
+  P4). But the open tab keeps showing the old title until it reloads, and Pascal took
+  that for a failed rename (P8). Milestone 1 decides how to make the rename visible.
 - claude.ai exists in two versions during the rollout, with different internal APIs.
   Everything that talks to claude.ai lives in one file; fixtures record which version
   they come from. The legacy REST API still answers on Pascal's merged account (P5).

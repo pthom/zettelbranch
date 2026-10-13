@@ -95,7 +95,9 @@ Endpoints. Everything in this table is *(to verify)*, except (a) and (c) in lega
 checked on Pascal's merged account on 2026-10-13:
 `chat_conversations_v2?limit=100&offset=0` returned `{data, has_more}` with all 63 of his
 conversations in one response (P5); the rename `PUT` works and answers with the whole
-conversation, new `name` included (P4).
+conversation, new `name` included (P4). The list holds his chats (`platform`
+`CLAUDE_AI`) and one `VOICE` conversation, no Cowork or Code sessions, and a `summary`
+for most of them.
 
 | Need | Legacy REST | Merged RPC |
 |---|---|---|
@@ -165,8 +167,8 @@ DA-1 = A, extraction should come from the tree GET instead.
 - The native fork keeps the source chat's title *(to verify)* (bard-rework.md).
 - Does an early manual rename get overwritten? Not found in public sources. Checked on
   Pascal's merged account on 2026-10-13 (P4): an API rename made before the first reply
-  ended was kept; the phone app shows it. The open web tab, not reloaded, kept showing
-  the automatic title. Anthropic's rename article only gives the manual steps
+  ended was kept; the phone app shows it. The open web tab kept showing the automatic
+  title until a reload. Anthropic's rename article only gives the manual steps
   ([help center, 2026-08-10](https://support.claude.com/en/articles/8230524-how-can-i-delete-or-rename-a-conversation)).
   Reports of renames reverting are about the Claude Code VS Code extension, not claude.ai.
 

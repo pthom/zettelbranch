@@ -7,6 +7,12 @@ changed, the commits, a link. The linked file holds the details. Files whose wor
 move to a folder here, one per piece of work, and stay for history. To find the commit
 that added an entry: `git log -S "<a few words of its title>" -- specs/done/README.md`.
 
+- **2026-10-13: Probes P3, P4 and P5 done**
+  ([findings](../milestone-0__findings.md#third-probe-session-p8-p3-p5)): a new chat opens
+  without a page load and keeps the extension's memory (DA-D1 holds); API renames work
+  and survive the automatic title, but the open tab shows them only after a reload; the
+  list finds every `zbtest/` chat and holds no Cowork or Code sessions. P4 and P8 became
+  numbered steps after Pascal found P8 unclear. Spike 1ef38f7, cf143d4.
 - **2026-10-13: First probes on the real site, P5 and P1**
   ([findings](../milestone-0__findings.md#first-probe-session-p5-and-p1)): claude.ai's API
   answers on Pascal's merged account (63 conversations in one request; the sidebar shows

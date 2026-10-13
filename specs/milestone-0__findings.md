@@ -12,6 +12,7 @@ Results of the Milestone 0 spike ([milestone-0__specs](milestone-0__specs.md)). 
 | 2026-10-13 | Probe panel (P1 to P8), offline tests against a fake claude.ai, headless | 0 | n/a | 0 |
 | 2026-10-13 | First probe session, by Pascal in the test profile, spike 0.0.2: P5, then P1 | by hand | none | 1 (P1), 1 message sent |
 | 2026-10-13 | Second session, spike 0.0.3: P4 (renames), stopped at P8 (its panel was unclear) | by hand | none | 2 (P4 chats A and B), 2 messages sent |
+| 2026-10-13 | Third session, spike 0.0.4: P4 after a reload, P8 (two branches of `zbtest/2`), P3, P5 | by hand | none | 2 (P8 branches), 2 messages sent |
 
 ## P0 · Read a shared conversation
 
@@ -239,7 +240,7 @@ results" copies every result of the tab as JSON.
   a P8 root. It lasts until the page reloads.
 - **Read-only probes** (P5 to P7) run anywhere and say "read-only, nothing is changed".
   Their results hold counts and structure, never message text. P5 shows only `zbtest/`
-  titles.
+  titles, and from 0.0.5 the start of their `summary` field.
 - **Renames** go only to `zbtest/…` names, after a confirm dialog with the old and the new
   title. `claude-api.js` enforces the prefix too.
 - **Unexpected answers** become a clear error: the status and the first 200 characters for
@@ -304,6 +305,65 @@ also prints a plain `grep` for each check.
 | No extension APIs (`chrome.*`) | pass |
 | Manifest: no permissions, no background, claude.ai only | pass |
 
+## Third probe session: P8, P3, P5
+
+2026-10-13, by Pascal, spike 0.0.4. The copied results hold only P3 and P5: the P8
+results were gone from the panel (a reload or "Clear" in between). What happened in P8
+comes from Pascal's notes, the screenshots, and P5.
+
+**P4, after a reload:** Chrome's sidebar now shows `zbtest/1 · P4 early` and
+`zbtest/2 · …`. So the open tab only kept old titles in its own memory; the server had
+the new ones.
+
+**P8 · Branch prompt** (from `zbtest/2`, one branch from Claude's reply, one from
+Pascal's own message):
+
+- The preview was right: `Zettelbranch · zbtest/2a`, `Path: zbtest/2 › 2a`,
+  `Forked from: zbtest/2 · Renaming chat conversations, after message 2 (Claude): "Got
+  it: this chat now has a first exchange, so claude.ai…"`, then the transcript in
+  `<zb-turn>` tags.
+- Both branches opened in a new chat with the prompt in the box; Pascal sent them.
+- Both renames worked: the API list and the phone show `zbtest/2a · Testing automatic
+  chat title generation` and `zbtest/2b · Automatic chat title generation`, each with
+  claude.ai's automatic title as its topic.
+- **Pascal thought "Rename branch" had failed**: Chrome's sidebar kept 2b's automatic
+  title. It showed 2a's new title, probably because creating chat 2b made the page reload
+  its list. Evidence for Milestone 1: an API rename that the open tab does not show looks
+  like a failure to the user.
+- Still open: whether Claude followed the prompt (the summary at the start of its reply,
+  no re-answering of the transcript). "Check summary" in each branch tells, and works
+  after a reload.
+- Steps 1 and 2 show no output: step 1 is opening the chat, step 2 only changes the
+  "Branch point" line.
+
+**P3 · New chat without reload: passed.**
+
+| Measure | Result |
+|---|---|
+| New chat link | `[data-testid="sidebar"] a[href="/new"][data-row-main-button]`, clicked by the content script |
+| Address change | after 118 ms |
+| Page load | none: same document, and the content script's variable survived |
+| Insertion in the new chat | the marker, exact (116 characters); Send enabled |
+
+So the handoff of DA-D1 works as decided: the prompt reaches the new chat in the
+extension's memory, with no storage.
+
+**P5, again:**
+
+| Measure | Result |
+|---|---|
+| The list | 67 conversations, 1 request, 401 ms |
+| `zbtest/` chats | all 4 found: `zbtest/1`, `2`, `2a`, `2b` |
+| Sidebar | 15 entries, 3 of them `zbtest/` (2b still under its old title) |
+| `platform` | `CLAUDE_AI` 66, `VOICE` 1 |
+| Projects, Code or Cowork sessions | none: no `project_uuid`, `session_id` or `workspace_session_id` |
+| `summary` | filled for 49 of 67 conversations |
+
+So, on this account, the list holds chats (and one voice conversation), not Cowork or
+Code sessions. claude.ai keeps a summary for most chats; if it is good, it could feed the
+banner's one-line summaries of other branches. Version 0.0.5 shows it for `zbtest/`
+chats only (spike cf143d4).
+
 ## Second probe session: P4
 
 2026-10-13, by Pascal, spike 0.0.3. Two new chats; the panel renamed each one through
@@ -331,13 +391,11 @@ What it shows:
   `zbtest/2` stays readable. This supports the address-first format (AD-1).
 - **The open tab does not learn about the rename.** Chrome's sidebar kept the old titles,
   and showed chat A's automatic title. The tab had not been reloaded (the panel still
-  held both results). So it is most likely the page's own memory, not the server.
-  *(to verify: reload, then the sidebar and P4 "Read title")*. If the sidebar still
-  showed the old titles after a reload, the web app would read a title other than the
-  API's `name`, and renaming would need another way.
+  held both results). After a reload, the sidebar showed the new titles (third
+  session): it was only the page's own memory.
 
-For the extension, even in the likely case: after a rename, the user's open tab shows
-the old title until it reloads. To decide in Milestone 1: rename through claude.ai's own
+For the extension: after a rename, the user's open tab shows the old title until it
+reloads. To decide in Milestone 1: rename through claude.ai's own
 menu (the page knows at once, but it means driving the UI), or rename through the API
 and tell the user, or reload the sidebar's data some other way.
 
@@ -413,12 +471,10 @@ tree probes ignore them. Spike a2302f6.
 - **Attachment chip:** still unknown; P2's long text should show it. After each
   insertion the probes list every new `data-testid` on the page.
 - **Long text:** whether a single large `execCommand` call stays inline (P2).
-- **New chat link:** `a[href="/new"]` in the sidebar. Whether a click from the script
-  opens the new chat without a reload is P3's question.
-- **Rename, after a reload:** whether the sidebar and the page title then show the new
-  titles (P4, step 4).
+- **P8's verdict:** did Claude follow the branch prompt? "Check summary" in `zbtest/2a`
+  and `zbtest/2b`.
+- **claude.ai's `summary` field:** what it holds (P5, 0.0.5, test chats only).
 - **Page title:** format unknown; P4 "Read title" shows it.
-- **The list's mix:** chats, Cowork and Code sessions (P5 again, 0.0.3).
 
 ## Files
 
