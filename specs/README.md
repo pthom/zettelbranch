@@ -45,7 +45,7 @@ Claude maintains these files. Pascal answers questions inline and may edit anyth
 
 - Spec: [zettelbranch__specs](zettelbranch__specs.md)
 - Status: [zettelbranch__status](zettelbranch__status.md)
-- Milestone 1: [plan](milestone-1__specs.md), [questions](milestone-1__questions.md)
+- Milestone 1: [plan](milestone-1__specs.md)
 - Branch prompt draft: [forking__prompt](forking__prompt.md)
 - What public sources say about claude.ai, and what Milestone 0 confirmed on the real
   site: [claude-ai__findings](claude-ai__findings.md)
@@ -56,9 +56,4 @@ Claude maintains these files. Pascal answers questions inline and may edit anyth
 
 ## Open questions
 
-| ID | Question | File |
-|---|---|---|
-| M1-1 | Does Milestone 1 name branches with their address? | [milestone-1__questions](milestone-1__questions.md#m1-1--does-milestone-1-name-branches-with-their-address) |
-| M1-2 | Where the Branch button lives | [milestone-1__questions](milestone-1__questions.md#m1-2--where-the-branch-button-lives) |
-| M1-3 | When the new branch gets its name | [milestone-1__questions](milestone-1__questions.md#m1-3--when-the-new-branch-gets-its-name) |
-| M1-4 | How the open tab shows the new name | [milestone-1__questions](milestone-1__questions.md#m1-4--how-the-open-tab-shows-the-new-name) |
+None right now.

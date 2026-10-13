@@ -7,6 +7,12 @@ changed, the commits, a link. The linked file holds the details. Files whose wor
 move to a folder here, one per piece of work, and stay for history. To find the commit
 that added an entry: `git log -S "<a few words of its title>" -- specs/done/README.md`.
 
+- **2026-10-13: Milestone 1's questions decided**
+  ([questions](milestone-1/milestone-1__questions.md)): branches named with their address
+  from the start (M1-1 = A); one button at the bottom right now, one on each message
+  later (M1-2 = C); "Name this branch" by click, the name editable (M1-3 = B); a notice
+  with "Reload now" after each rename (M1-4 = A). `spike/` stays until the 0.1.0 release
+  (M1-D5, after Pascal's note).
 - **2026-10-13: Milestone 0 closed**
   ([in brief](milestone-0/milestone-0__findings.md#in-brief)): every probe passed. Last,
   P2: one `execCommand` call keeps 100,000 characters inline, and the model sees them.

@@ -49,7 +49,8 @@ Never in the address bar, never on disk.
   example `oulipo/1a · Writing lipograms` or `zb/1b1a · Zettelbranch`.
   - The tree is a short name (`oulipo`, `zb`) chosen when the tree starts; the preview
     proposes one.
-  - The topic is claude.ai's automatic title; the extension only adds the prefix.
+  - The topic is claude.ai's automatic title by default; you can change it when you
+    name the branch.
   - The first branch from a conversation that is not in a tree yet renames it to the
     root, `<tree>/1 · <its title>`. The new chat becomes `<tree>/1a`.
 - The conversation list is the registry of the tree. Addresses are split into number
@@ -156,7 +157,8 @@ has readable addresses, cross-references, or code short enough to audit.
 - Renaming goes through the API; the UI is the fallback. An API rename works, even
   before the first reply ends, and survives claude.ai's automatic title (Milestone 0,
   P4). But the open tab keeps showing the old title until it reloads, and Pascal took
-  that for a failed rename (P8). Milestone 1 decides how to make the rename visible.
+  that for a failed rename (P8). So each rename ends with a notice and a "Reload now"
+  button (M1-4).
 - claude.ai exists in two versions during the rollout, with different internal APIs.
   Everything that talks to claude.ai lives in one file; fixtures record which version
   they come from. The legacy REST API still answers on Pascal's merged account (P5).
@@ -197,13 +199,15 @@ in `spike/` is deleted when Milestone 1 starts, and stays in git history.
 
 ## First milestone
 
+The first everyday version, decided on 2026-10-13 (M1-1 to M1-4). A Zettelbranch button
+at the bottom right opens a list of the conversation's messages; you pick the branch
+point, read a preview of the exact first message, and a new chat opens with it in the
+box. Branches carry their address from the start: the parent becomes a tree root if
+needed, and once Claude has replied you click "Name this branch", edit the proposed
+name if you like, and a notice offers to reload so the open tab shows it. A button on
+each message, the banner, cross-references and the app trigger come later. Plan:
+[milestone-1__specs](milestone-1__specs.md).
+
 From Milestone 0: extraction reads the conversation through the API (the page holds only
 part of a long chat); the prompt goes into the message box in one `execCommand` call; the
-new chat opens through the app's own New chat link, the prompt held in memory. To decide:
-how the open tab shows a rename made through the API.
-
-Reliable extraction of the conversation (by role, with code blocks intact) from the
-fixtures, plus a "branch from here" button that opens a new chat with a previewed,
-correctly filled prompt. Addresses, banner, cross-references and app trigger come after.
-Draft plan, with four open questions (whether addresses come now, among them):
-[milestone-1__specs](milestone-1__specs.md).
+new chat opens through the app's own New chat link, the prompt held in memory.
