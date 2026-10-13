@@ -46,7 +46,9 @@ Never in the address bar, never on disk.
 **State lives in claude.ai, not in the extension.** The extension should be stateless:
 
 - The address goes in the conversation title, as `<tree>/<address> · <topic>`, for
-  example `oulipo/1a · Writing lipograms` or `zb/1b1a · Zettelbranch`.
+  example `oulipo/1a · Writing lipograms` or `zb/1b1a · Zettelbranch`. A title typed by
+  hand may use ` . ` or ` - ` instead of ` · `, which is awkward to type (Pascal,
+  2026-10-13); Zettelbranch reads all three and writes `·`.
   - The tree is a short name (`oulipo`, `zb`) chosen when the tree starts; the preview
     proposes one.
   - The topic is claude.ai's automatic title by default; you can change it when you

@@ -35,6 +35,11 @@ describe('tree.js', () => {
     const t = T.parseTitle('oulipo/1b1 · Writing lipograms');
     assert.deepEqual({ tree: t.tree, address: t.address, topic: t.topic }, { tree: 'oulipo', address: '1b1', topic: 'Writing lipograms' });
     assert.equal(T.parseTitle('zb/1').topic, '');
+    for (const typed of ['zbtest/1 . fixture', 'zbtest/1. fixture', 'zbtest/1 - fixture', 'zbtest/1 – fixture']) {
+      const h = T.parseTitle(typed);
+      assert.deepEqual(h && { tree: h.tree, address: h.address, topic: h.topic }, { tree: 'zbtest', address: '1', topic: 'fixture' }, typed);
+    }
+    assert.equal(T.parseTitle('zb/1a-b c'), null);
     for (const bad of ['Oulipo and constraints', 'Oulipo/1 · x', 'oulipo/a1 · x', 'oulipo/01 · x', '2026/10 plans', '']) {
       assert.equal(T.parseTitle(bad), null, bad);
     }

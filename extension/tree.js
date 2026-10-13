@@ -1,6 +1,7 @@
 // Zettelbranch: titles, addresses and the registry. Pure functions, no DOM, no network.
 //
-// A title is `<tree>/<address> · <topic>`, for example `oulipo/1b1 · Lipograms`.
+// A title is `<tree>/<address> · <topic>`, for example `oulipo/1b1 · Lipograms`. Typed by
+// hand, ` . ` or ` - ` count too, since `·` is awkward to type; Zettelbranch writes `·`.
 // Addresses are split into number and letter segments (`1b10` = [1, 'b', 10]); a child has
 // its parent's segments plus exactly one more. Never compared as string prefixes.
 // After `z`, letters continue `aa`, `ab`… The registry is the list of every title.
@@ -43,7 +44,7 @@
 
   // `oulipo/1b · Topic` -> { tree, address, segs, topic }. Null if not a tree title.
   function parseTitle(title) {
-    const m = /^([a-z0-9-]+)\/([0-9][0-9a-z]*)(?:\s+·\s+([\s\S]*))?$/.exec(String(title || '').trim());
+    const m = /^([a-z0-9-]+)\/([0-9][0-9a-z]*)(?:\s*[·.\-–—]\s+([\s\S]*))?$/.exec(String(title || '').trim());
     if (!m) return null;
     const segs = parseAddress(m[2]);
     if (!segs) return null;
