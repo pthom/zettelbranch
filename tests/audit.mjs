@@ -169,6 +169,20 @@ if ('update_url' in gecko && gecko.update_url !== UPDATE_URL) m(`update_url is $
 const addresses = JSON.stringify(manifest).match(/https?:\/\/[^"]*/g) || [];
 for (const a of addresses) if (a !== 'https://claude.ai/*' && a !== UPDATE_URL) m(`an address: ${a}`);
 check('Manifest: MV3, no permissions, no background, claude.ai only (and the update address), every file listed', mProblems);
+// Nothing else in the folder: the manifest, the scripts, and the icon (0.2.1) in four sizes, real PNG images.
+const ICONS = [16, 32, 48, 128].map((n) => `icons/icon-${n}.png`);
+const iProblems = [];
+const i = (text) => iProblems.push({ file: 'extension/', n: 0, text });
+if (JSON.stringify(manifest.icons) !== JSON.stringify(Object.fromEntries([16, 32, 48, 128].map((n, k) => [String(n), ICONS[k]])))) i(`icons are ${JSON.stringify(manifest.icons)}`);
+const PNG = '89504e470d0a1a0a';
+for (const f of ICONS) {
+  const file = path.join(opt.dir, f);
+  if (!fs.existsSync(file)) { i(`${f} is missing`); continue; }
+  if (fs.readFileSync(file).subarray(0, 8).toString('hex') !== PNG) i(`${f} is not a PNG image`);
+}
+const all = (d, pre = '') => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? all(path.join(d, e.name), `${pre}${e.name}/`) : [`${pre}${e.name}`]));
+for (const f of all(opt.dir)) if (f !== 'manifest.json' && f !== '.DS_Store' && !files.includes(f) && !ICONS.includes(f)) i(`an unexpected file: ${f}`);
+check('The folder holds only the manifest, the scripts and the four icon images', iProblems);
 
 // Part 2: the commands of AUDIT.md.
 const auditMd = fs.readFileSync(path.join(ROOT_DIR, 'AUDIT.md'), 'utf8');

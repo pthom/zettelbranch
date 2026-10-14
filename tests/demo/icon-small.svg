@@ -1,0 +1,9 @@
+<!-- The same icon for 16, 32 and 48 px (the toolbar, the menus): it fills the space, with smaller corners.
+     Rendered by make-demo.mjs with the option icons (XML comments allow no double hyphen). -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-2 -2 100 100" width="48" height="48">
+  <rect x="0" y="0" width="96" height="96" rx="16" fill="#8a4b2a"/>
+  <path d="M26 34 V70 H42 M26 52 H42" fill="none" stroke="#fffdf8" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="14" y="16" width="56" height="18" rx="4" fill="#fffdf8"/>
+  <rect x="42" y="44" width="40" height="16" rx="4" fill="#fffdf8"/>
+  <rect x="42" y="62" width="40" height="16" rx="4" fill="#fffdf8"/>
+</svg>

@@ -6,7 +6,7 @@ A program's own claims about itself prove nothing. So the code is kept short and
 
 ## What runs
 
-Everything that runs is in `extension/`: `manifest.json` and eight scripts, about 2,300 lines in all (`wc -l extension/*`). No build step, no dependencies, no minified code: the files you read are the files the browser runs.
+Everything that runs is in `extension/`: `manifest.json` and eight scripts, about 2,300 lines in all (`wc -l extension/*.js extension/manifest.json`). No build step, no dependencies, no minified code: the files you read are the files the browser runs. Besides them, only the icon, in four sizes (point 18).
 
 | File | What it does |
 |---|---|
@@ -18,6 +18,7 @@ Everything that runs is in `extension/`: `manifest.json` and eight scripts, abou
 | `menu.js` | Renames the chat on screen through claude.ai's own title menu, as you would by hand. The only file that sends events to claude.ai's page (besides the click on the New chat link). |
 | `branch.js` | The flow: read, branch, open the new chat, name it. |
 | `ui.js` | The button and the panel, in a Shadow DOM, with its small forms for names. |
+| `icons/` | The icon, four PNG images (16, 32, 48 and 128 pixels) that the browser shows in its menus and on the extensions page. Images only, no code; drawn from `tests/demo/icon-128.svg` and `icon-small.svg`. |
 | `content.js` | Loaded last: puts the button on the page, nothing else. |
 
 What it does, and when:
@@ -161,13 +162,15 @@ grep -n '\.click()' extension/branch.js | grep -vF 'newChatLink.click();'
 [ "$(grep -c '\.click()' extension/menu.js)" = 1 ] && grep -qF '    if (el) el.click();' extension/menu.js || echo 'menu.js does not click exactly once, in clickOn'
 ```
 
-**18. The manifest asks for nothing**: no permissions, no background script, no access to other sites, no scripts in the page's own world, and every script is listed. Its only other address (version 0.1.2) is `update_url`, `https://raw.githubusercontent.com/pthom/zettelbranch/main/updates.json`: Firefox itself, not the extension, reads that file about once a day, to install a new signed version when there is one. So Firefox talks to GitHub; the extension still talks only to claude.ai. Chrome ignores it.
+**18. The manifest asks for nothing**: no permissions, no background script, no access to other sites, no scripts in the page's own world, and every script is listed. Its only other address (version 0.1.2) is `update_url`, `https://raw.githubusercontent.com/pthom/zettelbranch/main/updates.json`: Firefox itself, not the extension, reads that file about once a day, to install a new signed version when there is one. So Firefox talks to GitHub; the extension still talks only to claude.ai. Chrome ignores it. Since version 0.2.1, the manifest also lists the icon's four images; the folder holds nothing else (the last two commands: every file is the manifest, a script or an icon, and each icon is a PNG image).
 
 ```sh
 grep -nE '"(permissions|optional_permissions|host_permissions|optional_host_permissions|background|web_accessible_resources|externally_connectable|content_security_policy|world)"' extension/manifest.json
 grep -n '"matches"' extension/manifest.json | grep -vF '"matches": ["https://claude.ai/*"],'
 grep -noE 'https?://[^"]*' extension/manifest.json | grep -vE ':https://claude\.ai/\*$|:https://raw\.githubusercontent\.com/pthom/zettelbranch/main/updates\.json$'
 for f in extension/*.js; do grep -qF "\"$(basename "$f")\"" extension/manifest.json || echo "$f is not in the manifest"; done
+find extension -type f ! -name .DS_Store | grep -vE '^extension/([a-z]+\.js|manifest\.json|icons/icon-(16|32|48|128)\.png)$'
+for f in extension/icons/*; do [ "$(head -c 8 "$f" | od -An -tx1 | tr -d ' \n')" = 89504e470d0a1a0a ] || echo "$f is not a PNG image"; done
 ```
 
 **19. Events to the page only for claude.ai's own rename menu** (version 0.1.1). Every event the extension sends to claude.ai's page is in `menu.js`, through three short functions, `pressOn` (a press of the main mouse button), `keyOn` (Enter or Escape) and `clickOn`. They reach only four elements, each found by its exact selector in `TARGETS`: the title button in `chat-title-split`, the open menu (Escape only), the item whose test id is exactly `rename-chat-trigger` (never by its label or its place: Delete sits next to it), and the field `name-chat` (Enter or Escape). Only six calls exist: press the title button; press and click the Rename item; Enter and Escape in the field; Escape on the menu. Never anything to the message box (`chat-input`), Send (`chat-input-send`), Delete (`delete-chat-trigger`) or any other element.

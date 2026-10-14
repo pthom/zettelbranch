@@ -9,6 +9,8 @@
 //   node make-demo.mjs --store  ->  out/store/screenshot-1.png ... screenshot-5.png (1280 x 800) and
 //                                  tile-440x280.png, the Chrome Web Store listing pictures, and
 //                                  sheet.png to review them at a glance (not committed)
+//   node make-demo.mjs --icons  ->  ../extension/icons/icon-16.png ... icon-128.png, from
+//                                  demo/icon-128.svg and demo/icon-small.svg
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -27,6 +29,26 @@ if (process.argv.includes('--social')) {
   await p.screenshot({ path: out });
   await b.close();
   console.log(`-> ${path.relative(process.cwd(), out)}`);
+  process.exit(0);
+}
+// --icons: the extension's icon, at the four sizes the manifest lists, on a transparent background.
+if (process.argv.includes('--icons')) {
+  const dir = path.join(DIR, '..', 'extension', 'icons');
+  fs.mkdirSync(dir, { recursive: true });
+  const b = await chromium.launch({ channel: 'chromium', headless: true });
+  for (const size of [16, 32, 48, 128]) {
+    const svg = path.join(DIR, 'demo', size === 128 ? 'icon-128.svg' : 'icon-small.svg');
+    const p = await b.newPage({ viewport: { width: size, height: size }, deviceScaleFactor: 1 });
+    await p.route('**/*', (r) => (r.request().url().startsWith('file:') ? r.continue() : r.abort()));
+    const src = 'data:image/svg+xml;base64,' + fs.readFileSync(svg).toString('base64');
+    await p.setContent(`<style>html,body{margin:0;background:transparent}img{display:block}</style><img src="${src}" width="${size}" height="${size}">`);
+    await p.waitForFunction(() => document.images[0].complete && document.images[0].naturalWidth > 0);
+    const out = path.join(dir, `icon-${size}.png`);
+    await p.screenshot({ path: out, omitBackground: true });
+    await p.close();
+    console.log(`-> ${path.relative(process.cwd(), out)}`);
+  }
+  await b.close();
   process.exit(0);
 }
 // --store: the Chrome Web Store listing pictures, from demo/store.html (one picture per page load,

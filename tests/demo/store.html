@@ -35,7 +35,7 @@
      than white or light grey, must work at half size. */
   .tile { width: 440px; height: 280px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; background: linear-gradient(160deg, #a65d38 0%, #8a4b2a 55%, #6f3a20 100%); }
   .tile .name { display: flex; align-items: center; gap: 16px; }
-  .tile .icon { width: 80px; height: 80px; flex: none; }
+  .tile .icon { width: 60px; height: 60px; flex: none; border-radius: 10px; box-shadow: 0 0 0 3px #fbf5ea, 0 8px 20px rgba(40, 20, 8, 0.35); }
   .tile h1 { margin: 0; font: 400 56px/1 Georgia, "Times New Roman", serif; letter-spacing: -0.01em; color: #fbf5ea; text-shadow: 0 2px 10px rgba(40, 20, 8, 0.25); }
   .tile .name:has(.icon) h1 { font-size: 46px; }
   .tile .tree { background: #fffdf8; border-radius: 12px; padding: 13px 20px; font: 15px/1.75 Menlo, Monaco, monospace; white-space: pre; color: var(--ink); box-shadow: 0 10px 26px rgba(40, 20, 8, 0.35); }
@@ -46,8 +46,8 @@
 <template id="tile">
   <div class="pic tile">
     <div class="name">
-      <!-- The icon, once there is one: uncomment the next line and set the path (shown at 80 px, the name then gets smaller). -->
-      <!-- <img class="icon" src="../../extension/icons/icon-128.png" alt=""> -->
+      <!-- The icon, full bleed (icon-small.svg) with a cream ring, so that it stands out on the brown. -->
+      <img class="icon" src="icon-small.svg" alt="">
       <h1>Zettelbranch</h1>
     </div>
     <div class="tree"><b>sky/1  </b> · Why the sky is blue

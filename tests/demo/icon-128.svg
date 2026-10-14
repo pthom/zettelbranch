@@ -1,0 +1,9 @@
+<!-- Zettelbranch's icon at 128 px (the store, the extensions page): the panel's tree on the button's brown.
+     The artwork is 96 x 96, padded by 16 px as Chrome advises. Rendered by make-demo.mjs with the option icons (XML comments allow no double hyphen). -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-16 -16 128 128" width="128" height="128">
+  <rect x="0" y="0" width="96" height="96" rx="20" fill="#8a4b2a"/>
+  <path d="M26 34 V70 H42 M26 52 H42" fill="none" stroke="#fffdf8" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="14" y="16" width="56" height="18" rx="4" fill="#fffdf8"/>
+  <rect x="42" y="44" width="40" height="16" rx="4" fill="#fffdf8"/>
+  <rect x="42" y="62" width="40" height="16" rx="4" fill="#fffdf8"/>
+</svg>

@@ -12,7 +12,7 @@ Zettelbranch **0.2.0** is the latest release (2026-10-14): the panel's own forms
 
 - **Firefox:** signed by Mozilla (unlisted, add-on 3095566 on addons.mozilla.org), one-click install from the README, automatic updates through `updates.json` in this repository. Seen working on 2026-10-14: Pascal's main Firefox went to 0.2.0 on "Rechercher des mises à jour" ("Vos modules ont été mis à jour").
 - **Chrome:** developer mode ("Load unpacked"), updated by hand; the README tells Chrome users to watch the repository's releases. The Chrome Web Store comes next (Milestone 2, step 8).
-- **Tests** (0.2.0): audit 76/76, unit 65/65, end-to-end 36/36, a real Tiptap editor in Chromium and Firefox 6/6 (`cd tests && npm test`, offline).
+- **Tests** (0.2.1): audit 79/79, unit 65/65, end-to-end 36/36, a real Tiptap editor in Chromium and Firefox 6/6 (`cd tests && npm test`, offline).
 - **The repository:** README opening on the demo video (GitHub's player, the GIF as a link), four illustrated steps and one-click install; user manual in `docs/MANUAL.md`; the About text chosen on 2026-10-14; Discussions on; a "Something broke" issue form; private security reports (`SECURITY.md`); a link-preview image.
 
 The story so far (0.1.0 to 0.2.0) is in the [done log](done/README.md). The facts about claude.ai it all builds on: [claude-ai__findings](claude-ai__findings.md#9-checked-on-pascals-account-milestone-0).
@@ -25,7 +25,7 @@ Milestones and their state: [the vault's README](README.md#milestones). Mileston
 
 1. **Clean up after the sessions:** on claude.ai, delete the test chats of 2026-10-14 (`zbtest/render-2`, `zbtest/gather`, the P12 "Test chat", session 2's `zbtest/1`, `/1a`, `/2`, `/2a`, and the "autumn" chat of the tree-name picture if it is still there) and the older `zbtest/` and `zbtest2/` chats. In the Firefox test profile, turn Zettelbranch back on (it was off since P12): untouched, it should go to 0.2.0 by itself within a day, the test of Firefox's daily check.
 2. **The Chrome Web Store account** ([chrome-web-store__specs](milestone-2/chrome-web-store__specs.md)): name and non-trader set; left: add the contact email and click the link Google sends. Privacy answer: A (`PRIVACY.md`, written).
-3. **Pick the icon** among Claude's three drafts (`tests/out/icon/icon-drafts.png`).
+3. **Check 0.2.1** (the icon) in the Chrome test profile: `chrome://extensions`, ⟳ on Zettelbranch, the icon shows; then say when to release it (the Mozilla upload as usual), and submit it to the Chrome Web Store.
 4. **Read the posts' drafts** ([posts__specs](milestone-2/posts__specs.md)) and change what does not sound like you.
 5. **Use Zettelbranch for real** and note what bothers you; watch the GitHub issues and Discussions. That feedback guides Milestone 3.
 6. **Optional:** ask a person at Anthropic about automated tests, and about Zettelbranch now that others use it (draft from Claude).
@@ -43,9 +43,8 @@ The demo video of 0.2.0 lives in that release's notes (Pascal dragged it there, 
 ## Next for Claude
 
 1. Milestone 2's [plan](milestone-2/milestone-2__specs.md), in this order:
-   - **the icon:** three drafts made (`tests/out/icon/icon-drafts.png`; Claude recommends B, the brown tile); once Pascal picks, it goes into `extension/icons/` and the manifest, and ships in 0.2.1, before the store submission;
-   - **the store's pictures:** five screenshots at 1280 x 800 and the small tile at 440 x 280, composed from the shoot (`tests/demo/store.html`, `node make-demo.mjs --store`);
-   - done 2026-10-14: `PRIVACY.md` (privacy answer A); the posts' drafts with answers for the comments ([posts__specs](milestone-2/posts__specs.md));
+   - **0.2.1, the icon** (B, chosen by Pascal): built and tested offline; release when Pascal has checked it ([notes](milestone-2/release-0.2.1__specs.md)), then the store submission with its zip;
+   - done 2026-10-14: the store's pictures (`tests/demo/store.html`, `node make-demo.mjs --store`, into `tests/out/store/`); `PRIVACY.md` (privacy answer A, Pascal: "ok"); the posts' drafts with answers for the comments ([posts__specs](milestone-2/posts__specs.md));
    - then the close: the finalized note, the folder to `done/`.
 2. Milestone 3 candidates, from the spec and the sessions:
    - "gather branches" (Claude can already find and open chats with claude.ai's past-chat tools);
