@@ -396,7 +396,8 @@
   }
   // After Open new chat, you type at the end of claude.ai's message box and press its Send
   // button, just under the text. If the panel covers them (a narrow window: Pascal's shoot,
-  // 2026-10-14), it moves just above the box, as if dragged there; you can still move it.
+  // 2026-10-14), it moves just above the box; you can still move it. Only for this chat: the
+  // panel opens again where you dragged it, or at the bottom right.
   const BUTTON_ROW = 40; // the room for the box's buttons, under its text
   function clearBox() {
     const box = B().boxRect();
@@ -404,7 +405,10 @@
     const p = ui.panel.getBoundingClientRect();
     const covers = p.left < box.right && p.right > box.left && p.top < box.bottom + BUTTON_ROW && p.bottom > box.top;
     const top = box.top - p.height - 8;
-    if (covers && top >= MARGIN) setPlace(p.left, top);
+    if (!covers || top < MARGIN) return;
+    const dragged = place;
+    setPlace(p.left, top);
+    place = dragged;
   }
   function grab(e) {
     if (e.button !== 0 || e.target.closest('button')) return;

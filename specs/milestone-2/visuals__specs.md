@@ -56,7 +56,7 @@ With 0.2.0 on the `sky` demo tree, in four parts. Each picture is a screenshot o
 
 Part A taken on 2026-10-14 (`tests/out/shoot/`, not committed), with Chrome's "Continue where you left off" bar showing: cropped away, as every picture is cropped to the page. `sky/1b` (Mars) was made meanwhile, without pictures of each step.
 
-**Part B: the demo, `sky/1a1` from `sky/1a`'s last reply**
+**Part B: the demo, `sky/1a1` from `sky/1a`'s last reply** (taken 2026-10-14, `tests/out/shoot/B/`, B01 to B10; the first attempt, with the sidebar open, kept in `B-raw/`)
 
 After reloading the extension (the panel's move above the message box). One screenshot at each step, nothing else moving on screen: B1 `sky/1a` with the panel open (Claude's last reply chosen by default); B2 the preview; B3 the new chat, filled, the panel above the message box; B4 `What is the green flash?` typed (half, then whole); B5 Claude's reply, complete; B6 the naming form; B7 after Enter (panel closed, new title); B8 the panel opened again, showing the tree (4 chats); B9 after clicking `1b` in the tree (that chat, the panel showing where you are); B10 after clicking `1` (back at the root).
 
@@ -67,4 +67,6 @@ After reloading the extension (the panel's move above the message box). One scre
 
 **Part D: `tree-name`**
 
-- [ ] New chat, `Why do leaves change colour in autumn?`, wait for the reply, Zettelbranch, Branch. D1 `tree-name`: the tree form. Then Cancel, and delete this chat.
+- [x] New chat, `Why do leaves change colour in autumn?`, wait for the reply, Zettelbranch, Branch. D1 `tree-name`: the tree form. Then Cancel, and delete this chat. Taken 2026-10-14; it proposes "tree", since the panel read the chat before claude.ai titled it (fixed the same day: Branch reads the title again, and would propose "autumn"). A retake is optional.
+
+**The shoot is complete** (2026-10-14). Next, Claude's part: crop the pictures into `docs/images/`, rebuild the demo from B01 to B10 (frame 3, the instructions, shorter), add `first-message` to the README, and show Pascal the result before committing.

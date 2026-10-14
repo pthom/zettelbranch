@@ -265,7 +265,18 @@
     root = null;
     const bad = check(index);
     if (bad) return bad;
-    if (!T().parseTitle(chat.title)) return { ok: false, ask: { tree: T().proposeTreeName(chat.title), title: chat.title } };
+    if (!T().parseTitle(chat.title)) {
+      // Read before claude.ai gave the chat a title (it does after the first reply): its title
+      // is read again, for the tree name proposed from it (Pascal's shoot, 2026-10-14).
+      if (!(chat.title || '').trim() && chat.source === 'api') {
+        try {
+          chat.title = (await A().getConversation(chat.id)).name || '';
+        } catch (e) {
+          // no title: the name proposed is "tree"
+        }
+      }
+      return { ok: false, ask: { tree: T().proposeTreeName(chat.title), title: chat.title } };
+    }
     return preview(index, await registry());
   }
 

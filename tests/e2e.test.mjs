@@ -399,6 +399,8 @@ test('after Send, the panel follows to the new branch; Name this branch proposes
   assert.equal(await editorText(), '', 'nothing reached the message box');
   await shots('named-pill', '.pill');
   await openPanel();
+  const reopened = await Z('panel').boundingBox();
+  assert.ok(Math.abs(reopened.x + reopened.width - (1280 - 12)) <= 1 && Math.abs(reopened.y + reopened.height - (860 - 12)) <= 1, 'opened again at the bottom right: the move above the message box was for the new chat only');
   assert.deepEqual(await node('1b'), { address: '1b', topic: '· Fish and birds on one page', tags: 'you are here', href: null, current: true, indent: '22px' });
   assert.equal(await text('identity'), 'Branch zbtest/1b, from zbtest/1 after message 4', 'this is the branch just made');
   assert.equal(await text('chat-title'), 'zbtest/1b · Fish and birds on one page');
@@ -619,6 +621,19 @@ test('a chat not in a tree: the tree name, then the new title, in the panel; can
   assert.equal(await Z('message').count(), 2);
   assert.equal(puts().length, putsBefore, 'no rename');
   assert.equal(fake.menuRenames.length, menuBefore, 'no rename');
+});
+
+test('a chat read before claude.ai titled it: Branch reads its title again, for the tree name proposed', async () => {
+  const id = fake.addChat('');
+  await goChat(id);
+  await openPanel();
+  assert.equal(await text('chat-title'), '(no title yet)');
+  fake.convs.get(id).name = 'Autumn leaf colour change'; // claude.ai's title, after the reply
+  await click('branch');
+  assert.equal(await Z('tree-field').inputValue(), 'autumn', 'proposed from the title read again');
+  await click('tree-form-cancel');
+  await goChat(fake.ids.oulipo);
+  await openPanel();
 });
 
 test('a chat not in a tree: an invalid tree name is asked again; accepted, the chat becomes oulipo/1', async () => {
