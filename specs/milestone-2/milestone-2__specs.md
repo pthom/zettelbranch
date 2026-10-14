@@ -67,7 +67,17 @@ Proposal, in the words of the README's new opening:
 
 > Open a side question in a new chat without losing your conversation. Zettelbranch, a browser extension for claude.ai, branches a conversation into a new chat that knows everything said so far, and names each branch with a short address (sky/1a), so your chats form a tree you can find your way in. Firefox and Chrome, early version.
 
-Changed by Pascal in the repository's settings (the gear next to "About"), or by Claude with `gh repo edit --description` when Pascal says so.
+Pascal's phrases (2026-10-14): "Explore your thoughts", "and side quests (?)", "without getting lost", "Organize your conversations into trees that accurately represent the hierarchy of your thoughts". Variants built on them (GitHub allows 350 characters):
+
+- **B (recommended, 275 characters):** Explore your thoughts and side quests without getting lost: branch any claude.ai conversation into a new chat that knows everything said so far. Your conversations become a tree that follows the shape of your thinking. Browser extension for Firefox and Chrome, early version.
+- **C (339 characters, with the address):** Explore your thoughts and side quests without getting lost. Zettelbranch branches any claude.ai conversation into a new chat that knows everything said so far, and gives each branch a short address (sky/1a), so your conversations form a tree that follows the shape of your thinking. Browser extension for Firefox and Chrome, early version.
+- **D (288 characters, closest to Pascal's last phrase):** Explore your thoughts and side quests without getting lost. Branch any claude.ai conversation into a new chat that knows everything said so far, and organize your conversations into trees that follow the hierarchy of your thoughts. Browser extension for Firefox and Chrome, early version.
+
+**Chosen by Pascal (2026-10-14): the variant starting with his phrases, with a reference to the name** (317 characters):
+
+> Explore your thoughts and side quests without getting lost: branch any claude.ai conversation into a new chat that knows everything said so far. Your conversations become a tree that follows the shape of your thinking. Zettelbranch (Zettelkasten + branch) is a browser extension for Firefox and Chrome, early version.
+
+Changed by Pascal in the repository's settings (the gear next to "About"), or by Claude with `gh repo edit --description` when Pascal says so, with the release.
 
 ## The panel's forms (0.2.0)
 

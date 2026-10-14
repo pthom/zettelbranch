@@ -63,7 +63,7 @@ Your brief says "Zettelkasten, Luhmann and Perec second". Perec points to the Ou
 
 **Answer:** A
 
-**Decision:** A. The posts name Luhmann and the Zettelkasten, not Perec. In the [plan](milestone-2__specs.md#steps), step 10.
+**Decision:** A. The posts name Luhmann and the Zettelkasten, not Perec. Extended by Pascal the same day to the README, whose line "Also inspired by Georges Perec's card systems…" (since 0.1.2) is removed. In the [plan](milestone-2__specs.md#steps), step 10.
 
 ## Defaults
 

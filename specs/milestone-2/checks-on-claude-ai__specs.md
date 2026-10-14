@@ -98,7 +98,7 @@ What differed from the list above, with a screenshot when something looks wrong.
 
 ### 5. Pictures to take
 
-Reminder: [visuals__specs](visuals__specs.md#session-2). The README's and the manual's pictures and the demo, on the `sky` demo tree, with 0.2.0. They can wait for a separate sitting, but should come before the posts.
+Reminder: [visuals__specs](visuals__specs.md#session-2-the-shoot-2026-10-14). The README's and the manual's pictures and the demo, on the `sky` demo tree, with 0.2.0. They can wait for a separate sitting, but should come before the posts.
 
 ### 6. Clean up
 

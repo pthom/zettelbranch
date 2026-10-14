@@ -44,7 +44,8 @@ Built offline (version 0.1.4, not released): all tests pass, including the real 
 
 1. Claude builds and tests offline, Pascal checks on the real site (Firefox and Chrome).
 2. Pascal uploads the zip to addons.mozilla.org ("Envoyer une nouvelle version", "À vous de jouer", source code: Non) and saves the signed `.xpi` into `tests/out/` (right-click, "Enregistrer la cible du lien sous…": unlisted files are served only to the signed-in owner).
-3. Claude checks the `.xpi` against `extension/`, adds the version to `updates.json` (with its SHA-256), and publishes the GitHub release with the versioned files and the version-free copies `zettelbranch.xpi` and `zettelbranch.zip` (the README's install links point to `releases/latest/download/` with those names), `SHA256SUMS` and the demo video; then verifies the update chain.
+3. For 0.2.0 only: the repository's About text becomes the one chosen on 2026-10-14 ([milestone-2__specs](milestone-2/milestone-2__specs.md#the-repositorys-about-text)), with `gh repo edit --description`, as the README's new version goes to `main`.
+4. Claude checks the `.xpi` against `extension/`, adds the version to `updates.json` (with its SHA-256), and publishes the GitHub release with the versioned files and the version-free copies `zettelbranch.xpi` and `zettelbranch.zip` (the README's install links point to `releases/latest/download/` with those names), `SHA256SUMS` and the demo video; then verifies the update chain.
 
 ## Next for Claude
 
