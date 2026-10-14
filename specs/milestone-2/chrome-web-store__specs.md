@@ -4,7 +4,8 @@ Plan step 8 (M2-3 = B: the Chrome Web Store before the posts). Drafted by Claude
 
 ## What Pascal does
 
-1. Sign up at the Chrome Web Store developer dashboard with the Google account to use, pay the one-time 5 USD, and give a contact email (it shows on the listing). Declare a **non-trader** account (a free project, not a business): the EU asks every developer.
+1. **Done 2026-10-14:** the developer account exists (pthomet@gmail.com, signed up from Firefox; the dashboard shows no item yet, "Limite d'extensions : 0/2"). Left in its "Profil" page: the publisher name, the contact email and its verification, the non-trader declaration. On the way, a sign-in to Chrome itself in the test profile turned on Chrome Sync and installed 11 extensions from Pascal's account there: to remove, with sync off, so that the test profile holds only Zettelbranch.
+   Originally: sign up at the Chrome Web Store developer dashboard with the Google account to use, pay the one-time 5 USD, and give a contact email (it shows on the listing). Declare a **non-trader** account (a free project, not a business): the EU asks every developer.
 2. When this file is approved and the pictures are ready: "New item", upload `zettelbranch-0.2.0.zip` (the release's zip), fill the tabs from the sections below, submit. Google's review takes a few days, sometimes more for a first item.
 3. Once published: the README's Chrome install points to the store, and each later release is uploaded there too (one more step in [how a release goes](../zettelbranch__status.md#how-a-release-goes-for-the-next-version)).
 
