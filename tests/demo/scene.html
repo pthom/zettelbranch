@@ -20,6 +20,8 @@
   .url { margin-left: 18px; font-size: 12px; color: var(--muted); background: #faf7f1; border-radius: 6px; padding: 2px 12px; }
   .shot { position: absolute; left: 0; top: 28px; width: 797px; height: 626px; overflow: hidden; }
   .shot img { position: absolute; left: 0; top: 0; width: 797px; opacity: 0; }
+  /* claude.ai fades the page under its top bar; the same here, over lines cut by the view */
+  .shot::after { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 10px; background: linear-gradient(#fcfcfb, rgba(252, 252, 251, 0)); }
 
   /* Highlights, cursor, click ripples */
   .hl { position: absolute; border: 2.5px solid var(--glow); background: var(--accent-soft); border-radius: 10px; opacity: 0; box-shadow: 0 0 0 4px rgba(217, 119, 87, 0.18); }
@@ -48,70 +50,76 @@
   <div class="card" id="card">
     <h1>Zettelbranch</h1>
     <div class="sub">Branch your claude.ai conversations into a tree</div>
-    <div class="tree"><b>sky/1 </b>  · Why the sky is blue
-<i>├─ </i><b>sky/1a</b> · Why sunsets are red
-<i>└─ </i><b>sky/1b</b> · The sky on Mars</div>
+    <div class="tree"><b>sky/1</b>         · Why the sky is blue
+<i>├─ </i><b>sky/1a</b>     · Why sunsets are red and orange
+<i>│  └─ </i><b>sky/1a1</b> · The green flash at sunset
+<i>└─ </i><b>sky/1b</b>     · Colour of the Martian sky</div>
     <div class="gh">github.com/pthom/zettelbranch</div>
   </div>
 
 <script>
-// ---- the timeline (seconds). Coordinates are in the screenshots' pixels (866 x 1033). Frames
-// 12 to 14 were taken with claude.ai's sidebar closed and cropped wider (930 px): k() converts
-// their coordinates; they are shown at the same width.
-const k = (v) => (v * 866) / 930;
-const DURATION = 37.6;
+// ---- the timeline (seconds). Coordinates are in the screenshots' pixels: 1006 x 1027, the page
+// of claude.ai with its sidebar closed (Pascal's shots, the empty strip at the left cut off: x 56,
+// y 137 in his 2000 x 1293 screenshots). 01 to 03: sky/1a, the panel closed, open, the preview;
+// 04 to 07: the new chat, the question typed (the greeting covered); 08, 09: Claude's reply, its
+// end; 10: the naming form; 11: named; 12: the panel again; 13: sky/1b opened; 14: sky/1.
+const DURATION = 34.4;
 const XFADE = 0.17; // a quick dissolve between screenshots: every pixel changes, which a GIF pays for
-// Each screenshot shows 660 px of its height, from VIEW[name]: the part that step needs.
-// (Frames 12 to 14 in the 866-wide coordinates of k().)
-const H = 680;
-const VIEW = { '01': 353, '02': 353, '03': 353, '04': 353, '05': 353, '06': 353, '07': 353, '08': 353, '09': 345, '10': 0, '11': 353, '12': 282, '13': 282, '14': 282 };
-const FRAMES = [ // [start, image, crossfade]
-  [2.8, '01', true], [6.3, '02', true], [10.3, '03', true], [12.0, '04'], [12.4, '05'], [12.8, '06'], [13.2, '07'], [13.6, '08'],
-  [15.4, '09', true], [20.4, '10', true], [22.6, '11', true], [26.4, '12', true], [28.6, '13', true], [31.6, '14', true],
+// The window shows 790 px of a screenshot's height (626 px on screen), from the frame's view: the
+// bottom part (H) by default, where the panel is; 0 for the page's title at the top.
+const H = 237;
+const FRAMES = [ // [start, image, crossfade, view (default H)]
+  [2.6, '01', true], [3.9, '02', true], [6.1, '03', true],
+  [9.05, '04', true], [10.1, '05'], [10.55, '06'], [11.0, '07'], // typing
+  [12.35, '08', true], [14.6, '09', true], [16.65, '10', true],
+  [18.8, '11', true], [19.5, '11', false, 0], [21.4, '11'], // the new title at the top, and back
+  [22.5, '12', true], [26.5, '13', true], [29.35, '14', true],
 ];
-const CARD = [[0, 2.8], [35.0, 99]]; // title card shown (fades at the edges)
+const CARD = [[0, 2.6], [31.8, 99]]; // title card shown (fades at the edges)
 const CAPTIONS = [ // [start, end, step, text]
-  [2.8, 6.3, 1, 'Open the Zettelbranch panel and choose where the branch starts'],
-  [6.3, 10.3, 2, 'Check the preview: a short header, then the conversation so far'],
-  [10.3, 13.9, 3, 'A new chat opens, already filled in. Type your question at the end…'],
-  [13.9, 15.4, 3, '…and press Send yourself'],
-  [15.4, 20.4, 4, 'Claude sums up where you were, answers, and suggests a name'],
-  [20.4, 22.6, 5, 'Keep the suggested name, or change the topic'],
-  [22.6, 26.4, 6, 'Done: the branch is named sky/1b, and the panel shows the tree'],
-  [26.4, 28.6, 7, 'Move around the tree: click a branch to open it'],
-  [28.6, 35.0, 7, 'It opens with the panel, showing where you are'],
+  [2.6, 6.1, 1, 'Open the Zettelbranch panel and choose where the branch starts'],
+  [6.1, 9.05, 2, 'Check the preview: a short header, then the conversation so far'],
+  [9.05, 11.3, 3, 'A new chat opens, filled in. Type your question under MY QUESTION…'],
+  [11.3, 12.35, 3, '…and press Send yourself'],
+  [12.35, 16.65, 4, 'Claude sums up where you were, answers, and suggests a name'],
+  [16.65, 18.8, 5, 'Keep the suggested name, or change the topic'],
+  [18.8, 22.5, 6, 'Done: the branch is named sky/1a1, and the panel steps aside'],
+  [22.5, 24.6, 6, 'Open the panel again: the new branch is in the tree'],
+  [24.6, 26.5, 7, 'Move around the tree: click a branch to open it'],
+  [26.5, 31.8, 7, 'It opens with the panel, showing where you are'],
 ];
-const HIGHLIGHTS = [ // [start, end, x1, y1, x2, y2, label]
-  [3.0, 4.6, 467, 832, 846, 952, 'where the branch starts'],
-  [6.8, 9.3, 468, 688, 846, 772, 'the header'],
-  [10.7, 11.5, 465, 900, 848, 1018, 'what to do next'],
-  [15.9, 17.9, 86, 401, 742, 503, 'a summary of the parent'],
-  [17.9, 19.6, 78, 754, 306, 786, 'a suggested name'],
-  [20.8, 21.8, 95, 96, 493, 132, ''],
-  [23.0, 24.7, 468, 632, 846, 666, 'the new name'],
-  [24.6, 26.2, 465, 746, 848, 823, 'the tree'],
-  [26.8, 28.2, k(532), k(749), k(908), k(821), 'click a branch'],
-  [28.9, 30.6, k(528), k(668), k(806), k(696), 'where you are'],
-  [32.0, 34.4, k(532), k(699), k(908), k(710), 'back at the root'],
+const HIGHLIGHTS = [ // [start, end, x1, y1, x2, y2, label, 'below' for a label under the box]
+  [4.1, 5.6, 614, 919, 990, 947, 'where the branch starts'],
+  [6.4, 8.1, 622, 692, 980, 771, 'the header'],
+  [9.4, 11.6, 192, 714, 520, 776, 'your question'],
+  [12.7, 14.4, 144, 426, 790, 540, 'a summary of the parent'],
+  [14.9, 16.3, 138, 757, 414, 776, 'a suggested name'],
+  [16.9, 18.3, 612, 866, 993, 948, ''],
+  [19.7, 21.2, 5, 14, 242, 32, 'the new name', 'below'],
+  [22.8, 24.4, 610, 703, 994, 822, 'the tree', 'below'],
+  [24.8, 26.2, 614, 796, 990, 816, 'click a branch', 'below'],
+  [26.8, 28.3, 612, 651, 880, 693, 'where you are'],
+  [29.7, 31.3, 612, 534, 820, 577, 'back at the root'],
 ];
 const CURSOR = [ // [time, x, y]: eased moves between points
-  [2.8, 330, 560], [3.3, 330, 560], [4.2, 655, 936], [4.6, 655, 936], [5.5, 500, 998], [6.6, 500, 998],
-  [7.1, 640, 860], [8.8, 640, 860], [9.6, 524, 998], [10.6, 524, 998], [11.5, 140, 768], [11.9, 140, 768],
-  [12.4, 260, 860], [13.9, 260, 860], [14.8, 721, 800], [15.8, 721, 800], [16.6, 780, 640], [19.3, 780, 640],
-  [20.0, 708, 999], [20.35, 708, 999], [20.45, 620, 560], [20.9, 620, 560], [21.9, 454, 193], [22.45, 454, 193],
-  [22.7, 600, 560], [23.2, 600, 560], [24.0, 300, 905], [26.7, 300, 905],
-  [27.9, k(628), k(785)], [29.0, k(628), k(785)], [29.8, k(470), k(560)], [30.5, k(470), k(560)], [31.2, k(618), k(763)],
-  [32.4, k(618), k(763)], [33.2, 380, 880], [99, 380, 880],
+  [2.6, 700, 640], [2.9, 700, 640], [3.55, 949, 1005], [3.85, 949, 1005], // the Zettelbranch button
+  [4.3, 800, 933], [4.85, 800, 933], [5.6, 645, 996], [6.3, 645, 996], // message 2, then Branch
+  [6.9, 850, 820], [8.1, 850, 820], [8.7, 670, 996], [9.2, 670, 996], // Open new chat
+  [9.7, 380, 764], [11.3, 380, 764], [11.9, 779, 795], [12.5, 779, 795], // the question, then Send
+  [13.0, 870, 700], [15.6, 870, 700], [16.3, 854, 996], [17.8, 854, 996], // Name this branch
+  [18.4, 648, 996], [21.6, 648, 996], [22.2, 949, 1005], [24.5, 949, 1005], // Rename, then the Zettelbranch button
+  [25.4, 720, 806], [28.2, 720, 806], [28.9, 700, 739], [29.6, 700, 739], [30.4, 520, 880], [99, 520, 880], // 1b, then 1
 ];
-// The cursor hides while the view jumps (to the dialog at the top, and back).
-const CURSOR_SHOWN = [[3.0, 20.3], [20.55, 22.5], [22.75, 34.6]];
-const CLICKS = [4.35, 5.65, 9.75, 11.65, 14.95, 20.15, 22.05, 28.1, 31.35];
+// The cursor hides while the view jumps (to the title at the top, and back).
+const CURSOR_SHOWN = [[2.8, 19.35], [21.5, 31.6]];
+const CLICKS = [3.75, 4.75, 5.95, 8.9, 9.8, 12.05, 16.5, 18.6, 22.35, 26.35, 29.2];
 
 // ---- geometry
-const S = 797 / 866, X0 = 42, Y0 = 112 + 28 + 1;
+const S = 797 / 1006, X0 = 42, Y0 = 112 + 28 + 1;
 let VY = 0; // the view of the screenshot on screen
 const sx = (x) => X0 + x * S, sy = (y, vy = VY) => Y0 + (y - vy) * S;
-const frameAt = (t) => { let f = FRAMES[0]; for (const x of FRAMES) if (t >= x[0]) f = x; return f[1]; };
+const entryAt = (t) => { let f = FRAMES[0]; for (const x of FRAMES) if (t >= x[0]) f = x; return f; };
+const viewOf = (f) => f[3] ?? H;
 const clamp = (v) => Math.max(0, Math.min(1, v));
 const ease = (p) => (p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2);
 const fadeIn = (t, a, d = 0.3) => clamp((t - a) / d);
@@ -124,13 +132,12 @@ for (const [, name] of FRAMES) {
   if (imgs[name]) continue;
   const im = document.createElement('img');
   im.src = `../out/demo/frames/${name}.png`;
-  im.style.top = -VIEW[name] * S + 'px';
   shot.append(im);
   imgs[name] = im;
 }
 const fx = document.getElementById('fx');
 const hls = HIGHLIGHTS.map(([a, , x1, y1, x2, y2, label, where]) => {
-  const vy = VIEW[frameAt(a)];
+  const vy = viewOf(entryAt(a));
   const d = document.createElement('div');
   d.className = 'hl' + (where === 'below' ? ' below' : '');
   Object.assign(d.style, { left: sx(x1) - 6 + 'px', top: sy(y1, vy) - 5 + 'px', width: (x2 - x1) * S + 12 + 'px', height: (y2 - y1) * S + 10 + 'px' });
@@ -174,9 +181,14 @@ function render(t) {
   for (const im of Object.values(imgs)) im.style.opacity = 0;
   const [start, name, fade] = FRAMES[cur];
   const p = fade && cur > 0 ? clamp((t - start) / XFADE) : 1;
-  if (cur > 0 && p < 1) imgs[FRAMES[cur - 1][1]].style.opacity = 1;
+  if (cur > 0 && p < 1) {
+    const prev = FRAMES[cur - 1];
+    imgs[prev[1]].style.opacity = 1;
+    imgs[prev[1]].style.top = -viewOf(prev) * S + 'px';
+  }
+  VY = viewOf(FRAMES[cur]);
   imgs[name].style.opacity = p;
-  VY = VIEW[name];
+  imgs[name].style.top = -VY * S + 'px';
 
   // captions
   const c = CAPTIONS.find(([a, b]) => t >= a && t < b);

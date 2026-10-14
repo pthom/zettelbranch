@@ -51,5 +51,7 @@ await browser.close();
 const input = ['-loglevel', 'error', '-y', '-framerate', String(FPS), '-i', path.join(OUT, '%04d.png')];
 const target = MP4 ? VIDEO : GIF;
 if (MP4) execFileSync('ffmpeg', [...input, '-c:v', 'libx264', '-preset', 'slow', '-crf', '18', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', VIDEO]);
-else execFileSync('ffmpeg', [...input, '-vf', 'split[a][b];[a]palettegen=max_colors=128:stats_mode=diff[p];[b][p]paletteuse=dither=none:diff_mode=rectangle', '-loop', '0', GIF]);
+// The palette from every frame's whole picture (stats_mode=full), 256 colours: with fewer, or from
+// the changes only, the panel's pale green notes turned beige (0.2.0's demo, 4.4 MB).
+else execFileSync('ffmpeg', [...input, '-vf', 'split[a][b];[a]palettegen=max_colors=256:stats_mode=full[p];[b][p]paletteuse=dither=none:diff_mode=rectangle', '-loop', '0', GIF]);
 console.log(`${n} frames, ${duration} s -> ${path.relative(process.cwd(), target)} (${fs.statSync(target).size} bytes)`);

@@ -4,9 +4,9 @@ Zettelbranch lets you branch a claude.ai conversation from any message into a ne
 
 ```
 sky/1    · Why the sky is blue
-sky/1a   · Why sunsets are red          (a branch of sky/1)
-sky/1a1  · The green flash              (a branch of sky/1a)
-sky/1b   · The sky on Mars              (another branch of sky/1)
+sky/1a   · Why sunsets are red and orange   (a branch of sky/1)
+sky/1a1  · The green flash at sunset        (a branch of sky/1a)
+sky/1b   · Colour of the Martian sky        (another branch of sky/1)
 ```
 
 Each branch is an ordinary claude.ai chat. Its address is in its title, so you see your tree in the sidebar, on your phone, everywhere. Zettelbranch only adds a small panel to claude.ai in your browser.
@@ -44,13 +44,12 @@ Zettelbranch shows the exact text it will put in the new chat, and its size.
 
 ![The preview of the branch's first message](images/preview.png)
 
-The text has three parts:
+The text has four parts:
 
 - **A short header:** the branch's address (`sky/1a`), its path from the root, and where it was forked from. It stays readable in the claude.ai apps, without the extension.
 - **The conversation so far** (`OUR CONVERSATION SO FAR`), copied from the root to the message you chose, so Claude knows the context. Each message comes under a label saying who wrote it and where it comes from, such as `Me · sky/1, message 1`.
 - **Instructions for Claude** (`INSTRUCTIONS FOR CLAUDE`): treat the copy as your shared history, start with a short summary of where the parent stood, and suggest a name for the branch.
-
-Once sent, the header and the labels show in claude.ai with a bar on their left, and the messages read as normal text between them.
+- **Your question** (`MY QUESTION`): empty, for you to type; or your own message, when you branch instead of it.
 
 Click **Open new chat**, or **Cancel**.
 
@@ -60,15 +59,19 @@ A new chat opens with the text in the message box. Type your first question for 
 
 ![The new chat, with the text in the box and the two steps](images/new-chat.png)
 
+In the chat, the header and the labels show with a bar on their left, and the messages read as normal text between them (claude.ai folds a long message: "Show more" unfolds it).
+
+![The branch's first message in claude.ai: the header, then each copied message under its label](images/first-message.png)
+
 ### 5. Claude's first reply
 
-Claude starts with a short summary of the parent ("Parent sky/1 in brief: …"), then answers your question, and ends with a suggested name: "Branch title: Why sunsets are red".
+Claude starts with a short summary of the parent ("Parent sky/1 in brief: …"), then answers your question, and ends with a suggested name: "Branch title: Why sunsets are red and orange".
 
 ![Claude's first reply: the summary, the answer, the suggested name](images/first-reply.png)
 
 ### 6. Name the branch
 
-Click **Name this branch** in the panel. The panel shows the branch's address, `sky/1a ·`, and Claude's suggestion in a field: `Why sunsets are red`. Keep it or type another topic; the address stays.
+Click **Name this branch** in the panel. The panel shows the branch's address, `sky/1a ·`, and Claude's suggestion in a field: `Why sunsets are red and orange`. Keep it or type another topic; the address stays.
 
 ![The panel naming the branch, with Claude's suggestion](images/name.png)
 
@@ -99,6 +102,10 @@ At the top, the panel says what the current chat is: "Branch sky/1a, from sky/1 
 While the panel is open, it follows you: move to another chat with the sidebar and the panel shows that chat. Hide the panel and it stops. The round arrow at the top reads the chat and its tree again.
 
 ## More
+
+### Moving the panel
+
+Drag the panel by its title bar to put it elsewhere; it opens again there until you reload the page. In a new branch, if the panel covers claude.ai's message box and its Send button, it moves just above the box by itself, for that chat only.
 
 ### Branch of a branch
 

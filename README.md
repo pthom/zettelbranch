@@ -4,18 +4,18 @@ Branch your [claude.ai](https://claude.ai) conversations into a tree you can fin
 
 ![Branching a conversation with Zettelbranch](docs/images/demo.gif)
 
-Long conversations wander: a tangent here, an alternative there, and the thread is lost. Zettelbranch lets you branch a conversation from any message into a new chat, and names each branch with a short address, like the cards of Niklas Luhmann's Zettelkasten:
+When we think, we open parentheses: a side question, an alternative, a detail worth chasing. In a long conversation, every parenthesis lands in the same thread, and soon nobody remembers where it was opened, or what the original question was. Zettelbranch opens the parenthesis in a new chat instead: branch from any message, and the main thread stays where you left it. Each branch gets a short address, like the cards of Niklas Luhmann's Zettelkasten:
 
 ```
 sky/1    · Why the sky is blue
-sky/1a   · Why sunsets are red          (a branch of sky/1)
-sky/1a1  · The green flash              (a branch of sky/1a)
-sky/1b   · The sky on Mars              (another branch of sky/1)
+sky/1a   · Why sunsets are red and orange   (a branch of sky/1)
+sky/1a1  · The green flash at sunset        (a branch of sky/1a)
+sky/1b   · Colour of the Martian sky        (another branch of sky/1)
 ```
 
 Each branch is an ordinary claude.ai chat with its address in its title, so your tree shows in the sidebar, on your phone, everywhere. Zettelbranch only adds a small panel to claude.ai in your browser.
 
-The name: *Zettelkasten* (German, "box of slips") + *branch*. Also inspired by Georges Perec's card systems and the cross-references that run through his books.
+The name: *Zettelkasten* (German, "box of index cards") + *branch*.
 
 ## How it works
 
@@ -23,15 +23,17 @@ The name: *Zettelkasten* (German, "box of slips") + *branch*. Also inspired by G
 
 <img src="docs/images/choose.png" alt="The panel: choose where the branch starts" width="420">
 
-**2. Check the preview, open the new chat.** The new chat receives the conversation so far, with a short header (address, path, where it was forked from). Add your question and press Send yourself.
+**2. Check the preview, open the new chat.** The new chat receives the conversation so far, with a short header (address, path, where it was forked from). Type your question at the end, under `MY QUESTION`, and press Send yourself.
 
 <img src="docs/images/new-chat.png" alt="The new chat, with the text in the box and the next steps" width="560">
 
-**3. Claude picks up the thread.** Its first reply starts with a summary of where the parent stood, and ends with a suggested name for the branch.
+**3. Claude picks up the thread.** In the chat, your first message shows the conversation so far, each message under a small label. Claude's first reply starts with a summary of where the parent stood, answers your question, and ends with a suggested name for the branch.
+
+<img src="docs/images/first-message.png" alt="The branch's first message in claude.ai: the header, then each copied message under its label" width="560">
 
 <img src="docs/images/first-reply.png" alt="Claude's first reply: summary, answer, suggested name" width="560">
 
-**4. Name the branch, find your way in the tree.** One click renames the chat `sky/1a · Why sunsets are red`; the panel lists the whole tree, with links.
+**4. Name the branch, find your way in the tree.** The panel proposes Claude's suggestion; keep it or change the topic, and the chat becomes `sky/1a · Why sunsets are red and orange`. The panel lists the whole tree, with links.
 
 <img src="docs/images/tree.png" alt="The tree in the panel" width="420"> <img src="docs/images/sidebar.png" alt="The sidebar, with the branches named by address" width="270">
 
@@ -39,7 +41,7 @@ Every step, with more pictures: the [user manual](docs/MANUAL.md).
 
 ## Status
 
-Version 0.1.2 (2026-10-13), an early version, used by its author in Chrome and Firefox.
+Version 0.2.0 (2026-10-14), an early version, used by its author in Chrome and Firefox.
 
 > **Expect it to break.** Zettelbranch relies on claude.ai's undocumented web interface, which Anthropic updates often and without notice. One of these updates will break it, probably soon. When it does, please [open an issue](https://github.com/pthom/zettelbranch/issues).
 
@@ -81,7 +83,7 @@ The extension must be easy to audit:
 - Nothing is sent automatically. It writes (renames a chat, fills the message box) only when you click, and you press Send yourself. To rename, it uses claude.ai's own title menu on the chat on screen: the only page elements it sends events to are that menu's title button, its Rename item and its rename field (plus a click on the New chat link). It reads only when you open its panel or click (a chat opened from the panel's tree opens with the panel), and while the panel is open, when you move to another chat.
 - [AUDIT.md](AUDIT.md) lists what the code never does, with the `grep` commands that prove it.
 
-**Don't take our word for it: ask your own LLM.** The code is short (about 2,200 lines, no dependencies, no build step). [AUDIT.md](AUDIT.md#a-prompt-for-an-llm-audit) ends with a ready-to-paste prompt: give it to your favourite LLM with this repository, and it checks that Zettelbranch sends your conversations nowhere but claude.ai, with file names and line numbers for every finding.
+**Don't take our word for it: ask your own LLM.** The code is short (about 2,300 lines, no dependencies, no build step). [AUDIT.md](AUDIT.md#a-prompt-for-an-llm-audit) ends with a ready-to-paste prompt: give it to your favourite LLM with this repository, and it checks that Zettelbranch sends your conversations nowhere but claude.ai, with file names and line numbers for every finding.
 
 ## Developers
 

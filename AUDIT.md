@@ -6,7 +6,7 @@ A program's own claims about itself prove nothing. So the code is kept short and
 
 ## What runs
 
-Everything that runs is in `extension/`: `manifest.json` and eight scripts, about 2,200 lines in all (`wc -l extension/*`). No build step, no dependencies, no minified code: the files you read are the files the browser runs.
+Everything that runs is in `extension/`: `manifest.json` and eight scripts, about 2,300 lines in all (`wc -l extension/*`). No build step, no dependencies, no minified code: the files you read are the files the browser runs.
 
 | File | What it does |
 |---|---|
