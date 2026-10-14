@@ -470,7 +470,7 @@
       el('p', { class: 'section-head', text: 'This chat is not in a tree yet' }),
       el('p', { text: 'Name its tree. The chat becomes the tree\'s first card, and its branches get addresses under it.' }),
       el('label', { class: 'field' }, [el('span', { text: 'Tree name' }), input]),
-      el('p', { class: 'muted', 'data-zb': 'tree-hint', text: 'Only a-z, 0-9 and -, such as oulipo or sky-notes.' }),
+      el('p', { class: 'muted', 'data-zb': 'tree-hint', text: 'Only a-z, 0-9 and -, such as oulipo or sky-notes: the name starts every title of the tree.' }),
       formError(ask.error),
     ], 'Next', async () => prepared(await B().proposeRoot(index, input.value), index), () => cancelled('Nothing changed.')));
     focusField(input);
@@ -495,7 +495,7 @@
     show(form('name-form', [
       el('p', { class: 'section-head', 'data-zb': 'name-head', text: ask.wasNamed ? 'Rename this branch' : 'Name this branch' }),
       el('div', { class: 'field' }, [el('span', { class: 'prefix', 'data-zb': 'name-prefix', text: ask.prefix.trim() }), input]),
-      el('p', { class: 'muted', 'data-zb': 'name-from', text: ask.from }),
+      ask.from ? el('p', { class: 'muted', 'data-zb': 'name-from', text: ask.from }) : null,
       el('p', { class: 'muted title', 'data-zb': 'name-now', text: `Now: ${ask.title || '(no title yet)'}` }),
       formError(ask.error),
     ], 'Rename', () => named(input), () => cancelled('Not renamed.')));

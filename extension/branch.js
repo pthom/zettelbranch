@@ -440,7 +440,7 @@
 
   // Where the proposed topic comes from (prompt.js, proposeTopic), said under the form's field.
   const FROM = {
-    current: 'Its current name.',
+    current: '', // the form shows the current name already
     claude: 'Proposed by Claude in its first reply.',
     title: 'Proposed from claude.ai\'s title.',
     question: 'Proposed from your first question in this branch.',

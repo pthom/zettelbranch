@@ -69,6 +69,8 @@ Delete the `zbtest/` chats (now `zbtest/9a` and `zbtest/gather`, plus the older 
 
 Built offline on 2026-10-14 (all tests pass). Plan step 5, with the open steps of [0.1.4's check](transcript-layout__questions.md#the-check-on-claudeai-014), which ships within 0.2.0. If P12 (session 1) changes the forms, Claude updates this list first. Test chats only: every title starts with `zbtest/`.
 
+**Result (2026-10-14): every step passed, in Chrome and Firefox.** No browser dialog; every key typed in the forms stayed there; Enter submits; the panel closes after naming, its tooltip saying what was done; step 1 explains `MY QUESTION` and becomes "✓ Sent."; the sent message renders with its labels; Claude's reply starts with its summary and ends with its branch title; a branch of a branch, and the old branch `oulipo/1d`, are copied whole in the new layout; in Firefox the box is filled line by line, said only in the tooltip. Polished after it: the tree-name hint says why the name is limited (it starts every title of the tree), and the rename form drops a line that repeated the current name.
+
 ### 1. Load 0.2.0
 
 Chrome test profile: `chrome://extensions`, ⟳ on Zettelbranch (it shows 0.2.0), the spike off. Firefox test profile: `about:debugging`, "Load Temporary Add-on…", `extension/manifest.json`.

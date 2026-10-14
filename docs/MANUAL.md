@@ -32,7 +32,7 @@ Open any conversation and click the **Zettelbranch** button. The panel lists the
 
 ### 2. Name the tree
 
-The first time you branch a conversation, the panel asks for a short name for its tree, proposed from the conversation's title, for example `sky`. Tree names use lowercase letters, digits and `-`.
+The first time you branch a conversation, the panel asks for a short name for its tree, proposed from the conversation's title, for example `sky`. Tree names use lowercase letters, digits and `-`: the name starts every title of the tree, so it must be unambiguous and easy to type.
 
 ![The panel asking for the tree's name](images/tree-name.png)
 

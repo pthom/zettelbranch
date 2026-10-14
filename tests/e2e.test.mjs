@@ -591,7 +591,7 @@ test('a chat not in a tree: the tree name, then the new title, in the panel; can
   const menuBefore = fake.menuRenames.length;
   await click('branch');
   assert.equal(await Z('tree-field').inputValue(), 'oulipo', 'proposed from the title');
-  assert.equal(await text('tree-hint'), 'Only a-z, 0-9 and -, such as oulipo or sky-notes.');
+  assert.equal(await text('tree-hint'), 'Only a-z, 0-9 and -, such as oulipo or sky-notes: the name starts every title of the tree.');
   assert.equal(await focused(), 'tree-field');
   assert.equal(await Z('message').count(), 0, 'the form instead of the list');
   await remember();
@@ -695,7 +695,7 @@ test('Rename this branch, once named: its current name proposed; unchanged, noth
   assert.equal(await text('name-head'), 'Rename this branch');
   assert.equal(await text('name-prefix'), 'zbtest/1c ·');
   assert.equal(await Z('name-field').inputValue(), 'My own topic');
-  assert.equal(await text('name-from'), 'Its current name.');
+  assert.equal(await Z('name-from').count(), 0, 'no source line: "Now:" shows the current name');
   await shots('rename-form');
   await click('name-form-ok');
   assert.equal(await text('info'), 'The name did not change: zbtest/1c · My own topic. Nothing was renamed.');
