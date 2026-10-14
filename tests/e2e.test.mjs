@@ -1,7 +1,8 @@
 // End-to-end tests of the extension against a fake claude.ai (fake/), in headless Chromium
 // with a throwaway profile under tests/out/. Every request is answered from memory or
-// aborted, DNS resolves nothing, and the run fails if any request escapes. Browser dialogs
-// are answered by the test, from a queue of planned answers.
+// aborted, DNS resolves nothing, and the run fails if any request escapes. Names are typed
+// in the panel's own forms (0.2.0); a browser dialog, which the extension must never open,
+// is dismissed and fails the last test.
 //
 //   node --test --test-concurrency=1 e2e.test.mjs
 // Screenshots go to tests/out/screenshots/, a report to tests/out/e2e-report.json.
@@ -18,9 +19,8 @@ const fake = createFakeClaude();
 const handled = new Set();
 const allRequests = [];
 const requestLog = [];
-const dialogs = []; // every dialog shown, with the answer given
-const answers = []; // planned answers, in order: { value } for a prompt, {} to accept, { dismiss: true }
-const seen = []; // panel texts and dialogs on test chats: none may hold private text
+const dialogs = []; // every browser dialog shown: there must be none
+const seen = []; // panel texts on test chats: none may hold private text
 let context;
 let page;
 let sends = 0; // times the test pressed the app's Send button
@@ -44,10 +44,8 @@ before(async () => {
   context.on('request', (r) => allRequests.push(r));
   page = context.pages()[0] || (await context.newPage());
   page.on('dialog', async (d) => {
-    const plan = answers.shift();
-    dialogs.push({ type: d.type(), message: d.message(), defaultValue: d.defaultValue(), plan: plan || 'none: dismissed' });
-    if (!plan || plan.dismiss) return d.dismiss();
-    return d.type() === 'prompt' ? d.accept(plan.value === undefined ? d.defaultValue() : plan.value) : d.accept();
+    dialogs.push({ type: d.type(), message: d.message() });
+    return d.dismiss();
   });
 });
 
@@ -179,12 +177,25 @@ const editorText = () => page.evaluate(() => {
   close(false);
   return lines.join('\n');
 });
-function plan(...a) {
-  answers.push(...a);
+// A form of the panel: its field filled (all its text replaced), then its button clicked, or
+// Enter pressed in the field (the browser then clicks the button).
+async function fill(fieldZb, value, okZb, { enter = false } = {}) {
+  await Z(fieldZb).fill(value);
+  if (enter) await Z(fieldZb).press('Enter');
+  else await Z(okZb).click();
+  await idle();
 }
-function allAnswered() {
-  assert.equal(answers.length, 0, 'every planned dialog was shown');
-  answers.length = 0;
+// The element of the panel that has the focus.
+const focused = () => page.evaluate(() => {
+  const a = document.getElementById('zettelbranch').shadowRoot.activeElement;
+  return a ? a.getAttribute('data-zb') : null;
+});
+// The panel closed by itself after naming: the pill, its tooltip saying what was done.
+async function assertClosed(done) {
+  assert.equal(await visible('panel'), false, 'the panel closed by itself');
+  assert.equal(await visible('pill'), true);
+  assert.equal(await text('pill'), 'Zettelbranch');
+  assert.equal(await Z('pill').getAttribute('title'), done);
 }
 async function remember() {
   seen.push(await panelText());
@@ -359,18 +370,28 @@ test('after Send, the panel follows to the new branch; Name this branch proposes
   await shots('name-box');
   const before = apiCount();
   const putsBefore = puts().length;
-  plan({});
+  const menuBefore = fake.menuRenames.length;
   await click('name');
-  allAnswered();
+  assert.equal(await text('name-head'), 'Name this branch');
+  assert.equal(await text('name-prefix'), 'zbtest/1b ·', 'the address, as fixed text');
+  assert.equal(await Z('name-field').inputValue(), 'Fish and birds on one page', 'only the topic in the field');
+  assert.equal(await text('name-from'), 'Proposed by Claude in its first reply.');
+  assert.equal(await text('name-now'), 'Now: Root topic');
+  assert.equal(await focused(), 'name-field', 'the field has the focus, its text selected');
+  assert.deepEqual(await Z('name-field').evaluate((e) => [e.selectionStart, e.selectionEnd]), [0, 'Fish and birds on one page'.length]);
+  assert.equal(puts().length, putsBefore, 'nothing renamed before Rename');
+  assert.equal(fake.menuRenames.length, menuBefore, 'nothing renamed before Rename');
+  await remember();
+  await shots('name-form');
+  await Z('name-field').press('Enter'); // Enter in the field: the browser clicks Rename
+  await idle();
   assert.equal(listCalls(before), 0, 'the list is not read again after a rename');
-  assert.deepEqual(await node('1b'), { address: '1b', topic: '· Fish and birds on one page', tags: 'you are here', href: null, current: true, indent: '22px' });
-  const d = dialogs[dialogs.length - 1];
-  assert.equal(d.type, 'prompt');
-  assert.equal(d.defaultValue, 'zbtest/1b · Fish and birds on one page');
-  assert.equal(d.message, 'Zettelbranch: name this branch. Proposed by Claude in its first reply. You can change the topic; the address part stays.');
-  assert.equal(await text('notice'), 'You just created the branch zbtest/1b · Fish and birds on one page.');
+  await assertClosed('You just created the branch zbtest/1b · Fish and birds on one page.');
   await assertMenuRename('zbtest/1b · Fish and birds on one page', putsBefore);
   assert.equal(await editorText(), '', 'nothing reached the message box');
+  await shots('named-pill', '.pill');
+  await openPanel();
+  assert.deepEqual(await node('1b'), { address: '1b', topic: '· Fish and birds on one page', tags: 'you are here', href: null, current: true, indent: '22px' });
   assert.equal(await text('identity'), 'Branch zbtest/1b, from zbtest/1 after message 4', 'this is the branch just made');
   assert.equal(await text('chat-title'), 'zbtest/1b · Fish and birds on one page');
   assert.equal(await Z('name-box').count(), 0);
@@ -411,13 +432,14 @@ test('branch from your own message: it is pre-filled; next address 1c; Name with
   fake.options.claudeTitles = true;
   assert.equal(convNamed('Visual poems about cards and boxes').messages.length, 2);
   const putsBefore = puts().length;
-  plan({ value: 'zbtest/1c · My own topic' });
   await click('name');
-  allAnswered();
-  assert.equal(dialogs.at(-1).defaultValue, 'zbtest/1c · How does branching work');
-  assert.match(dialogs.at(-1).message, / Proposed from your first question in this branch\. /);
+  assert.equal(await text('name-prefix'), 'zbtest/1c ·');
+  assert.equal(await Z('name-field').inputValue(), 'How does branching work');
+  assert.equal(await text('name-from'), 'Proposed from your first question in this branch.');
+  await fill('name-field', 'My own topic', 'name-form-ok');
   await assertMenuRename('zbtest/1c · My own topic', putsBefore);
-  assert.match(await text('notice'), /^You just created the branch zbtest\/1c · My own topic\./);
+  await assertClosed('You just created the branch zbtest/1c · My own topic.');
+  await openPanel();
   await click('hide');
   assert.equal(await text('pill'), 'Zettelbranch', 'named: no more reminder');
   assert.equal(await Z('pill').getAttribute('title'), null);
@@ -550,7 +572,7 @@ test('while open, the panel follows a move to another chat (reads only); hidden,
   assert.equal(await text('identity'), 'Tree root zbtest/1');
 });
 
-test('a chat not in a tree: tree name and confirm dialogs; cancelling changes nothing', async () => {
+test('a chat not in a tree: the tree name, then the new title, in the panel; cancelling changes nothing', async () => {
   await goChat(fake.ids.oulipo);
   const opened = apiCount();
   await openPanel();
@@ -558,34 +580,47 @@ test('a chat not in a tree: tree name and confirm dialogs; cancelling changes no
   assert.equal(await Z('tree').count(), 0, 'outside a tree: no tree');
   assert.equal(await Z('identity').count(), 0, 'outside a tree: nothing says what it is');
   const putsBefore = puts().length;
-  plan({ dismiss: true });
+  const menuBefore = fake.menuRenames.length;
   await click('branch');
-  allAnswered();
-  assert.equal(dialogs.at(-1).defaultValue, 'oulipo');
+  assert.equal(await Z('tree-field').inputValue(), 'oulipo', 'proposed from the title');
+  assert.equal(await text('tree-hint'), 'Only a-z, 0-9 and -, such as oulipo or sky-notes.');
+  assert.equal(await focused(), 'tree-field');
+  assert.equal(await Z('message').count(), 0, 'the form instead of the list');
+  await remember();
+  await shots('tree-form');
+  await click('tree-form-cancel');
   assert.equal(await text('info'), 'Nothing changed.');
-  plan({}, { dismiss: true });
+  assert.equal(await Z('message').count(), 2, 'the list again');
   await click('branch');
-  allAnswered();
-  assert.equal(dialogs.at(-1).type, 'confirm');
+  await click('tree-form-ok');
+  assert.equal(await text('root-old'), 'Now: Oulipo and constraints');
+  assert.equal(await text('root-new'), 'oulipo/1 · Oulipo and constraints');
+  assert.equal(await focused(), 'root-ok');
+  await remember();
+  await shots('root-form');
+  await click('root-cancel');
   assert.equal(await text('info'), 'Nothing changed.');
+  assert.equal(await Z('message').count(), 2);
   assert.equal(puts().length, putsBefore, 'no rename');
+  assert.equal(fake.menuRenames.length, menuBefore, 'no rename');
 });
 
 test('a chat not in a tree: an invalid tree name is asked again; accepted, the chat becomes oulipo/1', async () => {
   const putsBefore = puts().length;
-  plan({ value: 'Oulipo Club' }, { value: 'oulipo' }, {});
   await click('branch');
-  allAnswered();
-  const [again, confirm] = dialogs.slice(-2);
-  assert.match(again.message, /"Oulipo Club" cannot be a tree name/);
-  assert.equal(confirm.message, 'Zettelbranch: rename this chat?\n\nOld title: Oulipo and constraints\nNew title: oulipo/1 · Oulipo and constraints');
+  await fill('tree-field', 'Oulipo Club', 'tree-form-ok');
+  assert.equal(await text('form-error'), '"Oulipo Club" cannot be a tree name: use only a-z, 0-9 and -.');
+  assert.equal(await Z('tree-field').inputValue(), 'Oulipo Club', 'what was typed stays, to correct');
+  await fill('tree-field', 'oulipo', 'tree-form-ok', { enter: true });
+  assert.equal(await text('root-new'), 'oulipo/1 · Oulipo and constraints');
+  await click('root-ok');
   assert.equal(await text('notice'), 'This chat is now the tree root oulipo/1 · Oulipo and constraints.');
   await assertMenuRename('oulipo/1 · Oulipo and constraints', putsBefore);
   assert.equal(await text('preview-title'), 'Preview: the first message of oulipo/1a');
   assert.equal((await Z('preview').textContent()).split('\n')[2].slice(0, 65), '> Forked from: oulipo/1 · Oulipo and constraints, after message 2');
 });
 
-test('Name this branch: a wrong edit is asked again, then cancelled; Claude\'s branch title in bold, with a period', async () => {
+test('Name this branch: an empty topic is asked again, then cancelled; Claude\'s branch title in bold, with a period', async () => {
   fake.options.autoTitle = false;
   fake.options.titleStyle = 'bold';
   await click('open');
@@ -594,20 +629,25 @@ test('Name this branch: a wrong edit is asked again, then cancelled; Claude\'s b
   await pressSend();
   fake.options.titleStyle = 'plain';
   const putsBefore = puts().length;
-  plan({ value: 'Wrong prefix' }, { value: 'oulipo/1a ·   ' }, { dismiss: true });
+  const menuBefore = fake.menuRenames.length;
   await click('name');
-  allAnswered();
-  const ds = dialogs.slice(-3);
-  assert.equal(ds[0].defaultValue, 'oulipo/1a · Lipograms');
-  assert.match(ds[0].message, / Proposed by Claude in its first reply\. /);
-  assert.match(ds[1].message, /must start with "oulipo\/1a · " followed by a topic/);
+  assert.equal(await text('name-prefix'), 'oulipo/1a ·');
+  assert.equal(await Z('name-field').inputValue(), 'Lipograms');
+  assert.equal(await text('name-from'), 'Proposed by Claude in its first reply.');
+  await fill('name-field', '   ', 'name-form-ok');
+  assert.equal(await text('form-error'), 'Type a topic after the address.');
+  assert.equal(await text('name-prefix'), 'oulipo/1a ·', 'the address stays');
+  await shots('name-form-error');
+  await click('name-form-cancel');
   assert.equal(await text('info'), 'Not renamed.');
+  assert.equal(await Z('name-box').isVisible(), true, 'back to the chat');
   assert.equal(puts().length, putsBefore);
-  plan({});
+  assert.equal(fake.menuRenames.length, menuBefore);
   await click('name');
   fake.options.autoTitle = true;
-  allAnswered();
+  await click('name-form-ok');
   await assertMenuRename('oulipo/1a · Lipograms', putsBefore);
+  await assertClosed('You just created the branch oulipo/1a · Lipograms.');
 });
 
 test('Pascal\'s case, after a reload: prompt sent as is, question in a second message; the top box names the branch from it', async () => {
@@ -627,13 +667,12 @@ test('Pascal\'s case, after a reload: prompt sent as is, question in a second me
   assert.equal(await text('chat-title'), 'Sibling root', 'named after its parent');
   assert.deepEqual((await nodes()).slice(-2).map((n) => `${n.address} ${n.topic} ${n.indent}${n.current ? ' here' : ''}`), ['10 · Sibling root 8px', '10a (not named yet) 22px here']);
   const putsBefore = puts().length;
-  plan({});
   await click('name');
-  allAnswered();
-  assert.equal(dialogs.at(-1).defaultValue, 'zbtest/10a · Fish and birds');
-  assert.match(dialogs.at(-1).message, / Proposed from your first question in this branch\. /);
+  assert.equal(await Z('name-field').inputValue(), 'Fish and birds');
+  assert.equal(await text('name-from'), 'Proposed from your first question in this branch.');
+  await click('name-form-ok');
   await assertMenuRename('zbtest/10a · Fish and birds', putsBefore);
-  await click('refresh');
+  await openPanel();
   assert.equal(await Z('name-box').count(), 0);
 });
 
@@ -643,24 +682,28 @@ test('Rename this branch, once named: its current name proposed; unchanged, noth
   assert.equal(await Z('name-box').count(), 0);
   assert.equal(await text('identity'), 'Branch zbtest/1c, from zbtest/1 instead of message 3');
   const putsBefore = puts().length;
-  plan({});
+  const menuBefore = fake.menuRenames.length;
   await click('rename');
-  allAnswered();
-  assert.equal(dialogs.at(-1).defaultValue, 'zbtest/1c · My own topic');
-  assert.equal(dialogs.at(-1).message, 'Zettelbranch: name this branch. Proposed: its current name. You can change the topic; the address part stays.');
+  assert.equal(await text('name-head'), 'Rename this branch');
+  assert.equal(await text('name-prefix'), 'zbtest/1c ·');
+  assert.equal(await Z('name-field').inputValue(), 'My own topic');
+  assert.equal(await text('name-from'), 'Its current name.');
+  await shots('rename-form');
+  await click('name-form-ok');
   assert.equal(await text('info'), 'The name did not change: zbtest/1c · My own topic. Nothing was renamed.');
+  assert.equal(await visible('panel'), true, 'nothing done: the panel stays');
   assert.equal(puts().length, putsBefore, 'no rename');
+  assert.equal(fake.menuRenames.length, menuBefore, 'no rename');
   await remember();
   await shots('rename');
   assert.equal((await node('1c')).topic, '· My own topic');
   const before = apiCount();
-  plan({ value: 'zbtest/1c · Branching, revisited' });
   await click('rename');
-  allAnswered();
+  await fill('name-field', '  Branching,   revisited ', 'name-form-ok');
   assert.equal(listCalls(before), 0, 'the list is not read again after a rename');
-  assert.deepEqual(await node('1c'), { address: '1c', topic: '· Branching, revisited', tags: 'you are here', href: null, current: true, indent: '22px' });
-  assert.equal(await text('notice'), 'Renamed to zbtest/1c · Branching, revisited.');
+  await assertClosed('Renamed to zbtest/1c · Branching, revisited.');
   await assertMenuRename('zbtest/1c · Branching, revisited', putsBefore);
+  assert.deepEqual(await node('1c'), { address: '1c', topic: '· Branching, revisited', tags: 'you are here', href: null, current: true, indent: '22px' }, 'what the panel shows when opened again');
   assert.equal(await text('chat-title'), 'zbtest/1c · Branching, revisited');
   assert.equal(await Z('info').isVisible(), false);
 });
@@ -721,7 +764,10 @@ test('right after Send, before the message is stored and before Claude replies: 
     await page.waitForURL(/\/chat\//);
     await settle();
     assert.equal(await text('status'), 'You opened the branch zbtest/1a1a in a new chat.', 'nothing stored yet: the steps stay');
+    assert.equal(await step(1), 'Sent.', 'step 1 done');
+    assert.equal(await Z('step-1').locator('.num').textContent(), '✓');
     assert.equal(await Z('step-2').locator('[data-zb="name"]').count(), 1);
+    await shots('steps-sent', '[data-zb="steps"]');
     await page.waitForTimeout(1300); // the message is stored; Claude is still replying
     await click('refresh');
     assert.equal(await text('name-box'), 'Branch zbtest/1a1a (not named yet), from zbtest/1a1 after message 2When Claude has replied:Name this branch');
@@ -731,11 +777,10 @@ test('right after Send, before the message is stored and before Claude replies: 
     fake.options.slowSend = null;
   }
   const putsBefore = puts().length;
-  plan({});
   await click('name');
-  allAnswered();
-  assert.equal(dialogs.at(-1).defaultValue, 'zbtest/1a1a · Naming the cards');
-  assert.match(dialogs.at(-1).message, / Proposed by Claude in its first reply\. /);
+  assert.equal(await Z('name-field').inputValue(), 'Naming the cards');
+  assert.equal(await text('name-from'), 'Proposed by Claude in its first reply.');
+  await click('name-form-ok');
   await assertMenuRename('zbtest/1a1a · Naming the cards', putsBefore);
   assert.equal(await editorText(), '', 'nothing reached the message box');
 });
@@ -833,7 +878,8 @@ test('Firefox (claude.ai\'s box joins the lines of one insertion): the box is em
     assert.equal(await text('preview-title'), 'Preview: the first message of zbtest/1d');
     const preview = await Z('preview').textContent();
     await click('open');
-    assert.match(await text('insert-method'), /^Inserted line by line, in \d+\.\d s: one insertion had lost the line breaks\.$/);
+    assert.equal(await Z('insert-method').count(), 0, 'the box is right: no technical line');
+    assert.match(await Z('opened').getAttribute('title'), /^Inserted line by line, in \d+\.\d s: one insertion had lost the line breaks\.$/, 'how, in the tooltip');
     assert.equal(await Z('warning').count(), 0, 'no warning: the box holds the preview (Firefox\'s empty top line aside)');
     assert.equal(await editorText(), '\n' + preview, 'exact, after the empty line Firefox adds at the top');
     await shots('opened-firefox');
@@ -843,10 +889,9 @@ test('Firefox (claude.ai\'s box joins the lines of one insertion): the box is em
     assert.ok(sent.startsWith('\n> Zettelbranch · zbtest/1d\n> Path: zbtest/1 › 1d\n> Forked from: '), 'sent with its line breaks');
     assert.equal(await text('identity'), 'Branch zbtest/1d (not named yet), from zbtest/1 after message 4');
     const putsBefore = puts().length;
-    plan({});
     await click('name');
-    allAnswered();
-    assert.equal(dialogs.at(-1).defaultValue, 'zbtest/1d · The green flash');
+    assert.equal(await Z('name-field').inputValue(), 'The green flash');
+    await click('name-form-ok');
     await assertMenuRename('zbtest/1d · The green flash', putsBefore);
   } finally {
     fake.options.firefox = null;
@@ -864,10 +909,11 @@ test('Firefox: a prompt over 100,000 characters also goes in line by line, exact
     const t0 = Date.now();
     await click('open');
     const ms = Date.now() - t0;
-    assert.match(await text('insert-method'), /^Inserted line by line, in \d+\.\d s/);
+    const how = await Z('opened').getAttribute('title');
+    assert.match(how, /^Inserted line by line, in \d+\.\d s/);
     assert.equal(await Z('warning').count(), 0);
     assert.equal(await editorText(), '\n' + preview);
-    t.diagnostic(`${preview.length.toLocaleString('en-US')} characters, ${preview.split('\n').length} lines: Open new chat took ${ms} ms in all (${await text('insert-method')})`);
+    t.diagnostic(`${preview.length.toLocaleString('en-US')} characters, ${preview.split('\n').length} lines: Open new chat took ${ms} ms in all (${how})`);
   } finally {
     fake.options.firefox = null;
   }
@@ -891,10 +937,10 @@ test('a branch whose first message lost its line breaks (0.1.2 in Firefox) is st
   assert.equal(await text('identity'), 'Branch zbtest/10b (not named yet), from zbtest/10 after message 2');
   assert.deepEqual((await Z('message').allTextContents()).slice(0, 1), ['1YouWhat about flattened lines?']);
   const putsBefore = puts().length;
-  plan({});
   await click('name');
-  allAnswered();
-  assert.equal(dialogs.at(-1).defaultValue, 'zbtest/10b · Flattened lines');
+  assert.equal(await text('name-prefix'), 'zbtest/10b ·');
+  assert.equal(await Z('name-field').inputValue(), 'Flattened lines');
+  await click('name-form-ok');
   await assertMenuRename('zbtest/10b · Flattened lines', putsBefore);
 });
 
@@ -963,10 +1009,10 @@ test('when claude.ai\'s menu fails at any step, the rename goes through the API,
       const titleShown = async () => ((await page.locator('[data-fake="title-text"]').count()) ? page.locator('[data-fake="title-text"]').textContent() : null);
       const shownBefore = await titleShown();
       const name = `zbtest/1c · Fallback ${i + 1}`;
-      plan({ value: name });
       await click('rename');
-      allAnswered();
+      await fill('name-field', `Fallback ${i + 1}`, 'name-form-ok');
       assert.equal(puts().at(-1).name, name, `${why}: renamed through the API`);
+      assert.equal(await visible('panel'), true, `${why}: the panel stays open, for the reload notice`);
       assert.equal(await text('notice'), `Renamed to ${name}.Reload the page to see the new name.Reload nowRenamed through claude.ai's API: its title menu did not work (${why}).`);
       await assertNothingLeftOpen();
       if (menu.sticks !== false) assert.equal(await titleShown(), shownBefore, `${why}: no typed text left in place`);
@@ -983,9 +1029,9 @@ test('when claude.ai\'s menu fails at any step, the rename goes through the API,
     fake.options.menu = { opens: false };
     await goChat(fake.addChat('A plain chat to make a root'));
     await openPanel();
-    plan({ value: 'zbfall' }, {});
     await click('branch');
-    allAnswered();
+    await fill('tree-field', 'zbfall', 'tree-form-ok');
+    await click('root-ok');
     assert.equal(puts().at(-1).name, 'zbfall/1 · A plain chat to make a root');
     assert.equal(await text('notice'), 'This chat is now the tree root zbfall/1 · A plain chat to make a root.Renamed through claude.ai\'s API: its title menu did not work (no menu opened).');
     assert.equal(await Z('reload').count(), 0);
@@ -1015,7 +1061,7 @@ test('api.js refuses to rename a chat to anything but a Zettelbranch title', asy
   await cdp.detach();
 });
 
-test('network: only the allowed API calls, renames only to tree titles, nothing escaped, no private text shown', async () => {
+test('network: only the allowed API calls, renames only to tree titles, nothing escaped, no private text shown, no browser dialog', async () => {
   const allowed = [
     /^GET \/api\/organizations$/,
     /^GET \/api\/organizations\/<org>\/chat_conversations_v2\?limit=100&offset=\d+$/,
@@ -1059,6 +1105,7 @@ test('network: only the allowed API calls, renames only to tree titles, nothing 
   assert.equal(requestLog.filter((r) => r.url.endsWith('/fake/send')).length, sends, 'every message was sent by the test, none by the extension');
   const passive = (u) => u.startsWith('data:') || u.startsWith('blob:') || u.startsWith('about:') || u.startsWith('chrome-extension:');
   assert.deepEqual(allRequests.filter((x) => !handled.has(x) && !passive(x.url())).map((x) => x.url()), [], 'no request escaped');
-  const shown = JSON.stringify([seen, dialogs]);
-  assert.deepEqual(SECRETS.filter((s) => shown.includes(s)), [], 'no private text in what the panel and dialogs showed');
+  assert.deepEqual(dialogs, [], 'no browser dialog, ever (0.2.0)');
+  const shown = JSON.stringify(seen);
+  assert.deepEqual(SECRETS.filter((s) => shown.includes(s)), [], 'no private text in what the panel showed');
 });

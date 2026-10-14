@@ -6,7 +6,7 @@ A program's own claims about itself prove nothing. So the code is kept short and
 
 ## What runs
 
-Everything that runs is in `extension/`: `manifest.json` and eight scripts, about 2,050 lines in all (`wc -l extension/*`). No build step, no dependencies, no minified code: the files you read are the files the browser runs.
+Everything that runs is in `extension/`: `manifest.json` and eight scripts, about 2,200 lines in all (`wc -l extension/*`). No build step, no dependencies, no minified code: the files you read are the files the browser runs.
 
 | File | What it does |
 |---|---|
@@ -17,7 +17,7 @@ Everything that runs is in `extension/`: `manifest.json` and eight scripts, abou
 | `prompt.js` | Builds the branch's first message, and parses one back. Pure functions. |
 | `menu.js` | Renames the chat on screen through claude.ai's own title menu, as you would by hand. The only file that sends events to claude.ai's page (besides the click on the New chat link). |
 | `branch.js` | The flow: read, branch, open the new chat, name it. |
-| `ui.js` | The button and the panel, in a Shadow DOM. |
+| `ui.js` | The button and the panel, in a Shadow DOM, with its small forms for names. |
 | `content.js` | Loaded last: puts the button on the page, nothing else. |
 
 What it does, and when:
@@ -25,10 +25,11 @@ What it does, and when:
 - **Nothing until you click** the "Zettelbranch" button at the bottom right. No watching of the page's content.
 - **While the panel is open**, it follows the chat on screen: every 0.4 seconds it compares the tab's address with the page it shows, and when you move to another chat it reads that chat, exactly as its refresh button does (reads only, never a write). Hiding the panel stops it.
 - **Opening the panel**, and its refresh button, read the conversation on screen: `GET /api/organizations` (once per page load, to find your organization) and `GET …/chat_conversations/<id>?tree=True…`, and at the same time the list of your conversations (`GET …/chat_conversations_v2`, only `uuid` and `name` kept), to show the chat's tree as links. Each link is a plain page load of that chat, its address ending with `#zettelbranch` (a marker that never leaves the browser); on a page loaded with that marker, `content.js` opens the panel at once, which reads as above.
-- **Branch** reads the list of your conversations (`GET …/chat_conversations_v2`, only `uuid` and `name` are kept) to find the next free address. If the chat is not in a tree yet, it asks for a tree name and a confirmation in browser dialogs, then renames the chat (`PUT …/chat_conversations/<id>` with `{"name": …}`).
+- **Branch** reads the list of your conversations (`GET …/chat_conversations_v2`, only `uuid` and `name` are kept) to find the next free address. If the chat is not in a tree yet, the panel asks for a tree name in its own form and shows the chat's new title, and the chat is renamed only when you click Rename there (see Renames below).
 - **Open new chat** clicks claude.ai's own New chat link and types the prompt into the message box, with one `insertText`. If the box then does not hold the prompt (in Firefox, claude.ai's box joins all its lines into one), it empties the box and types the prompt again line by line. It never touches a box that already held text. You read it and press Send yourself; the extension never does.
 - **The panel** can be dragged by its title bar: four pointer listeners on that bar move the panel, and nothing else. Its place is kept in the tab's memory only.
-- **Name this branch** renames the new chat after a dialog where you can change the name.
+- **Name this branch** renames the new chat after the panel's form, which shows the address as fixed text and the proposed topic in a field you can change.
+- **The panel's forms** (version 0.2.0) replace the browser's dialogs, which claude.ai's page headed with its own name. A form's text field is read only when you click its button, or press Enter in it, which makes the browser click that button; the form's method is `dialog`, so it never loads a page or sends anything (point 20).
 - **Renames** (the tree root during Branch, Name this branch, Rename this branch) go through claude.ai's own title menu on the chat on screen, as you would by hand, so the open tab shows the new name at once: `menu.js` opens the menu on the title, picks the item whose test id is exactly `rename-chat-trigger`, types the name into the field `name-chat` and presses Enter there. The name is then read back (`GET …/chat_conversations/<id>`, a few times within 3 seconds). If any step fails, the extension closes what it opened (Escape) and renames through the API instead (`PUT …/chat_conversations/<id>` with `{"name": …}`), as version 0.1.0 did.
 - **Renames** go only to `<tree>/<address> · <topic>` titles; `api.js` refuses anything else before any request is made.
 - **Nothing is stored**: the prompt waits in the tab's memory until the new chat opens.
@@ -87,14 +88,14 @@ grep -nE 'innerHTML|outerHTML|insertAdjacentHTML|document\.write|DOMParser|creat
 grep -n 'innerText' extension/*.js | grep -vE '^[^:]+:[0-9]+: *//'
 ```
 
-**9. Click listeners only, and the panel's title bar.** No keyboard, input, paste or other listeners: it never reads what you type. Besides clicks, four pointer listeners (`pointerdown`, `pointermove`, `pointerup`, `pointercancel`) let you drag the panel by its own title bar (`ui.bar`, inside the extension's Shadow DOM); they only move the panel. (The one line in `menu.js` that names key events lists those it sends, Enter or Escape: see 19.)
+**9. Click listeners only, and the panel's title bar.** No keyboard, input, paste or other listeners: it never reads what you type in claude.ai, and reads its own form's field only on a click (point 20). The one line that names `'input'` makes that field, an element, not a listener. Besides clicks, four pointer listeners (`pointerdown`, `pointermove`, `pointerup`, `pointercancel`) let you drag the panel by its own title bar (`ui.bar`, inside the extension's Shadow DOM); they only move the panel. (The one line in `menu.js` that names key events lists those it sends, Enter or Escape: see 19.)
 
 ```sh
 grep -n 'addEventListener' extension/*.js | grep -v "addEventListener('click'" | grep -vF -e "extension/ui.js:"
 grep -n 'addEventListener' extension/ui.js | grep -v "addEventListener('click'" | grep -vF -e "ui.bar.addEventListener('pointerdown', grab);" -e "ui.bar.addEventListener('pointermove', drag);" -e "ui.bar.addEventListener('pointerup', drop);" -e "ui.bar.addEventListener('pointercancel', drop);"
 grep -n 'ui\.bar *=' extension/ui.js | grep -vF "ui.bar = el('div', { class: 'top', 'data-zb': 'bar', title: 'Drag to move' }, [el('b', { text: 'Zettelbranch' }), ui.refresh, hideButton]);"
 grep -nE '\.on[a-z]+ *=' extension/*.js | grep -vE '^[^:]+:[0-9]+: *//'
-grep -nE "['\"](keydown|keyup|keypress|input|beforeinput|change|composition[a-z]*|paste|copy)['\"]" extension/*.js | grep -vE '^[^:]+:[0-9]+: *//' | grep -v '^extension/menu.js:'
+grep -nE "['\"](keydown|keyup|keypress|input|beforeinput|change|composition[a-z]*|paste|copy)['\"]" extension/*.js | grep -vE '^[^:]+:[0-9]+: *//' | grep -v '^extension/menu.js:' | grep -vF "const field = (zb, value) => el('input', { type: 'text', 'data-zb': zb, value, autocomplete: 'off', spellcheck: 'false' });"
 grep -nE "['\"](keydown|keyup|keypress|input|beforeinput|change|composition[a-z]*|paste|copy)['\"]" extension/menu.js | grep -vE '^[0-9]+: *//' | grep -vF "const types = k === 'Enter' ? ['keydown', 'keypress', 'keyup'] : ['keydown', 'keyup'];"
 ```
 
@@ -179,6 +180,15 @@ grep -nE 'textContent|innerText|aria-label|querySelectorAll|\[[0-9]+\]|chat-inpu
 grep -nE 'delete-chat-trigger|share-chat-trigger|star-chat-trigger' extension/*.js | grep -vE '^[^:]+:[0-9]+: *//'
 ```
 
+**20. No browser dialogs, and the panel's fields read only on a click** (version 0.2.0). No `prompt`, `confirm` or `alert`. One kind of text field, made on one line of `ui.js`, in one kind of form, whose method `dialog` never loads a page; nothing changes a form's action or method, and nothing is made editable. A field's `.value` is read on two lines only, each inside the click on its form's button (the tree name, a branch's topic); the third `.value` is in `menu.js`, which reads back the name it typed into claude.ai's rename field.
+
+```sh
+grep -nE '(^|[^a-zA-Z_])(prompt|confirm|alert|print|showModalDialog) *\(' extension/*.js | grep -vE '^[^:]+:[0-9]+: *//'
+grep -nE "(el|createElement) *\( *['\"](input|textarea|select|form)['\"]" extension/*.js | grep -vE '^[^:]+:[0-9]+: *//' | grep -vF -e "const field = (zb, value) => el('input', { type: 'text', 'data-zb': zb, value, autocomplete: 'off', spellcheck: 'false' });" -e "return el('form', { method: 'dialog', class: 'form', 'data-zb': zb }, [...kids, el('div', { class: 'row' }, [ok, no])]);"
+grep -nE "formaction|['\"]action['\"]|\.(action|method) *=[^=]|contentEditable *=[^=]|['\"]contenteditable['\"] *[,)]" extension/*.js | grep -vE '^[^:]+:[0-9]+: *//'
+grep -n '\.value' extension/*.js | grep -vF -e "if (field.value !== name) return undo('the name could not be typed in the field');" -e "], 'Next', async () => prepared(await B().proposeRoot(index, input.value), index), () => cancelled('Nothing changed.')));" -e "const r = await B().name(input.value);"
+```
+
 ## What the commands cannot prove
 
 They prove that certain words are absent. Code can be written to dodge a search, so read it too: it is short. The parts that matter most are the top of `api.js` (the four calls and their checks), `open()` in `branch.js` (what is typed into the message box), and `menu.js` (the events sent to claude.ai's rename menu, about 100 lines). An LLM can do a first pass with the prompt below.
@@ -204,6 +214,6 @@ Then paste this prompt, followed by the files:
 > 5. The page: does it inject HTML, run code from strings, talk to the page's scripts, or press Send? Which elements of the page does it send events to (clicks, key or pointer events), and could any of them reach the message box, Send, Delete or anything but claude.ai's rename menu?
 > 6. The manifest: which permissions and sites does it ask for?
 > 7. Obfuscation: is there any code that hides what it does (string-built property names, encoded strings, unusual indirection)?
-> 8. Anything else surprising or risky, and whether the checks listed in AUDIT.md (summarized: network only in api.js, only GET and PUT, claude.ai only, no credentials, no storage, no HTML injection, click listeners only, no observers, one repeating check only while the panel is open, which compares the tab's address and reads as the refresh button does, no eval, no extension APIs, never presses Send, events only to claude.ai's title menu, its exact Rename item and its rename field) hold.
+> 8. Anything else surprising or risky, and whether the checks listed in AUDIT.md (summarized: network only in api.js, only GET and PUT, claude.ai only, no credentials, no storage, no HTML injection, click listeners only, no observers, one repeating check only while the panel is open, which compares the tab's address and reads as the refresh button does, no eval, no extension APIs, never presses Send, events only to claude.ai's title menu, its exact Rename item and its rename field, no browser dialogs, its own form fields read only on a click) hold.
 >
 > Quote file names and line numbers for every finding. End with a short verdict: safe to install, or not, and why.

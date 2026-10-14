@@ -6,13 +6,15 @@
 //              for a chat of a tree, the other chats of that tree. The chat and the
 //              conversation list are read at the same time
 //   cached()   what read() last gave for the chat on screen, if it read it before
-//   prepare()  "Branch": makes the chat a tree root first if needed (two dialogs and a
-//              rename), finds the next free address, builds the prompt for the preview
+//   prepare()  "Branch": finds the next free address and builds the prompt for the preview.
+//              A chat not in a tree yet becomes a tree root first, through the panel's
+//              forms: proposeRoot() (the tree name typed), then makeRoot() (the rename)
 //   open()     "Open new chat": clicks the app's own New chat link and puts the prompt in
 //              the message box with one insertText call, or line by line if that call lost
 //              the line breaks (Firefox, 0.1.3). Never presses Send.
-//   name()     "Name this branch": a dialog with the proposed name, then a rename. Also for a
-//              branch already named, to change its topic
+//   proposeName(), name()  "Name this branch": the name proposed, shown in the panel's form
+//              (the address fixed, the topic editable), then the rename with the topic typed.
+//              Also for a branch already named, to change its topic
 //   Renames go through claude.ai's own title menu (menu.js), so the open tab shows the new
 //   name at once; through the API (PUT) when the menu fails. Both are read back.
 (function (global) {
@@ -169,6 +171,8 @@
   async function read(opts = {}) {
     chat = null;
     pending = null;
+    root = null;
+    naming = null;
     const pk = pageKind();
     if (pk.kind === 'share') return { ok: false, text: 'Zettelbranch does not work on shared conversations.' };
     if (pk.kind === 'new' && opened) return { ok: false, steps: { ...opened } };
@@ -185,7 +189,7 @@
     }
     // Right after Send, claude.ai may show the new chat before it holds your message: the
     // branch this tab opened keeps its steps until then.
-    if (!c.messages.length && opened) return { ok: false, steps: { ...opened } };
+    if (!c.messages.length && opened) return { ok: false, steps: { ...opened, sent: true } };
     describe(c);
     if (placeOf(c)) {
       c.listRead = await listing;
@@ -245,58 +249,77 @@
     }
   }
 
-  // The tree name for a new root, asked in a browser dialog (what you type there never
-  // reaches claude.ai's page). Proposed from the title; only a-z, 0-9 and -.
-  function askTreeName(title) {
-    const proposal = T().proposeTreeName(title);
-    let ask = 'Zettelbranch: this chat is not in a tree yet. Name its tree (a-z, 0-9 and -); the chat becomes the tree\'s first card.';
-    for (let i = 0; i < 3; i++) {
-      const v = window.prompt(ask, proposal);
-      if (v === null) return { text: 'Nothing changed.' };
-      if (T().isTreeName(v.trim())) return { tree: v.trim() };
-      ask = `"${v}" cannot be a tree name: use only a-z, 0-9 and -. Name the tree:`;
-    }
-    return { text: 'Nothing changed: a tree name uses only a-z, 0-9 and -.' };
-  }
+  let root = null; // the root title proposed for the chat on screen, until renamed: { id, name, reg }
 
-  async function prepare(index) {
-    pending = null;
+  // The chat and message to branch from, still the ones on screen; else what to say.
+  function check(index) {
     if (!chat || pageKind().id !== chat.id) return { ok: false, stale: true, text: 'This tab now shows another chat. The list below is this one: choose again.' };
     if (!chat.messages[index]) return { ok: false, text: 'Choose a message first.' };
-    const notes = [];
-    let renamed = null;
-    let via = null;
-    let t = T().parseTitle(chat.title);
-    let reg;
+    return null;
+  }
+
+  // "Branch". A chat in a tree: the preview. A chat not in a tree yet: the panel asks for a
+  // tree name first ({ ask }), proposed from the title.
+  async function prepare(index) {
+    pending = null;
+    root = null;
+    const bad = check(index);
+    if (bad) return bad;
+    if (!T().parseTitle(chat.title)) return { ok: false, ask: { tree: T().proposeTreeName(chat.title), title: chat.title } };
+    return preview(index, await registry());
+  }
+
+  // The tree name typed in the panel's form: the title the chat would get as the tree's root
+  // ({ confirm }, shown before anything changes), or the form again with what was wrong.
+  async function proposeRoot(index, typed) {
+    root = null;
+    const bad = check(index);
+    if (bad) return bad;
+    const tree = String(typed).trim();
+    if (!T().isTreeName(tree)) return { ok: false, ask: { tree: typed, title: chat.title, error: `"${typed}" cannot be a tree name: use only a-z, 0-9 and -.` } };
+    const reg = await registry();
+    const name = T().formatTitle(tree, T().nextRoot(tree, reg.titles), chat.title.trim() || 'Untitled');
+    root = { id: chat.id, name, reg };
+    return { ok: false, confirm: { old: chat.title || '(none yet)', name } };
+  }
+
+  // "Rename" under the titles shown: the chat becomes the tree root, then the preview of its
+  // first branch.
+  async function makeRoot(index) {
+    const bad = check(index);
+    if (bad) return bad;
+    const r = root;
+    root = null;
+    if (!r || r.id !== chat.id) return { ok: false, text: 'Nothing changed. Click Branch again.' };
+    let via;
     try {
-      if (!t) {
-        const asked = askTreeName(chat.title);
-        if (!asked.tree) return { ok: false, text: asked.text };
-        reg = await registry();
-        const name = T().formatTitle(asked.tree, T().nextRoot(asked.tree, reg.titles), chat.title.trim() || 'Untitled');
-        const yes = window.confirm(`Zettelbranch: rename this chat?\n\nOld title: ${chat.title || '(none yet)'}\nNew title: ${name}`);
-        if (!yes) return { ok: false, text: 'Nothing changed.' };
-        via = await rename(chat.id, name);
-        chat.title = name;
-        if (!chat.listRead && list) chat.listRead = { items: list };
-        describe(chat);
-        renamed = name;
-        t = T().parseTitle(name);
-      } else {
-        reg = await registry();
-      }
+      via = await rename(chat.id, r.name);
     } catch (e) {
       return { ok: false, text: 'Could not rename this chat. Nothing else changed.', error: explain(e) };
     }
+    chat.title = r.name;
+    if (!chat.listRead && list) chat.listRead = { items: list };
+    describe(chat);
+    return { ...preview(index, r.reg), renamed: r.name, via };
+  }
+
+  // The preview of the branch from message `index`, at the next free address among `reg`.
+  function preview(index, reg) {
+    const notes = [];
+    const t = T().parseTitle(chat.title);
     const child = T().nextChild(t.tree, t.segs, reg.titles);
     const built = P().build({ tree: t.tree, parentTitle: chat.title, parentAddress: t.address, newAddress: child.address, messages: chat.messages, fork: index });
     if (chat.source === 'page') notes.push(`Only the ${chat.messages.length} messages on screen were read, because claude.ai's API did not answer as expected. Earlier messages are missing from this branch.`);
     if (reg.fromSidebar) notes.push(`The address ${t.tree}/${child.address} comes from the sidebar's recent chats only, because claude.ai's list did not load. Check that no other chat of the tree has it.`);
     pending = { ...built, address: `${t.tree}/${child.address}`, parent: chat.title, fork: chat.messages[index], tooLong: built.chars > SIZE_WARNING };
-    return { ok: true, pending, renamed, via, notes };
+    return { ok: true, pending, notes };
   }
 
-  const cancel = () => (pending = null);
+  const cancel = () => {
+    pending = null;
+    root = null;
+    naming = null;
+  };
 
   // ---------------------------------------------------------------- the new chat
 
@@ -415,29 +438,21 @@
 
   // ---------------------------------------------------------------- naming
 
-  // Where the proposed topic comes from (prompt.js, proposeTopic), said in the dialog.
+  // Where the proposed topic comes from (prompt.js, proposeTopic), said under the form's field.
   const FROM = {
-    current: 'Proposed: its current name.',
+    current: 'Its current name.',
     claude: 'Proposed by Claude in its first reply.',
     title: 'Proposed from claude.ai\'s title.',
     question: 'Proposed from your first question in this branch.',
     reply: 'Proposed from Claude\'s first reply.',
   };
 
-  // The name, in a browser dialog. The topic can change; the address part must stay.
-  function askName(prefix, topic, from) {
-    let ask = `Zettelbranch: name this branch. ${FROM[from]} You can change the topic; the address part stays.`;
-    for (let i = 0; i < 3; i++) {
-      const v = window.prompt(ask, prefix + topic);
-      if (v === null) return { text: 'Not renamed.' };
-      const t = v.startsWith(prefix) ? v.slice(prefix.length).trim() : '';
-      if (t) return { name: prefix + t };
-      ask = `The name must start with "${prefix}" followed by a topic. Try again:`;
-    }
-    return { text: `Not renamed: the name must start with "${prefix}" followed by a topic.` };
-  }
+  let naming = null; // the branch being named, between the form and its Rename: { id, head, prefix, title, wasNamed, ask }
 
-  async function name() {
+  // "Name this branch", "Rename this branch": the name proposed, read from claude.ai as it is
+  // now. The form shows the address as fixed text (prefix) and the topic in its field.
+  async function proposeName() {
+    naming = null;
     const pk = pageKind();
     if (pk.kind !== 'chat') return { ok: false, text: 'Send the branch\'s first message and wait for Claude\'s reply, then click Name this branch.' };
     try {
@@ -445,27 +460,42 @@
       const msgs = C().fromApi(conv);
       const head = msgs[0] && msgs[0].role === 'user' ? P().parseHeader(msgs[0].text) : null;
       if (!head) return { ok: false, text: 'This chat does not start with a Zettelbranch header, so it is not a branch.' };
-      const prefix = `${head.tree}/${head.address} · `;
       const proposal = P().proposeTopic(conv.name, msgs);
       if (!proposal) return { ok: false, text: 'Wait for Claude\'s reply, then click Name this branch again.' };
-      const asked = askName(prefix, proposal.topic, proposal.from);
-      if (!asked.name) return { ok: false, text: asked.text };
-      if (asked.name === conv.name) {
-        settle(head);
-        return { ok: false, text: `The name did not change: ${conv.name}. Nothing was renamed.` };
-      }
+      const prefix = `${head.tree}/${head.address} · `;
       const before = T().parseTitle(conv.name);
       const wasNamed = !!before && before.tree === head.tree && before.address === head.address;
-      const via = await rename(pk.id, asked.name);
-      settle(head);
+      const ask = { prefix, topic: proposal.topic, from: FROM[proposal.from], title: conv.name, wasNamed };
+      naming = { id: pk.id, head, prefix, title: conv.name, wasNamed, ask };
+      return { ok: false, ask };
+    } catch (e) {
+      return { ok: false, text: 'Could not name this branch.', error: explain(e) };
+    }
+  }
+
+  // "Rename" in the form: the address, then the topic typed. An empty topic shows the form again.
+  async function name(typed) {
+    const n = naming;
+    if (!n || pageKind().id !== n.id) return { ok: false, text: 'This tab now shows another chat. Nothing was renamed.' };
+    const topic = String(typed).replace(/\s+/g, ' ').trim();
+    if (!topic) return { ok: false, ask: { ...n.ask, topic: '', error: 'Type a topic after the address.' } };
+    naming = null;
+    const newName = n.prefix + topic;
+    if (newName === n.title) {
+      settle(n.head);
+      return { ok: false, text: `The name did not change: ${n.title}. Nothing was renamed.` };
+    }
+    try {
+      const via = await rename(n.id, newName);
+      settle(n.head);
       // What the panel read for this chat, with its new name: shown without reading again.
-      const mem = last && last.id === pk.id ? last : null;
+      const mem = last && last.id === n.id ? last : null;
       if (mem) {
-        mem.title = asked.name;
+        mem.title = newName;
         describe(mem);
         chat = mem;
       }
-      return { ok: true, renamed: asked.name, wasNamed, via, chat: mem };
+      return { ok: true, renamed: newName, wasNamed: n.wasNamed, via, chat: mem };
     } catch (e) {
       return { ok: false, text: 'Could not name this branch.', error: explain(e) };
     }
@@ -477,5 +507,5 @@
   // For the offline tests of the insertion against a real editor (tests/editor/).
   const insertion = { insertOnce, insertLines, emptyBox, editorText, same, fill };
 
-  global.ZBBranch = { read, cached, prepare, cancel, open, name, explain, pageKind, unnamed, insertion, current: () => chat, SIZE_WARNING };
+  global.ZBBranch = { read, cached, prepare, proposeRoot, makeRoot, cancel, open, proposeName, name, explain, pageKind, unnamed, insertion, current: () => chat, SIZE_WARNING };
 })(globalThis);

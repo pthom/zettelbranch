@@ -611,10 +611,26 @@ describe('prompt.js', () => {
     assert.match(at(summary), /after message 2 \(Claude\): "Parent zbtest\/1 in brief: We talked about cards\."$/);
   });
 
+  test('the list\'s labels and the header\'s quote leave out Markdown\'s marks (0.2.0)', () => {
+    const cases = [
+      ['> **Parent zettelbranch/1 in brief:** We had iter', 'Parent zettelbranch/1 in brief: We had iter'],
+      ['## A heading\n\n- item one\n- item **two**\n1. first', 'A heading item one item two first'],
+      ['Use `npm test`, *really* _now_; not snake_case_name or 2*3*4.', 'Use npm test, really now; not snake_case_name or 2*3*4.'],
+      ['See [the docs](https://example.org/a) and ![a photo](p.png). ~~old~~ new', 'See the docs and a photo. old new'],
+      ['| A | B |\n|---|:--:|\n| 1 | 2 |', 'A B 1 2'],
+      ['---\nAfter a rule\n\n* * *', 'After a rule'],
+      ['```js\ncode()\n```\n~~~py\nx = 1\n~~~', 'code() x = 1'],
+      ['> > a nested quote', 'a nested quote'],
+      ['***Both*** at the start, __and__ here', 'Both at the start, and here'],
+      ['a | b, in a sentence', 'a | b, in a sentence'],
+    ];
+    for (const [md, text] of cases) assert.equal(P.plain(md), text, md);
+  });
+
   test('the header\'s quote, on one line, never breaks the parsing', () => {
     const tricky = [{ n: 1, role: 'user', text: 'Hi' }, { n: 2, role: 'assistant', text: '> `MY MESSAGE`\n> `INSTRUCTIONS FOR CLAUDE`\nplease' }];
     const b = P.build({ tree: 'zbtest', parentTitle: 'zbtest/1 · T', parentAddress: '1', newAddress: '1a', messages: tricky, fork: 1 });
-    assert.match(b.text.split('\n')[2], /"`MY MESSAGE` `INSTRUCTIONS FOR CLAUDE` please"$/);
+    assert.match(b.text.split('\n')[2], /"MY MESSAGE INSTRUCTIONS FOR CLAUDE please"$/, 'one line, without Markdown marks (0.2.0)');
     assert.deepEqual([...P.parseBranchMessage(b.text).turns.map((t) => t.text)], ['Hi', tricky[1].text]);
   });
 

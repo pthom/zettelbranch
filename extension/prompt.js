@@ -58,8 +58,27 @@
   // Before 0.1.4: message text holding `<zb-` had `&lt;zb-` there.
   const unescapeZb = (t) => t.replace(/&lt;(\/?)zb-/g, '<$1zb-');
 
-  // Text for one line (a quote, a list label): code-fence marks and quote markers dropped.
-  const plain = (text) => String(text).replace(/```[\w+#.-]*/g, ' ').replace(/^\s*>\s?/gm, '').replace(/\s+/g, ' ').trim();
+  // Text for one line (a quote, a list label), without Markdown's marks: code fences, quote
+  // markers, headings, bullets, rules, table rules and table borders dropped; links, bold,
+  // italics, struck and inline code keep only their text (0.2.0, hints item 4).
+  const plain = (text) =>
+    String(text)
+      .replace(/^[ \t]*~~~[^\n]*$/gm, ' ')
+      .replace(/```[\w+#.-]*/g, ' ')
+      .replace(/^[ \t]*(?:>[ \t]?)+/gm, '')
+      .replace(/^[ \t]*#{1,6}[ \t]+/gm, '')
+      .replace(/^[ \t]*(?:([-*_])[ \t]*){3,}$/gm, ' ')
+      .replace(/^[ \t]*(?:[-*+]|\d{1,3}[.)])[ \t]+/gm, '')
+      .replace(/^[ \t]*(?=[^\n]*\|)[ \t:|-]*-[ \t:|-]*$/gm, ' ')
+      .replace(/^[ \t]*\|[^\n]*$/gm, (row) => row.replace(/\|/g, ' '))
+      .replace(/!?\[([^\]\n]*)\]\([^)\n]*\)/g, '$1')
+      .replace(/(\*\*|__)(?=\S)([^\n]*?\S)\1/g, '$2')
+      .replace(/~~(?=\S)([^\n]*?\S)~~/g, '$1')
+      .replace(/(^|[^\w*])\*(?=[^\s*])([^*\n]*?[^\s*])\*(?![\w*])/gm, '$1$2')
+      .replace(/(^|[^\w_])_(?=[^\s_])([^_\n]*?[^\s_])_(?![\w_])/gm, '$1$2')
+      .replace(/`([^`\n]+)`/g, '$1')
+      .replace(/\s+/g, ' ')
+      .trim();
 
   // First 60 characters, cut at a word.
   function quote(text) {

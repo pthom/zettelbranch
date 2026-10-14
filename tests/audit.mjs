@@ -52,10 +52,26 @@ check('Click listeners only (no keyboard, input or other listeners), and pointer
   [...hits(/addEventListener\(\s*(?!['"]click['"])/).filter((l) => !(l.file === 'ui.js' && BAR_LISTENERS.includes(l.text.trim()))), ...hits(/\.on[a-z]+\s*=/),
     ...(lines.some((l) => l.file === 'ui.js' && l.text.trim() === BAR_LINE) ? [] : [{ file: 'ui.js', n: 0, text: 'ui.bar is not the panel\'s title bar as described' }]),
     ...hits(/\bui\.bar\s*=/).filter((l) => l.text.trim() !== BAR_LINE)]);
-// The key events menu.js sends (Enter or Escape) name their types on one exact line.
+// The key events menu.js sends (Enter or Escape) name their types on one exact line. The
+// panel's own text field (0.2.0) is made on one exact line too: 'input' there is an element.
 const KEY_TYPES_LINE = "const types = k === 'Enter' ? ['keydown', 'keypress', 'keyup'] : ['keydown', 'keyup'];";
+const FIELD_LINE = "const field = (zb, value) => el('input', { type: 'text', 'data-zb': zb, value, autocomplete: 'off', spellcheck: 'false' });";
 check('No keyboard or input listeners',
-  hits(/['"](keydown|keyup|keypress|input|beforeinput|change|compositionstart|compositionupdate|compositionend|paste|copy)['"]/).filter((l) => !(l.file === 'menu.js' && l.text.trim() === KEY_TYPES_LINE)));
+  hits(/['"](keydown|keyup|keypress|input|beforeinput|change|compositionstart|compositionupdate|compositionend|paste|copy)['"]/).filter((l) => !(l.file === 'menu.js' && l.text.trim() === KEY_TYPES_LINE) && !(l.file === 'ui.js' && l.text.trim() === FIELD_LINE)));
+// No browser dialogs (0.2.0): names are asked in the panel's own forms. One kind of field, made
+// on FIELD_LINE, in one kind of form, whose method "dialog" never loads a page; a field is
+// read only in the click on its form's button (and menu.js reads back the name it typed).
+const FORM_LINE = "return el('form', { method: 'dialog', class: 'form', 'data-zb': zb }, [...kids, el('div', { class: 'row' }, [ok, no])]);";
+const VALUE_LINES = {
+  'menu.js': ["if (field.value !== name) return undo('the name could not be typed in the field');"],
+  'ui.js': ["], 'Next', async () => prepared(await B().proposeRoot(index, input.value), index), () => cancelled('Nothing changed.')));", 'const r = await B().name(input.value);'],
+};
+check('No browser dialogs (prompt, confirm, alert)', hits(/(^|[^\w])(prompt|confirm|alert|print|showModalDialog)\s*\(/));
+check('The panel\'s fields: one kind, in forms that never load a page, read only when their form\'s button is clicked', [
+  ...hits(/\b(el|createElement)\s*\(\s*['"](input|textarea|select|form)['"]/).filter((l) => !(l.file === 'ui.js' && [FIELD_LINE, FORM_LINE].includes(l.text.trim()))),
+  ...hits(/formaction|['"]action['"]|\.(action|method)\s*=(?!=)|contentEditable\s*=(?!=)|['"]contenteditable['"]\s*[,)]/),
+  ...hits(/\.value\b/).filter((l) => !(VALUE_LINES[l.file] || []).includes(l.text.trim())),
+]);
 check('No watching of the page (no MutationObserver or other observers)', hits(/MutationObserver|IntersectionObserver|ResizeObserver/));
 // One interval (step 6e): while the panel is open, follow() compares the tab's address with
 // the page the panel shows and, on a change, reads as the refresh button does.

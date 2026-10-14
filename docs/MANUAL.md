@@ -32,11 +32,11 @@ Open any conversation and click the **Zettelbranch** button. The panel lists the
 
 ### 2. Name the tree
 
-The first time you branch a conversation, Zettelbranch asks for a short name for its tree, for example `sky`. The conversation is renamed `sky/1 · Why the sky is blue`: it becomes the tree's first card. Its topic stays claude.ai's title.
+The first time you branch a conversation, the panel asks for a short name for its tree, proposed from the conversation's title, for example `sky`. Tree names use lowercase letters, digits and `-`.
 
-Tree names use lowercase letters, digits and `-`.
+![The panel asking for the tree's name](images/tree-name.png)
 
-![The dialog that names the tree](images/tree-name.png)
+Click **Next**: the panel shows the conversation's new title, `sky/1 · Why the sky is blue`. Click **Rename**: the conversation becomes the tree's first card. Its topic stays claude.ai's title. **Cancel** changes nothing.
 
 ### 3. Read the preview
 
@@ -56,7 +56,7 @@ Click **Open new chat**, or **Cancel**.
 
 ### 4. Ask your question
 
-A new chat opens with the text in the message box. Type your question at the end of the box, under `MY MESSAGE`, then press **Send** yourself. Zettelbranch never sends anything.
+A new chat opens with the text in the message box. Type your question at the end of the box, under `MY MESSAGE`, then press **Send** yourself. Zettelbranch never sends anything. Once sent, the panel checks off this step.
 
 ![The new chat, with the text in the box and the two steps](images/new-chat.png)
 
@@ -68,13 +68,13 @@ Claude starts with a short summary of the parent ("Parent sky/1 in brief: …"),
 
 ### 6. Name the branch
 
-Click **Name this branch** in the panel. A small dialog proposes `sky/1a · Why sunsets are red`. Change the topic if you like; the address stays.
+Click **Name this branch** in the panel. The panel shows the branch's address, `sky/1a ·`, and Claude's suggestion in a field: `Why sunsets are red`. Keep it or type another topic; the address stays.
 
-![The dialog that names the branch, with Claude's suggestion](images/name.png)
+![The panel naming the branch, with Claude's suggestion](images/name.png)
 
-Click OK: the chat is renamed, and its new name shows at once at the top of the chat and in the sidebar. The panel now says what this chat is, and shows its tree.
+Click **Rename** (or press Enter): the chat is renamed, and its new name shows at once at the top of the chat and in the sidebar. The panel closes, so that it does not hide Claude's reply; the Zettelbranch button's tooltip says what was done. Open the panel again to see the tree.
 
-![After naming: the new name at the top, and the panel with the tree](images/named.png)
+![After naming: the new name at the top](images/named.png)
 
 ![The sidebar, with the chats named by their address](images/sidebar.png)
 

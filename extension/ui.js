@@ -1,9 +1,10 @@
 // Zettelbranch: the panel. A small "Zettelbranch" button at the bottom right opens it.
 // Shadow DOM outside <body>, built with DOM nodes and textContent only. Click listeners,
 // and pointer listeners on the panel's own title bar to drag it; no keyboard or input
-// listeners. Every action starts with a click; the flow itself is in branch.js. While the
-// panel is open, it follows the chat on screen: when the tab moves to another chat, it
-// reads that chat as its refresh button does (reads only).
+// listeners. Every action starts with a click; the flow itself is in branch.js. Names are
+// asked in small forms of the panel (0.2.0), whose fields are read when their button is
+// clicked. While the panel is open, it follows the chat on screen: when the tab moves to
+// another chat, it reads that chat as its refresh button does (reads only).
 (function (global) {
   'use strict';
 
@@ -74,6 +75,13 @@
     .step { display: flex; gap: 6px; align-items: baseline; }
     .step .num { font-weight: 700; color: var(--accent); min-width: 1.1em; }
     .step .row { flex: 1; }
+    .form { display: flex; flex-direction: column; gap: 8px; margin: 0; }
+    .field { display: flex; gap: 6px; align-items: center; }
+    .field input { flex: 1; min-width: 0; box-sizing: border-box; font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 4px 7px; }
+    .field input:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: var(--accent); }
+    .prefix { font-weight: 600; white-space: nowrap; color: var(--accent); }
+    .new-title { font-weight: 600; word-break: break-word; }
+    .step.done p, .step.done .num { color: var(--muted); }
     pre { margin: 0; padding: 8px; background: var(--code); border: 1px solid var(--line); border-radius: 6px; max-height: 280px; overflow: auto; white-space: pre-wrap; word-break: break-word; font: 11px/1.45 ui-monospace, Menlo, monospace; }
   `;
 
@@ -134,8 +142,9 @@
   // new name at once. { via: 'api', why } when the API did, after the menu failed: the open
   // tab's sidebar shows the new name after a reload. A root is renamed in the middle of a
   // branch: no reload offered there, since a reload would drop the preview below it.
+  const renamedText = (name, kind) => ({ root: `This chat is now the tree root ${name}.`, branch: `You just created the branch ${name}.`, rename: `Renamed to ${name}.` })[kind];
   function showRenamed(name, kind, via) {
-    const what = { root: `This chat is now the tree root ${name}.`, branch: `You just created the branch ${name}.`, rename: `Renamed to ${name}.` }[kind];
+    const what = renamedText(name, kind);
     const api = !via || via.via !== 'menu';
     ui.notice.replaceChildren(
       ...[
@@ -344,10 +353,12 @@
   }
 
   // The pill reminds you of a branch this tab opened and has not named yet (memory only).
-  function hide() {
+  // done: what the panel just did, kept in the pill's tooltip when the panel closes by itself.
+  function hide(done) {
     const due = B().unnamed();
     ui.pill.textContent = due ? 'Zettelbranch: name this branch' : 'Zettelbranch';
-    if (due) ui.pill.setAttribute('title', `${due} is not named yet. Click, then Name this branch.`);
+    const tip = done || (due ? `${due} is not named yet. Click, then Name this branch.` : '');
+    if (tip) ui.pill.setAttribute('title', tip);
     else ui.pill.removeAttribute('title');
     stopFollowing();
     ui.panel.hidden = true;
@@ -394,27 +405,107 @@
 
   async function branch() {
     clearMessages();
-    const chat = B().current();
-    const r = await B().prepare(chat.selected);
+    const index = B().current().selected;
+    return prepared(await B().prepare(index), index);
+  }
+
+  // What "Branch" and the tree forms lead to: a form (the tree name, then the new title), or
+  // the preview.
+  async function prepared(r, index) {
     if (r.stale) {
       await refresh();
       return showFailure(r);
     }
-    if (!r.ok) return showFailure(r);
+    if (r.ask) return treeForm(r.ask, index);
+    if (r.confirm) return rootForm(r.confirm, index);
+    if (!r.ok) {
+      if (B().current()) showChat(B().current());
+      return showFailure(r);
+    }
     if (r.renamed) showRenamed(r.renamed, 'root', r.via);
     showPreview(r);
   }
 
+  // ---------------------------------------------------------------- forms
+
+  // A form of the panel, in place of the browser's dialogs (0.2.0): those were headed
+  // "claude.ai", as if claude.ai were asking. Its main button has a click listener; Enter in
+  // its field makes the browser click that button (a form's submit button), and method
+  // "dialog" means the form never loads a page. Fields are read only in that click.
+  function form(zb, kids, okText, onOk, onCancel) {
+    const ok = el('button', { type: 'submit', class: 'primary', 'data-zb': `${zb}-ok`, text: okText });
+    ok.addEventListener('click', () => act(onOk));
+    const no = button('Cancel', `${zb}-cancel`, onCancel);
+    return el('form', { method: 'dialog', class: 'form', 'data-zb': zb }, [...kids, el('div', { class: 'row' }, [ok, no])]);
+  }
+  const field = (zb, value) => el('input', { type: 'text', 'data-zb': zb, value, autocomplete: 'off', spellcheck: 'false' });
+  const formError = (text) => (text ? el('p', { class: 'box warn', 'data-zb': 'form-error', text }) : null);
+  function focusField(input) {
+    input.focus();
+    input.select();
+  }
+  // Cancel: back to the chat as read, and a word that nothing changed.
+  function cancelled(text) {
+    B().cancel();
+    const c = B().cached();
+    if (c) showChat(c);
+    ui.info.textContent = text;
+    ui.info.hidden = false;
+    return c ? null : refresh();
+  }
+
+  // A chat not in a tree yet: its tree name, proposed from its title (hints item 7).
+  function treeForm(ask, index) {
+    const input = field('tree-field', ask.tree);
+    show(form('tree-form', [
+      el('p', { class: 'section-head', text: 'This chat is not in a tree yet' }),
+      el('p', { text: 'Name its tree. The chat becomes the tree\'s first card, and its branches get addresses under it.' }),
+      el('label', { class: 'field' }, [el('span', { text: 'Tree name' }), input]),
+      el('p', { class: 'muted', 'data-zb': 'tree-hint', text: 'Only a-z, 0-9 and -, such as oulipo or sky-notes.' }),
+      formError(ask.error),
+    ], 'Next', async () => prepared(await B().proposeRoot(index, input.value), index), () => cancelled('Nothing changed.')));
+    focusField(input);
+  }
+
+  // The chat's new title as the tree root, before anything changes.
+  function rootForm(c, index) {
+    const ok = button('Rename', 'root-ok', async () => prepared(await B().makeRoot(index), index), 'primary');
+    show(el('div', { class: 'form', 'data-zb': 'root-form' }, [
+      el('p', { class: 'section-head', text: 'Rename this chat?' }),
+      el('p', { class: 'muted title', 'data-zb': 'root-old', text: `Now: ${c.old}` }),
+      el('p', {}, [el('span', { class: 'muted', text: 'New: ' }), el('span', { class: 'new-title', 'data-zb': 'root-new', text: c.name })]),
+      el('p', { class: 'muted', text: 'Then the panel shows the first message of its branch.' }),
+      el('div', { class: 'row' }, [ok, button('Cancel', 'root-cancel', () => cancelled('Nothing changed.'))]),
+    ]));
+    ok.focus();
+  }
+
+  // The branch's name: its address as fixed text, the topic in the field (hints item 2).
+  function nameForm(ask) {
+    const input = field('name-field', ask.topic);
+    show(form('name-form', [
+      el('p', { class: 'section-head', 'data-zb': 'name-head', text: ask.wasNamed ? 'Rename this branch' : 'Name this branch' }),
+      el('div', { class: 'field' }, [el('span', { class: 'prefix', 'data-zb': 'name-prefix', text: ask.prefix.trim() }), input]),
+      el('p', { class: 'muted', 'data-zb': 'name-from', text: ask.from }),
+      el('p', { class: 'muted title', 'data-zb': 'name-now', text: `Now: ${ask.title || '(no title yet)'}` }),
+      formError(ask.error),
+    ], 'Rename', () => named(input), () => cancelled('Not renamed.')));
+    focusField(input);
+  }
+
   // What to do in the new chat: after Open new chat, and when the panel opens again there.
   // o.own: the box ends with your own message (a branch instead of it).
+  // o.sent: the message is sent (the tab moved to the new chat), step 1 is done (hints item 6).
   function steps(o) {
     return el('div', { class: 'steps', 'data-zb': 'steps' }, [
-      el('div', { class: 'step', 'data-zb': 'step-1' }, [
-        el('span', { class: 'num', text: '1.' }),
+      el('div', { class: o.sent ? 'step done' : 'step', 'data-zb': 'step-1' }, [
+        el('span', { class: 'num', text: o.sent ? '✓' : '1.' }),
         el('p', {
-          text: o.own
-            ? 'Your message is at the end of the box, under MY MESSAGE. Change it if you like, then press Send.'
-            : 'Type your question at the end of the box, under MY MESSAGE, then press Send.',
+          text: o.sent
+            ? 'Sent.'
+            : o.own
+              ? 'Your message is at the end of the box, under MY MESSAGE. Change it if you like, then press Send.'
+              : 'Type your question at the end of the box, under MY MESSAGE, then press Send.',
         }),
       ]),
       el('div', { class: 'step', 'data-zb': 'step-2' }, [
@@ -429,23 +520,46 @@
     const r = await B().open();
     seen(); // the new chat this flow opened: not a move to follow
     if (!r.ok) return showFailure(r);
+    // How the text went in, when one call was not enough (Firefox): shown only with a warning,
+    // else in the notice's tooltip (hints item 5).
+    const how = r.note ? `Not inserted line by line: ${r.note}.` : r.method === 'line by line' ? `Inserted line by line, in ${(r.ms / 1000).toFixed(1)} s: one insertion had lost the line breaks.` : '';
     show(
-      el('p', { class: 'box notice', 'data-zb': 'opened', text: `The new chat holds the first message of ${r.address}.` }),
-      r.exact ? null : el('p', { class: 'box warn', 'data-zb': 'warning', text: `The message box holds ${r.inBox.toLocaleString('en-US')} characters, the preview had ${r.chars.toLocaleString('en-US')}. Check the box before you press Send.` }),
-      // How the text went in, when one call was not enough (Firefox): for a check on the real site.
-      r.method === 'line by line' || r.note ? el('p', { class: 'detail muted', 'data-zb': 'insert-method', text: r.note ? `Not inserted line by line: ${r.note}.` : `Inserted line by line, in ${(r.ms / 1000).toFixed(1)} s: one insertion had lost the line breaks.` }) : null,
+      el('p', { class: 'box notice', 'data-zb': 'opened', text: `The new chat holds the first message of ${r.address}.`, ...(how && r.exact ? { title: how } : {}) }),
+      r.exact
+        ? null
+        : el('div', { class: 'box warn', 'data-zb': 'warning' }, [
+          el('p', { text: `The message box holds ${r.inBox.toLocaleString('en-US')} characters, the preview had ${r.chars.toLocaleString('en-US')}. Check the box before you press Send.` }),
+          how ? el('p', { class: 'detail', 'data-zb': 'insert-method', text: how }) : null,
+        ]),
       steps(r)
     );
   }
 
   async function nameBranch() {
     clearMessages();
-    const r = await B().name();
-    if (!r.ok) return showFailure(r);
+    const r = await B().proposeName();
+    if (r.ask) return nameForm(r.ask);
+    showFailure(r);
+  }
+
+  // "Rename" in the naming form. Done through claude.ai's menu, the panel closes: the title at
+  // the top shows the new name, and the pill's tooltip says what happened (hints item 3).
+  async function named(input) {
+    clearMessages();
+    const r = await B().name(input.value);
+    if (r.ask) return nameForm(r.ask);
+    if (!r.ok) {
+      const c = B().cached();
+      if (c) showChat(c);
+      else await refresh();
+      return showFailure(r);
+    }
     // What the panel read for this chat, with the new name; else read it (not the list again).
     if (r.chat) showChat(r.chat);
     else await refresh({ reuseList: true });
-    showRenamed(r.renamed, r.wasNamed ? 'rename' : 'branch', r.via);
+    const kind = r.wasNamed ? 'rename' : 'branch';
+    if (r.via && r.via.via === 'menu') return hide(renamedText(r.renamed, kind));
+    showRenamed(r.renamed, kind, r.via);
   }
 
   // ---------------------------------------------------------------- mount
@@ -490,7 +604,7 @@
     ui.body = el('div', { class: 'body', 'data-zb': 'body' });
     ui.refresh = refreshButton();
     const hideButton = el('button', { type: 'button', 'data-zb': 'hide', title: 'Hide the panel', text: 'Hide' });
-    hideButton.addEventListener('click', hide); // also during a background read
+    hideButton.addEventListener('click', () => hide()); // also during a background read
     ui.bar = el('div', { class: 'top', 'data-zb': 'bar', title: 'Drag to move' }, [el('b', { text: 'Zettelbranch' }), ui.refresh, hideButton]);
     ui.bar.addEventListener('pointerdown', grab);
     ui.bar.addEventListener('pointermove', drag);

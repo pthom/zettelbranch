@@ -82,7 +82,7 @@ The extension must be easy to audit:
 - Nothing is sent automatically. It writes (renames a chat, fills the message box) only when you click, and you press Send yourself. To rename, it uses claude.ai's own title menu on the chat on screen: the only page elements it sends events to are that menu's title button, its Rename item and its rename field (plus a click on the New chat link). It reads only when you open its panel or click (a chat opened from the panel's tree opens with the panel), and while the panel is open, when you move to another chat.
 - [AUDIT.md](AUDIT.md) lists what the code never does, with the `grep` commands that prove it.
 
-**Don't take our word for it: ask your own LLM.** The code is short (about 2,050 lines, no dependencies, no build step). [AUDIT.md](AUDIT.md#a-prompt-for-an-llm-audit) ends with a ready-to-paste prompt: give it to your favourite LLM with this repository, and it checks that Zettelbranch sends your conversations nowhere but claude.ai, with file names and line numbers for every finding.
+**Don't take our word for it: ask your own LLM.** The code is short (about 2,200 lines, no dependencies, no build step). [AUDIT.md](AUDIT.md#a-prompt-for-an-llm-audit) ends with a ready-to-paste prompt: give it to your favourite LLM with this repository, and it checks that Zettelbranch sends your conversations nowhere but claude.ai, with file names and line numbers for every finding.
 
 ## Developers
 

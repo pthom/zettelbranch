@@ -2,9 +2,9 @@
 
 What Pascal does by hand on claude.ai during Milestone 2, in two sessions. Everything else is Claude's, offline ([plan](milestone-2__specs.md#who-does-what)). Each session ends with the pictures to take then ([visuals__specs](visuals__specs.md)).
 
-## Session 1: before 0.2.0 (about 25 minutes, any time now)
+## Session 1: probes (about 25 minutes, any time now)
 
-Steps 2, 4, 6 and 9 of the plan. Do them in this order; paste each result to Claude in the chat (or say what you saw).
+Steps 2, 4, 6 and 9 of the plan, before checking 0.2.0. Do them in this order; paste each result to Claude in the chat (or say what you saw).
 
 ### 1. P12, typing in the panel (Chrome, then Firefox)
 
@@ -15,7 +15,7 @@ Does what you type in a field of Zettelbranch's panel stay there, or does claude
 3. If letters land in claude.ai's box, delete them there. Never send them.
 4. Click "Copy results" at the top and paste them to Claude.
 5. Firefox test profile: `about:debugging`, "This Firefox", "Load Temporary Add-on…", pick `spike/extension/manifest.json` (and remove or disable the Zettelbranch there for now). Same steps 2 to 4.
-6. Afterwards: Zettelbranch back on, the spike off, in both browsers.
+6. Afterwards: the spike off, Zettelbranch back on, in both browsers (in Chrome, also ⟳ on Zettelbranch: it shows 0.2.0, built since).
 
 What Claude does with it: if field A keeps the keys, 0.2.0's forms need no keyboard listener at all; if only field B does, the forms stop the keys at their own fields (and `AUDIT.md` says so); if neither, Claude comes back with another way.
 
@@ -57,6 +57,39 @@ Reminder: [visuals__specs](visuals__specs.md#session-1). F1 and F2 from check 4 
 
 Delete the `zbtest/` chats (now `zbtest/9a` and `zbtest/gather`, plus the older ones in the status file).
 
-## Session 2: 0.2.0 (about 30 minutes, once Claude has built it)
+## Session 2: 0.2.0 (about 30 minutes, after session 1)
 
-Written when 0.2.0 is built: check 0.2.0 in Chrome and Firefox, with the open steps of [0.1.4's check](transcript-layout__questions.md#the-check-on-claudeai-014), then the release; and the pictures for the README, the manual, the demo and the Chrome Web Store ([visuals__specs](visuals__specs.md#session-2)).
+Built offline on 2026-10-14 (all tests pass). Plan step 5, with the open steps of [0.1.4's check](transcript-layout__questions.md#the-check-on-claudeai-014), which ships within 0.2.0. If P12 (session 1) changes the forms, Claude updates this list first. Test chats only: every title starts with `zbtest/`.
+
+### 1. Load 0.2.0
+
+Chrome test profile: `chrome://extensions`, ⟳ on Zettelbranch (it shows 0.2.0), the spike off. Firefox test profile: `about:debugging`, "Load Temporary Add-on…", `extension/manifest.json`.
+
+### 2. In Chrome
+
+1. **A chat not in a tree.** New chat, send a short question with a code block in the answer, for example `Show me a three-line Python loop.` Open the panel, click **Branch**. The panel asks for a tree name (no browser dialog headed "claude.ai"): the field holds a name proposed from the title, the hint "Only a-z, 0-9 and -" is under it. Click **Cancel**: "Nothing changed."
+2. **Branch** again. Type `Zb Test` and click **Next**: the panel says it cannot be a tree name and keeps what you typed. Type `zbtest` and press **Enter**: the panel shows "Now: …" and "New: zbtest/N · …". Click **Rename**: the title at the top changes at once, and the preview shows.
+3. **The preview** (0.1.4): the header quoted, `OUR CONVERSATION SO FAR`, a label before each message. **Open new chat**: the box is filled; no technical line under "The new chat holds…".
+4. Type a question under `MY MESSAGE`, keep the panel open, press **Send**. Step 1 becomes "✓ Sent."
+5. **Unfold your first message** (0.1.4): the header, section names and labels have a bar on their left, the labels a box, the messages read as normal text. **Claude's reply:** starts with "Parent … in brief", reproduces none of the labels, ends with "Branch title: …".
+6. **Name this branch.** The panel shows the address as fixed text (`zbtest/Na ·`) and Claude's title in the field, selected. Change a word, press **Enter**. The panel closes; the title at the top shows the new name; the Zettelbranch button's tooltip (hover it) says "You just created the branch …".
+7. **Open the panel again.** The list of messages shows no Markdown marks (no `**`, no `>`), and Claude's first reply shows the start of its answer, not the summary. The tree shows the root and the branch.
+8. **Branch from this branch** (0.1.4): the preview holds one `OUR CONVERSATION SO FAR`, every message once. Cancel.
+9. **Rename this branch:** the form says "Rename this branch" and holds the current topic. Click **Rename** without changing it: "The name did not change", the panel stays. Change it and click **Rename**: the panel closes.
+10. **An old branch** (0.1.4), read only: open a branch made before today (for example `oulipo/1d`), click **Branch**: the preview shows its history in the new layout. **Cancel**.
+
+### 3. In Firefox
+
+Steps 2 to 6 of Chrome, shorter: one branch, named. Firefox fills the box line by line: there is still no technical line, but hovering "The new chat holds…" shows how it was filled.
+
+### 4. Tell Claude
+
+What differed from the list above, with a screenshot when something looks wrong. Then Claude prepares the release (the [usual steps](../zettelbranch__status.md#how-a-release-goes-for-the-next-version)); at the release, your installed 0.1.3 in your main Firefox should update itself to 0.2.0, the first live test of the automatic update.
+
+### 5. Pictures to take
+
+Reminder: [visuals__specs](visuals__specs.md#session-2). The README's and the manual's pictures and the demo, on the `sky` demo tree, with 0.2.0. They can wait for a separate sitting, but should come before the posts.
+
+### 6. Clean up
+
+Delete the `zbtest/` chats of this session.
