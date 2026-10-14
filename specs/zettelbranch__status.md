@@ -24,16 +24,15 @@ Milestones and their state: [the vault's README](README.md#milestones). Mileston
 
 Pascal asked on 2026-10-14 for a better rendering of the copied conversation, where claude.ai showed the `<zb-turn>` tags as raw text. Three pasted samples showed what claude.ai renders in your messages (code blocks, inline code and quotes only), and led to TL-1 and TL-2 ([transcript-layout__questions](milestone-2/transcript-layout__questions.md)): each message under a label in a box inside a quote, the section names in capitals, the header quoted, and Claude told that these lines are Zettelbranch's. Branches made before still read.
 
-Built offline (version 0.1.4, not released): all tests pass, including the real Tiptap editor in both browsers. Seen working in a live test on 2026-10-14 (`zettelbranch/1` → `zettelbranch/1a`): the layout renders, and Claude's summary was accurate and stopped at the right message. Found there and fixed: Claude may write the summary in bold (`> **Parent …**`), which `prompt.js` did not recognise ([milestone-2__findings](milestone-2/milestone-2__findings.md), section 1, item 4). Next: the rest of the check (the steps are in the questions file), then the release as usual, with the manual's screenshots and the demo retaken (they still show the tags).
+Built offline (version 0.1.4, not released): all tests pass, including the real Tiptap editor in both browsers. Seen working in a live test on 2026-10-14 (`zettelbranch/1` → `zettelbranch/1a`): the layout renders, and Claude's summary was accurate and stopped at the right message. Found there and fixed: Claude may write the summary in bold (`> **Parent …**`), which `prompt.js` did not recognise ([milestone-2__findings](milestone-2/milestone-2__findings.md), section 1, item 4). Not released alone (M2-2 = B): it ships in 0.2.0, and the rest of its check (the steps are in the questions file) joins 0.2.0's check. The manual's screenshots and the demo still show the tags: retaken in step 7 of the plan.
 
 ## Waiting on Pascal
 
-1. **Answer M2-1 to M2-4** ([milestone-2__questions](milestone-2/milestone-2__questions.md)): what Milestone 2 covers, when 0.1.4 goes out, store listings, Perec in the posts.
-2. **Finish checking 0.1.4 on claude.ai** (Chrome and Firefox): [the steps](milestone-2/transcript-layout__questions.md#the-check-on-claudeai-014); steps 2 and 3 were seen in the live test.
-3. **Use Zettelbranch for real** and note what bothers you; watch the post's replies, the GitHub issues and Discussions. That feedback sets Milestone 2.
-4. **Optional:** reply under the post that 0.1.3 fixes Firefox (draft in chat: "Update: Zettelbranch 0.1.3 fixes branching in Firefox…").
-5. **Clean up:** delete the `zbtest/` and `zbtest2/` chats (now also `zbtest/render`).
-6. **Optional:** ask a person at Anthropic about automated tests, and about Zettelbranch now that others use it (draft from Claude).
+1. **Finish checking 0.1.4 on claude.ai**, together with 0.2.0 (M2-2 = B): [the steps](milestone-2/transcript-layout__questions.md#the-check-on-claudeai-014); steps 2 and 3 were seen in the live test.
+2. **Use Zettelbranch for real** and note what bothers you; watch the post's replies, the GitHub issues and Discussions. That feedback sets Milestone 2.
+3. **Optional:** reply under the post that 0.1.3 fixes Firefox (draft in chat: "Update: Zettelbranch 0.1.3 fixes branching in Firefox…").
+4. **Clean up:** delete the `zbtest/` and `zbtest2/` chats (now also `zbtest/render`).
+5. **Optional:** ask a person at Anthropic about automated tests, and about Zettelbranch now that others use it (draft from Claude).
 
 ## How a release goes (for the next version)
 
@@ -43,7 +42,7 @@ Built offline (version 0.1.4, not released): all tests pass, including the real 
 
 ## Next for Claude
 
-1. Milestone 2's [plan](milestone-2/milestone-2__specs.md) is drafted: once M2-1 to M2-4 are answered, fold the answers in and start its steps (probe P12 and the 0.2.0 build come first). Written from Pascal's real use and the first feedback: [milestone-2__findings](milestone-2/milestone-2__findings.md) (UI fixes from a live test, robustness of the copied history, the README's opening, a "gather branches" idea, the communication plan). Other candidates, from the spec and the sessions:
+1. Milestone 2's [plan](milestone-2/milestone-2__specs.md) is decided (M2-1 = A, M2-2 = B, M2-3 = B, M2-4 = A): start its steps, probe P12 and the 0.2.0 build first. Written from Pascal's real use and the first feedback: [milestone-2__findings](milestone-2/milestone-2__findings.md) (UI fixes from a live test, robustness of the copied history, the README's opening, a "gather branches" idea, the communication plan). Other candidates, from the spec and the sessions:
    - the banner in each branch (path, siblings, children, with links);
    - a "Branch from here" button on each message (M1-2 = C);
    - cross-references between distant branches (`→ 2b`) and backlinks;

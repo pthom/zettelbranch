@@ -1,6 +1,6 @@
 # Milestone 2: hints from the first feedback
 
-**Milestone 2: in progress** since 2026-10-14. Done so far: 0.1.4 built, a readable first message ([transcript-layout__questions](transcript-layout__questions.md)), not released yet. Its plan, written from these hints: [milestone-2__specs](milestone-2__specs.md) (a draft, with [questions](milestone-2__questions.md)). State of every milestone: [the vault's README](../README.md#milestones).
+**Milestone 2: in progress** since 2026-10-14. Done so far: 0.1.4 built, a readable first message ([transcript-layout__questions](transcript-layout__questions.md)), to be released within 0.2.0. Its plan, written from these hints: [milestone-2__specs](milestone-2__specs.md) (decided, [questions](milestone-2__questions.md) M2-1 to M2-4). State of every milestone: [the vault's README](../README.md#milestones).
 
 Feedback gathered by Pascal on 2026-10-14 in a discussion on claude.ai. It includes a live test of 0.1.4: the discussion itself was branched (`zettelbranch/1` → `zettelbranch/1a`). Stored as written, as hints for planning Milestone 2; nothing here is decided unless it says so. Items marked "proposal" still need a decision or a render test. Claude Code's notes, added when storing it, are marked **Note**.
 
