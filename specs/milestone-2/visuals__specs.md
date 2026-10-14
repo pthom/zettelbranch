@@ -23,14 +23,14 @@ The pictures of 0.1.1 show what 0.2.0 changes: the copied conversation in `<zb-t
 | `named.png` | after naming | manual | retaken (the panel closes; the button keeps the notice) |
 | `tree.png` | the tree in the panel | README, manual | kept, or retaken with the new branches |
 | `sidebar.png` | the sidebar with the `sky/` chats | README, manual | kept, or retaken with the new branches |
-| new: `allow-firefox.png` | Firefox's install prompt or its "allow on claude.ai" menu | README (install) | from session 1 |
+| new: `install-firefox.png` | Firefox's "Add Zettelbranch" prompt, listing access to claude.ai | README (install), if it helps | taken in session 1 |
 | new: `first-message.png` | the branch's first message on screen: header, labels, your question | README | session 2 |
 | Chrome Web Store: up to 5 screenshots (1280 x 800) and a small tile (440 x 280) | | the store listing (step 8) | Claude composes them from the pictures of session 2 |
 
 ## Session 1
 
-- [ ] **F1:** the "Add Zettelbranch?" prompt in a fresh Firefox profile.
-- [ ] **F2:** if the button did not show, the toolbar's menu with "Always Allow on claude.ai" (or what Firefox shows).
+- [x] **F1:** the "Add Zettelbranch" prompt in a fresh Firefox profile, which lists access to claude.ai (2026-10-14, `tests/out/install/`).
+- [x] **F2:** not needed: the button showed at once.
 
 ## Session 2
 

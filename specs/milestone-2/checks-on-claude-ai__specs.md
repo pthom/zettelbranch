@@ -43,6 +43,8 @@ Can Claude, in a chat, find or open your other chats? This is input for Mileston
 3. Rename this chat by hand to `zbtest/gather` (the title at the top, Rename).
 4. Tell Claude what happened at 1 and 2 (a screenshot will do). If claude.ai's setting for searching past chats is off, leave it off and say so.
 
+**Result (2026-10-14, Chrome):** yes, both. Asked to list the chats whose titles start with `zbtest/`, Claude searched past chats ("Searched past chats") and found `zbtest/render-2` by its title, with its link and an accurate account of its content. Given that link, it opened the chat ("Conversation retrieved") and summarised it correctly in two sentences. So "gather branches" can rely on claude.ai's own tools: a message listing the children's addresses or links is enough, when the account has claude.ai's past-chat search on. Input for Milestone 3.
+
 ### 4. A fresh Firefox profile: does installing ask for claude.ai?
 
 On your main Firefox, Zettelbranch did not show until you allowed it on claude.ai. A new profile tells whether every newcomer hits this.
@@ -52,6 +54,8 @@ On your main Firefox, Zettelbranch did not show until you allowed it on claude.a
 3. Open https://claude.ai (no need to log in). Does the Zettelbranch button show at the bottom right?
 4. If not: click the puzzle icon in the toolbar. **Picture F2:** the menu with Zettelbranch and its "Always Allow on claude.ai" (or whatever it shows). Allow, reload: does the button show now?
 5. Tell Claude what you saw at 2 to 4. Then close that window; in `about:profiles`, remove `zb-fresh`.
+
+**Result (2026-10-14):** installing asks for claude.ai, and grants it. Firefox first says it prevented github.com from installing (the expected "Continue to Installation"), then "Add Zettelbranch" lists "Required permissions: Access your data for sites in claude.ai domains", and after Add, claude.ai shows the Zettelbranch button at once (on the login page already), with no separate "allow" step. Pascal's case on his main profile came from the developer copy he had removed before. So the README's install step 3 ("Allow Zettelbranch on claude.ai…") becomes a note for when the button does not show; no change to the manifest. Pictures kept in `tests/out/install/` (not committed): the github.com prompt, "Add Zettelbranch" (F1), "Zettelbranch was added", the button on the login page; F2 was not needed.
 
 ### 5. Pictures to take in this session
 
