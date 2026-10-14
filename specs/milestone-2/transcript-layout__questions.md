@@ -76,4 +76,4 @@ Applied in 0.1.4:
 - **A code block left open** in a message (a cut reply) is closed at the end of its turn, so it cannot swallow the next labels.
 - **Old branches keep working:** branches made with 0.1.x (tags) are still read, named and flattened.
 - **Tested** in the offline tests and in the real Tiptap editor (Chromium and Firefox), including Firefox's line-by-line fill (a line that starts with `> ` or `- ` must stay text in the editor).
-- [forking__prompt](forking__prompt.md) shows the new layout word for word (the unit tests compare it), and the manual describes it. The manual's screenshots and the demo still show the tags: to retake after the check.
+- [forking__prompt](../forking__prompt.md) shows the new layout word for word (the unit tests compare it), and the manual describes it. The manual's screenshots and the demo still show the tags: to retake after the check.

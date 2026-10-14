@@ -15,7 +15,7 @@ Long material goes first and the question last: Anthropic's long-context advice,
 
 Long text stays inline: inserted with one `execCommand` call, 100,000 characters stayed plain text and reached the model (Milestone 0, P2). Only a paste turns long text into a "Pasted" attachment, and the extension never pastes. So the whole prompt goes in at once.
 
-**How it looks** (TL-1, TL-2, 2026-10-14, [transcript-layout__questions](transcript-layout__questions.md)). In your messages, claude.ai shows only code blocks, inline code and quotes; bold, headings, lists and tags show as typed. So every line Zettelbranch adds is a quote (a bar on its left), and the section names and message labels are inline code inside it (a small box): the messages themselves read as normal text between them. Before 0.1.4, the parts were tags (`<zb-transcript>`, `<zb-turn>`, `<zb-instructions>`), shown as raw text; such branches are still read.
+**How it looks** (TL-1, TL-2, 2026-10-14, [transcript-layout__questions](milestone-2/transcript-layout__questions.md)). In your messages, claude.ai shows only code blocks, inline code and quotes; bold, headings, lists and tags show as typed. So every line Zettelbranch adds is a quote (a bar on its left), and the section names and message labels are inline code inside it (a small box): the messages themselves read as normal text between them. Before 0.1.4, the parts were tags (`<zb-transcript>`, `<zb-turn>`, `<zb-instructions>`), shown as raw text; such branches are still read.
 
 ```
 > Zettelbranch · zb/1b1

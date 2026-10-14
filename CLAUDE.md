@@ -1,6 +1,6 @@
 # Zettelbranch
 
-Browser extension for claude.ai, idea stage. No code yet.
+Browser extension for claude.ai that branches conversations into a tree. Released on GitHub (0.1.x); the code is in `extension/`, the offline tests in `tests/`.
 
 ## Start here
 
@@ -15,6 +15,7 @@ Browser extension for claude.ai, idea stage. No code yet.
 - Long analyses, reviews and questions go into vault files, not the chat. Chat replies stay short and point to the files.
 - File names: `<subject>__<kind>.md`, kinds `specs`, `findings`, `questions`, `status`, `prompt`. Details in `specs/README.md`.
 - When Pascal answers a question: fold the decision into the spec, set the question to `decided`, update the README's open-questions table.
+- Milestones: each has a folder, `specs/milestone-N/` while planned or in progress, `specs/done/milestone-N/` once finished. When one starts or ends, update the Milestones table in `specs/README.md`; when one ends, write its `milestone-N__finalized.md` (what it delivered, decisions, what was left open and where it went).
 - When a piece of work is done, in the same commit: a short entry in `specs/done/README.md` (newest first); it leaves the working files (the status file and plans keep only what is open); its files move to `specs/done/<work>/` for history, with every link rewritten and checked. Details in `specs/README.md`.
 - At the end of each session: update `specs/zettelbranch__status.md`. Vault files are committed, for transparency.
 - Never hard-wrap Markdown (vault files, `CLAUDE.md`, `AUDIT.md`): one paragraph or list item per line. Obsidian shows every line break.

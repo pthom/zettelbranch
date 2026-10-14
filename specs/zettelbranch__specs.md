@@ -70,7 +70,7 @@ Also seen in the original conversation: Claude Branch Viewer (the native tree as
 - The page renders only part of a long conversation: a virtualized list, 11 of 80 messages in one of Pascal's chats (Milestone 0, P6). So extraction reads the conversation through the API when it answers as expected, and from the page otherwise.
 - The sidebar only shows recent conversations (14 of Pascal's 63). The registry reads the full list through the API, which returns all of them in one request (Milestone 0, P5).
 - The message input is a rich-text editor. One `execCommand('insertText')` call works on the real page: Send enables, and the sent message is exact, line breaks and indentation included, up to at least 100,000 characters, which stay inline and reach the model (Milestone 0, P1, P2). A paste would turn long text into an attachment; the extension never pastes.
-- Renaming goes through the API; the UI is the fallback. An API rename works, even before the first reply ends, and survives claude.ai's automatic title (Milestone 0, P4). But the open tab keeps showing the old title until it reloads, and Pascal took that for a failed rename (P8). So each rename ends with a notice and a "Reload now" button (M1-4).
+- Renaming goes through claude.ai's own title menu (since 0.1.1), so the open tab and the sidebar show the new name at once; the API is the fallback. An API rename works, even before the first reply ends, and survives claude.ai's automatic title (Milestone 0, P4), but the open tab keeps showing the old title until it reloads, which Pascal took for a failed rename (P8). So an API rename ends with a notice and a "Reload now" button (M1-4).
 - claude.ai exists in two versions during the rollout, with different internal APIs. Everything that talks to claude.ai lives in one file; fixtures record which version they come from. The legacy REST API still answers on Pascal's merged account (P5).
 - claude.ai projects are being redesigned. On Pascal's account a new project is a Claude Code project: one coordinator conversation, with "threads" that Claude starts as cloud coding sessions. Zettelbranch targets ordinary chats; chat projects will be "upgraded" later, and branching inside them must be looked at then.
 - The app trigger needs the conversation's URL: check the simplest way to get it from the Claude apps, on desktop and on a phone.
@@ -84,14 +84,25 @@ No script or automated browser ever touches claude.ai: Anthropic's Consumer Term
 2. **Real-page checks by hand.** Pascal loads the extension in a dedicated browser profile, never his main one, and clicks through a short checklist.
 3. **Pascal's manual steps:** save fixtures, run the real-page checklist, load each release in his main browser (`chrome://extensions` / `about:debugging`).
 
+## Milestones
+
+The state of each one, and its files: [the vault's README](README.md#milestones).
+
 ## Milestone 0
 
-Done on 2026-10-13: a short spike on the unknowns that could change the design. Every probe passed. What it established: [claude-ai__findings](claude-ai__findings.md#9-checked-on-pascals-account-milestone-0); the plan and the full results are in the [done log](done/README.md). The throwaway code in `spike/` is deleted when Milestone 1 starts, and stays in git history.
+**Finished on 2026-10-13** ([finalized](done/milestone-0/milestone-0__finalized.md)): a short spike on the unknowns that could change the design. Every probe passed. What it established: [claude-ai__findings](claude-ai__findings.md#9-checked-on-pascals-account-milestone-0). The throwaway code in `spike/` is kept for now: its probe panel served again after Milestone 1.
 
-## First milestone
+## Milestone 1
 
-*Done: Zettelbranch 0.1.0, released on 2026-10-13. Plan and results in `specs/done/milestone-1/`.*
+**Finished on 2026-10-13, with 0.1.0** ([finalized](done/milestone-1/milestone-1__finalized.md)). Followed by 0.1.1 to 0.1.3, outside milestones.
 
 The first everyday version, decided on 2026-10-13 (M1-1 to M1-4). A Zettelbranch button at the bottom right opens a list of the conversation's messages; you pick the branch point, read a preview of the exact first message, and a new chat opens with it in the box. Branches carry their address from the start: the parent becomes a tree root if needed, and once Claude has replied you click "Name this branch", edit the proposed name if you like, and a notice offers to reload so the open tab shows it. A button on each message, the banner, cross-references and the app trigger come later. Plan: [milestone-1__specs](done/milestone-1/milestone-1__specs.md).
 
 From Milestone 0: extraction reads the conversation through the API (the page holds only part of a long chat); the prompt goes into the message box in one `execCommand` call; the new chat opens through the app's own New chat link, the prompt held in memory.
+
+## Milestone 2
+
+**In progress since 2026-10-14.** Built from Pascal's real use and the first feedback ([hints](milestone-2/milestone-2__findings.md)).
+
+- **Done (built, not released):** 0.1.4, a readable first message. In your messages claude.ai shows only code blocks, inline code and quotes, so the copied conversation is laid out with quoted labels instead of tags, and Claude is told these lines are Zettelbranch's (TL-1, TL-2, [transcript-layout__questions](milestone-2/transcript-layout__questions.md), [forking__prompt](forking__prompt.md)).
+- **Next:** its plan, `milestone-2/milestone-2__specs.md`, not written yet. Candidates from the hints: in-panel forms instead of the browser's dialogs, the panel closing once a branch is named, cleaner message previews, the robustness of the copied history, the README's new opening, a "gather branches" button, store listings, and the posts. From the earlier plans: a button on each message, the banner, cross-references and backlinks.

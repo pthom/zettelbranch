@@ -1,5 +1,7 @@
 # Milestone 2: hints from the first feedback
 
+**Milestone 2: in progress** since 2026-10-14. Done so far: 0.1.4 built, a readable first message ([transcript-layout__questions](transcript-layout__questions.md)), not released yet. Next: its plan (`milestone-2__specs.md`), written from these hints. State of every milestone: [the vault's README](../README.md#milestones).
+
 Feedback gathered by Pascal on 2026-10-14 in a discussion on claude.ai. It includes a live test of 0.1.4: the discussion itself was branched (`zettelbranch/1` → `zettelbranch/1a`). Stored as written, as hints for planning Milestone 2; nothing here is decided unless it says so. Items marked "proposal" still need a decision or a render test. Claude Code's notes, added when storing it, are marked **Note**.
 
 ## 1. UI fixes found in the live test (priority order)
@@ -110,5 +112,5 @@ Asked by Pascal for feedback on the brief above. Overall it is sound: the UI fix
 
 - Perec points to the Oulipo, and you did not want to disclose the poems idea (2026-10-13). Leading with Luhmann alone avoids that.
 - Store listings before a wide announcement: I agree, for one more reason than casual readers. "Expect it to break" means fixes must reach users fast; in developer mode, Chrome users never get them. The Chrome Web Store gives automatic updates (one-time 5 USD fee, a review of a few days, a privacy form). The listing must say plainly that Zettelbranch is not made by Anthropic.
-- Hacker News readers will ask whether using claude.ai's undocumented web API is allowed. A short, honest answer ready in advance helps: it runs in your own page with your own session, makes four kinds of calls, and only when you click ([terms__findings](terms__findings.md)). Asking Anthropic (Waiting on Pascal, in the status file) becomes more useful before a wide announcement.
+- Hacker News readers will ask whether using claude.ai's undocumented web API is allowed. A short, honest answer ready in advance helps: it runs in your own page with your own session, makes four kinds of calls, and only when you click ([terms__findings](../terms__findings.md)). Asking Anthropic (Waiting on Pascal, in the status file) becomes more useful before a wide announcement.
 - Missing from the brief: install friction in Firefox. Today, even you missed "allow Zettelbranch on claude.ai" after installing, and nothing shows that the step is missing, since the extension cannot run without it. A screenshot of that step in the README, and checking whether Firefox can grant it at install, are worth doing before the posts.
