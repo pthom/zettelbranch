@@ -1,6 +1,6 @@
-# Release 0.2.1: notes (draft)
+# Release 0.2.1: notes
 
-The text of the GitHub release, drafted on 2026-10-14 for Pascal's review. Same shape as 0.2.0's, shorter: the icon only, which the Chrome Web Store requires. Published by Claude at the release, when Pascal says so ([how a release goes](../zettelbranch__status.md#how-a-release-goes-for-the-next-version)). Edit freely below the line.
+The text of the GitHub release, drafted and published on 2026-10-14 ([how a release goes](../zettelbranch__status.md#how-a-release-goes-for-the-next-version)), without the title line. Same shape as 0.2.0's, shorter: the icon only, which the Chrome Web Store requires. Released rather than sent to the store alone (Pascal asked why): so that the store's copy can be checked against a tagged release's sums, and one version number means one content everywhere.
 
 ---
 
