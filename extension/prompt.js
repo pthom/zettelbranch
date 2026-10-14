@@ -6,7 +6,8 @@
 //   1. header (3 quoted lines)
 //   2. > `OUR CONVERSATION SO FAR`, then each message under a label: > `Me · tree/1a, message 3`
 //   3. > `INSTRUCTIONS FOR CLAUDE`
-//   4. > `MY MESSAGE`: empty, or your old message when branching instead of it
+//   4. > `MY QUESTION`: empty, or your old message when branching instead of it (`MY MESSAGE`
+//      in the builds of 0.1.4, still read)
 // Branches made before 0.1.4 used tags (<zb-transcript>, <zb-turn>, <zb-instructions>): they
 // are still read.
 (function (global) {
@@ -20,12 +21,14 @@
 
   // ---------------------------------------------------------------- the label lines
 
-  const SECTIONS = { transcript: 'OUR CONVERSATION SO FAR', instructions: 'INSTRUCTIONS FOR CLAUDE', mine: 'MY MESSAGE' };
+  const SECTIONS = { transcript: 'OUR CONVERSATION SO FAR', instructions: 'INSTRUCTIONS FOR CLAUDE', mine: 'MY QUESTION' };
+  // The last section's name in the builds of 0.1.4, never released but used by Pascal: read too.
+  const MINE_BEFORE = 'MY MESSAGE';
   const WHO = { user: 'Me', assistant: 'Claude' };
   const sectionLine = (name) => `> \`${name}\``;
   const turnLine = (tree, t) => `> \`${WHO[t.role]} · ${tree}/${t.branch}, message ${t.n}\``;
   // A label line, or a message line that looks like one, escaped by one backslash per level.
-  const LABEL_RE = /^(\\*)> `(?:(Me|Claude) · [a-z0-9-]+\/([0-9a-z]+), message (\d+)|(OUR CONVERSATION SO FAR|INSTRUCTIONS FOR CLAUDE|MY MESSAGE))`[ \t]*$/;
+  const LABEL_RE = /^(\\*)> `(?:(Me|Claude) · [a-z0-9-]+\/([0-9a-z]+), message (\d+)|(OUR CONVERSATION SO FAR|INSTRUCTIONS FOR CLAUDE|MY QUESTION|MY MESSAGE))`[ \t]*$/;
   const escapeLabels = (t) => t.split('\n').map((l) => (LABEL_RE.test(l) ? '\\' + l : l)).join('\n');
   const unescapeLabels = (t) => t.split('\n').map((l) => { const m = LABEL_RE.exec(l); return m && m[1] ? l.slice(1) : l; }).join('\n');
 
@@ -109,7 +112,7 @@
   function parseLabelled(text, head) {
     const marks = labels(text);
     const instr = marks.findIndex((m) => m.section === SECTIONS.instructions);
-    const mine = marks.findIndex((m, i) => i > instr && m.section === SECTIONS.mine);
+    const mine = marks.findIndex((m, i) => i > instr && (m.section === SECTIONS.mine || m.section === MINE_BEFORE));
     if (instr < 0 || mine < 0) return null;
     const from = marks.findIndex((m) => m.section === SECTIONS.transcript);
     const turns = [];
@@ -279,7 +282,7 @@
   // history the parent was itself branched from).
   // Claude's suggestion for the branch's name, its first reply's last line (Pascal, 2026-10-13).
   const TITLE_LINE = 'a separate last line: "Branch title:" followed by 3 to 6 words naming what this branch is ' +
-    'about, from my message below, in the language of the conversation.';
+    'about, from my question below, in the language of the conversation.';
 
   // The lines Zettelbranch adds, as Claude is told (Pascal, 2026-10-14).
   const LAYOUT = 'Zettelbranch added the quoted lines (the header, the section names in capitals, and the label before ' +
@@ -293,7 +296,7 @@
       return [
         `This chat is a new branch of the conversation ${parent}, started from its first message, so there is no ` +
           'earlier history. Do not comment on the quoted lines above and below; Zettelbranch added them for my own ' +
-          'records. Answer my message below.',
+          'records. Answer my question below.',
         '',
         `End your first reply with ${TITLE_LINE}`,
       ].join('\n');
@@ -309,9 +312,9 @@
       '',
       `Start your first reply with a single blockquote paragraph that begins with "Parent ${parent} in brief:" and says in ` +
         '2 to 4 sentences where the conversation stood at that point, in the language of the conversation. Then answer my ' +
-        'message below. If there is no message below, reply with the summary only.',
+        'question below. If there is no question below, reply with the summary only.',
       '',
-      `If there is a message below, end your first reply with ${TITLE_LINE}`,
+      `If there is a question below, end your first reply with ${TITLE_LINE}`,
     ].join('\n');
   }
 

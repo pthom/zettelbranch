@@ -56,7 +56,7 @@ Click **Open new chat**, or **Cancel**.
 
 ### 4. Ask your question
 
-A new chat opens with the text in the message box. Type your question at the end of the box, under `MY MESSAGE`, then press **Send** yourself. Zettelbranch never sends anything. Once sent, the panel checks off this step.
+A new chat opens with the text in the message box. Type your first question for this branch at the end of the box, under `MY QUESTION`, then press **Send** yourself. Everything above it is the conversation so far, copied for Claude. Zettelbranch never sends anything. Once sent, the panel checks off this step.
 
 ![The new chat, with the text in the box and the two steps](images/new-chat.png)
 

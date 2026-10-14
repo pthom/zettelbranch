@@ -1,7 +1,8 @@
 // Zettelbranch: the panel. A small "Zettelbranch" button at the bottom right opens it.
 // Shadow DOM outside <body>, built with DOM nodes and textContent only. Click listeners,
 // and pointer listeners on the panel's own title bar to drag it; no keyboard or input
-// listeners. Every action starts with a click; the flow itself is in branch.js. Names are
+// listeners, but on its own text fields, which only stop the keys there so that claude.ai does
+// not take them. Every action starts with a click; the flow itself is in branch.js. Names are
 // asked in small forms of the panel (0.2.0), whose fields are read when their button is
 // clicked. While the panel is open, it follows the chat on screen: when the tab moves to
 // another chat, it reads that chat as its refresh button does (reads only).
@@ -438,7 +439,15 @@
     const no = button('Cancel', `${zb}-cancel`, onCancel);
     return el('form', { method: 'dialog', class: 'form', 'data-zb': zb }, [...kids, el('div', { class: 'row' }, [ok, no])]);
   }
-  const field = (zb, value) => el('input', { type: 'text', 'data-zb': zb, value, autocomplete: 'off', spellcheck: 'false' });
+  // claude.ai moves the focus to its own message box when a key reaches its page from outside
+  // its fields (probe P12, 2026-10-14, Chrome and Firefox): the keys typed in a field of the
+  // panel stop at that field. Stopped, never read: Enter still clicks the form's button.
+  const stopKey = (e) => e.stopPropagation();
+  function field(zb, value) {
+    const input = el('input', { type: 'text', 'data-zb': zb, value, autocomplete: 'off', spellcheck: 'false' });
+    for (const type of ['keydown', 'keypress', 'keyup']) input.addEventListener(type, stopKey);
+    return input;
+  }
   const formError = (text) => (text ? el('p', { class: 'box warn', 'data-zb': 'form-error', text }) : null);
   function focusField(input) {
     input.focus();
@@ -504,8 +513,8 @@
           text: o.sent
             ? 'Sent.'
             : o.own
-              ? 'Your message is at the end of the box, under MY MESSAGE. Change it if you like, then press Send.'
-              : 'Type your question at the end of the box, under MY MESSAGE, then press Send.',
+              ? 'Your message is at the end of the box, under MY QUESTION: change it if you like, then press Send. Everything above it is the conversation so far, copied for Claude.'
+              : 'Type your first question for this branch at the end of the box, under MY QUESTION, then press Send. Everything above it is the conversation so far, copied for Claude.',
         }),
       ]),
       el('div', { class: 'step', 'data-zb': 'step-2' }, [

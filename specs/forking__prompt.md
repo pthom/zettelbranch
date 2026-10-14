@@ -1,6 +1,6 @@
 # Branch prompt
 
-The text the extension puts in the new chat's message box when you branch. First written on 2026-10-13; the layout of 0.1.4 on 2026-10-14. Built on the decisions FK-1 = A (Claude writes the summary), FK-2 = A (full transcript), FK-3 = A (branching from your message replaces it) and AD-1 = A (`<tree>/<address>` titles). Context: [forking__findings](done/first-review/forking__findings.md), [forking__questions](done/first-review/forking__questions.md).
+The text the extension puts in the new chat's message box when you branch. First written on 2026-10-13; the layout of 0.1.4 on 2026-10-14; `MY QUESTION` in 0.2.0. Built on the decisions FK-1 = A (Claude writes the summary), FK-2 = A (full transcript), FK-3 = A (branching from your message replaces it) and AD-1 = A (`<tree>/<address>` titles). Context: [forking__findings](done/first-review/forking__findings.md), [forking__questions](done/first-review/forking__questions.md).
 
 ## Layout
 
@@ -9,7 +9,7 @@ The first message of a branch has four parts, in this order:
 1. **Header.** Three or four quoted lines, readable without the extension, including in the mobile app.
 2. **Transcript.** The conversation from the root of the tree to the fork point, each message under a label line.
 3. **Instructions** for Claude.
-4. **Your message.** Empty, with the cursor there. When you branch from your own message (FK-3 = A), your old message is pre-filled here for you to change.
+4. **Your question,** under `MY QUESTION`. Empty, with the cursor there. When you branch from your own message (FK-3 = A), your old message is pre-filled here for you to change. Named `MY MESSAGE` in the builds of 0.1.4 (never released, used by Pascal), which are still read; Pascal found that name unclear (2026-10-14). The label names what goes under it rather than giving an order ("PLEASE TYPE A FIRST QUESTION BELOW"), since it stays in the sent message for good and Claude reads it too; the panel's step 1 explains it when the new chat opens.
 
 Long material goes first and the question last: Anthropic's long-context advice, and it puts the cursor where you type.
 
@@ -36,7 +36,7 @@ Not without reading the full list page or the API. …
 
 The transcript above is our conversation so far, …
 
-> `MY MESSAGE`
+> `MY QUESTION`
 
 ```
 
@@ -88,7 +88,7 @@ Backlinks need every conversation of the tree. …
 - Message text is Markdown, copied as is (FK-D3). Content that was not copied gets a placeholder (FK-D1).
 - With nothing before the fork point (a branch from a chat's first message), the transcript's section is left out: the instructions come right after the header.
 - **Flattening.** A branch's first message contains its own transcript. When you branch from a branch, the extension does not nest that transcript inside the new one. It parses the first message back into the earlier turns plus your own text, and lists them in one flat sequence from the root. Claude's summary at the top of the branch's first reply is dropped: with the full transcript it says nothing new. So is the "Branch title:" line at its bottom ([below](#claudes-first-reply)). A branch made before 0.1.4 (tags) is flattened the same way. If parsing fails, the first message is copied as is, nested; worse, but still correct.
-- **Escaping.** A message line that looks exactly like a label line (likely only in conversations about this very prompt) gets one backslash in front (`` \> `MY MESSAGE` ``), one more if it had some already. The extension removes one when parsing back.
+- **Escaping.** A message line that looks exactly like a label line (likely only in conversations about this very prompt) gets one backslash in front (`` \> `MY QUESTION` ``), one more if it had some already. The extension removes one when parsing back.
 - **A code block left open** in a message (a reply cut short) is closed at the end of that message, so that it does not take in the labels and the instructions that follow.
 
 ## Instructions
@@ -100,9 +100,9 @@ Backlinks need every conversation of the tree. …
 
 The transcript above is our conversation so far, copied from the conversation zb/1b up to message 4. Zettelbranch added the quoted lines (the header, the section names in capitals, and the label before each message, which says who wrote it, in which conversation and its number) for display: they are not part of the conversation, so do not reproduce them in your replies. The messages labelled Claude are your own earlier replies. Treat it as shared history: do not comment on it, quote it back, or answer its questions again. Placeholders ending in "not copied", such as [file: photo.png, not copied], mark content that was not carried over; ask me if you need it. Text under a [pasted text: …] line is text I pasted, copied in full.
 
-Start your first reply with a single blockquote paragraph that begins with "Parent zb/1b in brief:" and says in 2 to 4 sentences where the conversation stood at that point, in the language of the conversation. Then answer my message below. If there is no message below, reply with the summary only.
+Start your first reply with a single blockquote paragraph that begins with "Parent zb/1b in brief:" and says in 2 to 4 sentences where the conversation stood at that point, in the language of the conversation. Then answer my question below. If there is no question below, reply with the summary only.
 
-If there is a message below, end your first reply with a separate last line: "Branch title:" followed by 3 to 6 words naming what this branch is about, from my message below, in the language of the conversation.
+If there is a question below, end your first reply with a separate last line: "Branch title:" followed by 3 to 6 words naming what this branch is about, from my question below, in the language of the conversation.
 ```
 
 The first paragraph tells Claude that the quoted lines are Zettelbranch's, so that it reads through them and does not imitate them (Pascal, 2026-10-14). The second exists only if FK-1 = A. With FK-1 = B the summary is in the header instead; with C it is gone. The third asks for the branch's name (step 6e).
@@ -112,9 +112,9 @@ When nothing comes before the fork point (a branch from a chat's first message),
 ```
 > `INSTRUCTIONS FOR CLAUDE`
 
-This chat is a new branch of the conversation zb/1b, started from its first message, so there is no earlier history. Do not comment on the quoted lines above and below; Zettelbranch added them for my own records. Answer my message below.
+This chat is a new branch of the conversation zb/1b, started from its first message, so there is no earlier history. Do not comment on the quoted lines above and below; Zettelbranch added them for my own records. Answer my question below.
 
-End your first reply with a separate last line: "Branch title:" followed by 3 to 6 words naming what this branch is about, from my message below, in the language of the conversation.
+End your first reply with a separate last line: "Branch title:" followed by 3 to 6 words naming what this branch is about, from my question below, in the language of the conversation.
 ```
 
 The texts are those of `extension/prompt.js` (`instructions()`), word for word, and the unit tests hold them.
@@ -157,7 +157,7 @@ The header message is message 1 in a copy. In a branch claude.ai copied, it is t
 | Parent, fork point | The header message, line 3 | after `Forked from: ` |
 | Cross-references | The header message, line 4; any message | `→ <address>` or `→ <tree>/<address>` |
 | Earlier turns | The header message of a copy | the label lines between `OUR CONVERSATION SO FAR` and `INSTRUCTIONS FOR CLAUDE`, each message being the text up to the next label (before 0.1.4: `<zb-turn>` elements inside `<zb-transcript>`) |
-| Your own text | The header message | everything after the `MY MESSAGE` label (before 0.1.4: after `</zb-instructions>`) |
+| Your own text | The header message | everything after the `MY QUESTION` label (`MY MESSAGE` in the builds of 0.1.4; before 0.1.4: after `</zb-instructions>`) |
 | Summary | The reply after the header message | first blockquote starting with `Parent` |
 | Branch title | The same reply, its last non-empty line | `Branch title: (.+)`, bold or italic marks, quotes and a final period dropped: "Name this branch" proposes it first; dropped from the reply when it is copied into another branch |
 

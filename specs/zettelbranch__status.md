@@ -13,7 +13,7 @@ Zettelbranch **0.1.3** is the latest release (2026-10-14), announced by Pascal o
 - **Firefox:** signed by Mozilla (unlisted, add-on 3095566 on addons.mozilla.org), one-click install from the README, automatic updates through `updates.json` in this repository.
 - **Chrome:** developer mode ("Load unpacked"), updated by hand; the README tells Chrome users to watch the repository's releases.
 - **What 0.1.3 fixed:** in Firefox, claude.ai's box joined the prompt's lines into one, so branches made in Firefox could not be named. Now the box is refilled line by line when that happens, branches made by 0.1.2 are read anyway, and the panel can be dragged by its title bar ([findings](firefox-insertion__findings.md)). Checked by Pascal in Firefox and Chrome.
-- **Tests** (0.2.0, not released): audit 73/73, unit 64/64, end-to-end 35/35, a real Tiptap editor in Chromium and Firefox 6/6 (`cd tests && npm test`, offline).
+- **Tests** (0.2.0, not released): audit 76/76, unit 65/65, end-to-end 35/35, a real Tiptap editor in Chromium and Firefox 6/6 (`cd tests && npm test`, offline).
 - **The repository:** README with an animated demo, four illustrated steps and one-click install; user manual in `docs/MANUAL.md`; Discussions on; a "Something broke" issue form; private security reports (`SECURITY.md`); a link-preview image.
 
 The story of the day (0.1.0 to 0.1.3, the native fork explored and dropped, the rename through claude.ai's menu, the Firefox fix) is in the [done log](done/README.md). The facts about claude.ai it all builds on: [claude-ai__findings](claude-ai__findings.md#9-checked-on-pascals-account-milestone-0).
@@ -32,8 +32,8 @@ Built offline (version 0.1.4, not released): all tests pass, including the real 
 
 ## Waiting on Pascal
 
-1. **Session 1 on claude.ai** (about 25 minutes, any time): probe P12 in Chrome and Firefox, the render test, "gather branches" by hand, a fresh Firefox profile ([checklist](milestone-2/checks-on-claude-ai__specs.md#session-1-probes-about-25-minutes-any-time-now)).
-2. **Pictures** (reminder, as asked on 2026-10-14): each session ends with its pictures, [visuals__specs](milestone-2/visuals__specs.md); session 1: F1 and F2, Firefox's install prompt and its permission menu.
+1. **Session 1 on claude.ai: done** (2026-10-14), [results](milestone-2/checks-on-claude-ai__specs.md#session-1-probes-about-25-minutes-any-time-now). claude.ai takes keys typed in the panel (now stopped at its fields); code blocks render, no rewrite; a fresh Firefox install needs no extra step; Claude can find and open other chats itself. Left: delete the `zbtest/` chats of the session (`zbtest/render-2`, `zbtest/gather`, the P12 "Test chat"), and turn Zettelbranch back on in the Firefox test profile.
+2. **Pictures** (reminder, as asked on 2026-10-14): each session ends with its pictures, [visuals__specs](milestone-2/visuals__specs.md); session 1: done (F1 kept in `tests/out/install/`); session 2: the README's, the manual's and the demo's pictures.
 3. **Session 2 on claude.ai** (about 30 minutes, after session 1): check 0.2.0 in Chrome and Firefox, with the open steps of 0.1.4's check ([checklist](milestone-2/checks-on-claude-ai__specs.md#session-2-020-about-30-minutes-after-session-1)); then the release.
 4. **Use Zettelbranch for real** and note what bothers you; watch the post's replies, the GitHub issues and Discussions. That feedback guides Milestone 3.
 5. **Optional:** reply under the post that 0.1.3 fixes Firefox (draft in chat: "Update: Zettelbranch 0.1.3 fixes branching in Firefox…").
@@ -48,7 +48,7 @@ Built offline (version 0.1.4, not released): all tests pass, including the real 
 
 ## Next for Claude
 
-1. Milestone 2's [plan](milestone-2/milestone-2__specs.md), from session 1's results: if claude.ai takes the keys (P12), stop them at the panel's fields (and `AUDIT.md`); if the bubble renders tilde blocks, rewrite four-backtick blocks as tilde blocks in the copy; the Firefox install picture or a manifest change (step 6); note the "gather branches" result for Milestone 3. Without waiting: the README's new opening (Pascal's "parenthesis" paragraph), the Chrome Web Store texts and privacy answers, the posts' drafts. After session 2: the release of 0.2.0, then the pictures (step 7). Milestone 3 candidates, from the spec and the sessions:
+1. Milestone 2's [plan](milestone-2/milestone-2__specs.md). Session 1's results are built into 0.2.0 (keys stopped at the panel's fields, `MY QUESTION`, step 1 explaining it). The README's install step 3 is now a note for when the button does not show. Without waiting: the README's new opening (Pascal's "parenthesis" paragraph), the Chrome Web Store texts and privacy answers, the posts' drafts. After session 2: the release of 0.2.0, then the pictures (step 7). Milestone 3 candidates, from the spec and the sessions:
    - "gather branches" (hints, section 5);
    - the banner in each branch (path, siblings, children, with links);
    - a "Branch from here" button on each message (M1-2 = C);

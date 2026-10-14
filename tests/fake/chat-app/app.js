@@ -177,6 +177,15 @@
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeMenu();
   });
+  // claude.ai moves the focus to its message box when you type while none of its fields has
+  // it (probe P12, 2026-10-14, Chrome and Firefox): the key then lands in the box. A field in
+  // Zettelbranch's Shadow DOM is not one of its fields: the page sees the panel's host focused.
+  document.addEventListener('keydown', (e) => {
+    if (!e.isTrusted || e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1) return;
+    const a = document.activeElement;
+    if (a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.isContentEditable)) return;
+    editor.focus();
+  });
   function startRename(o) {
     closeMenu();
     if (!o.field) return;

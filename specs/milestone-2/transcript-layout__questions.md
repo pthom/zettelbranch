@@ -50,7 +50,7 @@ Four styles that claude.ai can render, in `tests/out/render-probe-2.md`: type `!
 **Answer:** a third sample (`tests/out/render-probe-3.md`) put the box inside the quote, with and without small arrows. Pascal passed on Claude's review of it from `zbtest/render`, and Claude Code built what it proposed:
 
 - the label is a code box inside a quote, a blank line after it, then the message as written: the bar and the box mark every boundary, and the messages read as normal text;
-- the section names in capitals (`OUR CONVERSATION SO FAR`, `INSTRUCTIONS FOR CLAUDE`, `MY MESSAGE`), so they do not look like one more message;
+- the section names in capitals (`OUR CONVERSATION SO FAR`, `INSTRUCTIONS FOR CLAUDE`, `MY MESSAGE`, which became `MY QUESTION` in 0.2.0), so they do not look like one more message;
 - the header quoted too, so it stands apart from the messages (its three lines keep their line breaks);
 - no arrows: at that size they read as specks, and "Me" and "Claude" already differ.
 
@@ -61,7 +61,7 @@ Checked offline: in a real Tiptap editor, neither browser turns a line ending wi
 Steps 2 and 3 were seen in Pascal's live test on 2026-10-14 (`zettelbranch/1` → `zettelbranch/1a`), with one finding: Claude wrote its summary in bold, which was not recognised (fixed; [milestone-2__findings](milestone-2__findings.md), section 1, item 4).
 
 1. Chrome test profile: `chrome://extensions`, ⟳ on Zettelbranch (it shows 0.1.4). Firefox test profile: `about:debugging`, "Load Temporary Add-on…", `extension/manifest.json`.
-2. In a `zbtest` chat with a code block, branch from Claude's last reply, open the new chat, type a question under `MY MESSAGE`, send. Unfold the first message: the header, section names and labels have a bar, the labels a box, the messages read as normal text.
+2. In a `zbtest` chat with a code block, branch from Claude's last reply, open the new chat, type a question under `MY QUESTION` (0.2.0), send. Unfold the first message: the header, section names and labels have a bar, the labels a box, the messages read as normal text.
 3. Claude's reply: starts with "Parent … in brief", reproduces none of the labels, ends with "Branch title: …"; "Name this branch" proposes it.
 4. Branch again from the new branch: the preview holds one `OUR CONVERSATION SO FAR`, every message once.
 5. On a branch made before (for example `oulipo/1d`), click Branch: the preview shows its history in the new layout. Cancel.

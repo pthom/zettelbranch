@@ -57,10 +57,9 @@ This is an independent project, not made or endorsed by Anthropic.
 **Firefox** (on a computer, version 140 or later), signed by Mozilla:
 
 1. Click **[Install Zettelbranch for Firefox](https://github.com/pthom/zettelbranch/releases/latest/download/zettelbranch.xpi)**.
-2. Firefox says it "prevented this site from asking you to install software": that is expected for an add-on that does not come from Mozilla's store. Click **Continue to Installation**, then **Add**.
-3. Allow Zettelbranch on claude.ai: click the puzzle icon in the toolbar, then Zettelbranch.
+2. Firefox says it "prevented this site from asking you to install software": that is expected for an add-on that does not come from Mozilla's store. Click **Continue to Installation**, then **Add**: Firefox lists the one access Zettelbranch needs, your data on claude.ai.
 
-Firefox then keeps it up to date by itself.
+Firefox then keeps it up to date by itself. If the Zettelbranch button does not show on claude.ai, click the puzzle icon in Firefox's toolbar, then Zettelbranch, and allow it on claude.ai.
 
 **Chrome** (developer mode, for now):
 

@@ -211,10 +211,10 @@ export function createFakeClaude() {
   const TITLES = { 'What is the green flash?': 'The green flash', 'What about fish and birds?': 'Fish and birds on one page', 'What is a lipogram?': 'Lipograms', 'How does branching work?': 'How branches work', 'Shall we name the cards?': 'Naming the cards' };
   function reply(text) {
     text = text.replace(/^\s+/, ''); // Firefox's empty line at the top of the box
-    const mine = text.indexOf('\n> `MY MESSAGE`\n');
-    if (/^(> )?Zettelbranch · /.test(text) && mine >= 0) {
+    const label = /\n> `MY QUESTION`\n/.exec(text);
+    if (/^(> )?Zettelbranch · /.test(text) && label) {
       const parent = /"Parent (\S+) in brief:"/.exec(text);
-      const own = text.slice(mine + '\n> `MY MESSAGE`\n'.length).trim();
+      const own = text.slice(label.index + label[0].length).trim();
       const summary = parent ? `> Parent ${parent[1]} in brief: We talked about card boxes and their addresses.\n\n` : '';
       const name = TITLES[own] || `About ${own.split(/\s+/).slice(0, 3).join(' ')}`;
       const titled = own && options.claudeTitles && text.includes('a separate last line: "Branch title:"');

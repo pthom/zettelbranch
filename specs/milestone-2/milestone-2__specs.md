@@ -20,7 +20,7 @@
 5. **The Chrome Web Store** (M2-3 = B), before the posts, so Chrome users install in one click and get updates automatically. Firefox keeps its signed copy from this repository, which already updates itself.
 6. **Posts** drafted for r/ClaudeAI, the Obsidian community and Show HN, leading with the problem, then Luhmann and the Zettelkasten, without Perec (M2-4 = A); Pascal publishes them (hints, section 6).
 
-Decided during session 1 (2026-10-14), to build into 0.2.0:
+Decided during session 1 (2026-10-14), and built into 0.2.0 the same day (tests: audit 76/76, unit 65/65, end-to-end 35/35, editor 6/6; the fake claude.ai now takes keys as the real one does, and a test types key by key in the naming form):
 
 - **P12:** claude.ai takes keys typed in the panel (Chrome and Firefox): the forms stop the keys at their own fields, as the probe's field B did, and `AUDIT.md` says so.
 - **`MY QUESTION`** instead of `MY MESSAGE` (Pascal: "MY MESSAGE" does not say what to do). An instruction such as "PLEASE TYPE A FIRST QUESTION BELOW" would stay in the sent message for good, and Claude would read it too; the label names what goes under it, and the panel explains it at the right moment, when the new chat opens. Branches made with `MY MESSAGE` still read.

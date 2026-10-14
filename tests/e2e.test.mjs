@@ -301,7 +301,7 @@ test('branch from Claude\'s reply: next address by segments (1a exists; 1a1 and 
   assert.equal(lines[2], '> Forked from: zbtest/1 · Root topic, after message 4 (Claude): "Branching means continuing a card under a new address."');
   assert.ok(previewText.includes('> `Me · zbtest/1, message 1`\n\nWhat is a Zettelkasten? And how is a literal <zb-turn> tag escaped?\n\n> `Claude · zbtest/1, message 2`'), 'labelled, not escaped');
   assert.ok(!previewText.includes('OLD VERSION'), 'the edited message\'s old version is left out');
-  assert.ok(previewText.endsWith('> `MY MESSAGE`\n\n'));
+  assert.ok(previewText.endsWith('> `MY QUESTION`\n\n'));
   assert.equal(await text('size'), `${previewText.length.toLocaleString('en-US')} characters, about ${Math.round(previewText.length / 4).toLocaleString('en-US')} tokens. 4 messages copied.`);
   assert.equal(await Z('warning').count(), 0);
   assert.deepEqual(fake.apiLog.slice(before).map((e) => `${e.method} ${e.path.replace(/\?.*/, '')}`), ['GET /api/organizations/<org>/chat_conversations_v2', 'GET /api/organizations/<org>/chat_conversations_v2']);
@@ -317,7 +317,7 @@ test('Open new chat: the box holds exactly the preview text; Send is not pressed
   await click('open');
   assert.match(page.url(), /\/new$/);
   assert.equal(await text('opened'), 'The new chat holds the first message of zbtest/1b.');
-  assert.equal(await step(1), 'Type your question at the end of the box, under MY MESSAGE, then press Send.');
+  assert.equal(await step(1), 'Type your first question for this branch at the end of the box, under MY QUESTION, then press Send. Everything above it is the conversation so far, copied for Claude.');
   assert.equal(await step(2), 'When Claude has replied:');
   assert.equal(await Z('step-2').locator('[data-zb="name"]').textContent(), 'Name this branch');
   assert.equal(await Z('warning').count(), 0, 'the box matches the preview');
@@ -342,7 +342,7 @@ test('while the branch is not named, the hidden panel\'s pill says so; opened ag
   await shots('pill-remind');
   await openPanel();
   assert.equal(await text('status'), 'You opened the branch zbtest/1b in a new chat.');
-  assert.equal(await step(1), 'Type your question at the end of the box, under MY MESSAGE, then press Send.');
+  assert.equal(await step(1), 'Type your first question for this branch at the end of the box, under MY QUESTION, then press Send. Everything above it is the conversation so far, copied for Claude.');
   assert.equal(apiCount(), before, 'no API call in the new chat');
   assert.equal(await editorText(), previewText, 'the box is untouched');
 });
@@ -421,10 +421,10 @@ test('branch from your own message: it is pre-filled; next address 1c; Name with
   assert.equal(p.split('\n')[2], '> Forked from: zbtest/1 · Root topic, instead of message 3 (me): "How does branching work?"');
   assert.ok(p.includes('up to message 2.'));
   assert.ok(!p.includes('> `Me · zbtest/1, message 3`'));
-  assert.ok(p.endsWith('> `MY MESSAGE`\n\nHow does branching work?'));
+  assert.ok(p.endsWith('> `MY QUESTION`\n\nHow does branching work?'));
   await click('open');
   assert.equal(await editorText(), p);
-  assert.equal(await step(1), 'Your message is at the end of the box, under MY MESSAGE. Change it if you like, then press Send.');
+  assert.equal(await step(1), 'Your message is at the end of the box, under MY QUESTION: change it if you like, then press Send. Everything above it is the conversation so far, copied for Claude.');
   fake.options.branchTitle = 'Visual poems about cards and boxes'; // describes the parent, as on 2026-10-13
   fake.options.claudeTitles = false; // Claude did not end with a branch title: the question is next
   await pressSend();
@@ -436,7 +436,15 @@ test('branch from your own message: it is pre-filled; next address 1c; Name with
   assert.equal(await text('name-prefix'), 'zbtest/1c ·');
   assert.equal(await Z('name-field').inputValue(), 'How does branching work');
   assert.equal(await text('name-from'), 'Proposed from your first question in this branch.');
-  await fill('name-field', 'My own topic', 'name-form-ok');
+  // Typed key by key, as Pascal would: claude.ai (and the fake) moves keys that reach its page
+  // to its message box; the field keeps them (probe P12).
+  await Z('name-field').click();
+  await page.keyboard.press('ControlOrMeta+A');
+  await page.keyboard.type('My own topic');
+  assert.equal(await Z('name-field').inputValue(), 'My own topic', 'every key stayed in the field');
+  assert.equal(await editorText(), '', 'none reached claude.ai\'s message box');
+  await page.keyboard.press('Enter');
+  await idle();
   await assertMenuRename('zbtest/1c · My own topic', putsBefore);
   await assertClosed('You just created the branch zbtest/1c · My own topic.');
   await openPanel();

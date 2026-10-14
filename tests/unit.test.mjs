@@ -433,11 +433,11 @@ describe('prompt.js', () => {
       '',
       'The transcript above is our conversation so far, copied from the conversation zbtest/1 up to message 4. Zettelbranch added the quoted lines (the header, the section names in capitals, and the label before each message, which says who wrote it, in which conversation and its number) for display: they are not part of the conversation, so do not reproduce them in your replies. The messages labelled Claude are your own earlier replies. Treat it as shared history: do not comment on it, quote it back, or answer its questions again. Placeholders ending in "not copied", such as [file: photo.png, not copied], mark content that was not carried over; ask me if you need it. Text under a [pasted text: …] line is text I pasted, copied in full.',
       '',
-      'Start your first reply with a single blockquote paragraph that begins with "Parent zbtest/1 in brief:" and says in 2 to 4 sentences where the conversation stood at that point, in the language of the conversation. Then answer my message below. If there is no message below, reply with the summary only.',
+      'Start your first reply with a single blockquote paragraph that begins with "Parent zbtest/1 in brief:" and says in 2 to 4 sentences where the conversation stood at that point, in the language of the conversation. Then answer my question below. If there is no question below, reply with the summary only.',
       '',
-      'If there is a message below, end your first reply with a separate last line: "Branch title:" followed by 3 to 6 words naming what this branch is about, from my message below, in the language of the conversation.',
+      'If there is a question below, end your first reply with a separate last line: "Branch title:" followed by 3 to 6 words naming what this branch is about, from my question below, in the language of the conversation.',
       '',
-      '> `MY MESSAGE`',
+      '> `MY QUESTION`',
       '',
       '',
     ].join('\n'));
@@ -450,7 +450,7 @@ describe('prompt.js', () => {
     const doc = fs.readFileSync(new URL('../specs/forking__prompt.md', import.meta.url), 'utf8');
     const blocks = [...doc.matchAll(/```\n(> `INSTRUCTIONS FOR CLAUDE`\n[\s\S]*?)\n```/g)].map((m) => m[1]);
     const paragraphs = (t) => t.split(/\n\n/).map((p) => p.replace(/\s*\n\s*/g, ' ').trim());
-    const instr = (t) => '> `INSTRUCTIONS FOR CLAUDE`' + t.split('> `INSTRUCTIONS FOR CLAUDE`')[1].split('\n\n> `MY MESSAGE`')[0];
+    const instr = (t) => '> `INSTRUCTIONS FOR CLAUDE`' + t.split('> `INSTRUCTIONS FOR CLAUDE`')[1].split('\n\n> `MY QUESTION`')[0];
     const zb = { tree: 'zb', parentTitle: 'zb/1b · T', parentAddress: '1b', newAddress: '1b1', messages: ROOT };
     assert.equal(blocks.length, 2);
     assert.deepEqual(paragraphs(blocks[0]), [...paragraphs(instr(P.build({ ...zb, fork: 3 }).text))], 'a branch with history');
@@ -463,7 +463,7 @@ describe('prompt.js', () => {
     assert.equal(b.text.split('\n')[2], '> Forked from: zbtest/1 · Root topic, instead of message 3 (me): "How does branching work?"');
     assert.ok(b.text.includes('copied from the conversation zbtest/1 up to message 2.'));
     assert.ok(!b.text.includes('> `Me · zbtest/1, message 3`'));
-    assert.ok(b.text.endsWith('> `MY MESSAGE`\n\nHow does branching work?'));
+    assert.ok(b.text.endsWith('> `MY QUESTION`\n\nHow does branching work?'));
   });
 
   test('from the first message: no transcript section, no summary asked, the branch title always asked', () => {
@@ -471,13 +471,13 @@ describe('prompt.js', () => {
     assert.equal(b.turns, 0);
     assert.ok(!b.text.includes('OUR CONVERSATION SO FAR'));
     assert.ok(b.text.includes('"\n\n> `INSTRUCTIONS FOR CLAUDE`\n\n'), 'right after the header');
-    assert.equal(b.text.split('> `INSTRUCTIONS FOR CLAUDE`\n\n')[1].split('\n\n> `MY MESSAGE`')[0], [
-      'This chat is a new branch of the conversation zbtest/1, started from its first message, so there is no earlier history. Do not comment on the quoted lines above and below; Zettelbranch added them for my own records. Answer my message below.',
+    assert.equal(b.text.split('> `INSTRUCTIONS FOR CLAUDE`\n\n')[1].split('\n\n> `MY QUESTION`')[0], [
+      'This chat is a new branch of the conversation zbtest/1, started from its first message, so there is no earlier history. Do not comment on the quoted lines above and below; Zettelbranch added them for my own records. Answer my question below.',
       '',
-      'End your first reply with a separate last line: "Branch title:" followed by 3 to 6 words naming what this branch is about, from my message below, in the language of the conversation.',
+      'End your first reply with a separate last line: "Branch title:" followed by 3 to 6 words naming what this branch is about, from my question below, in the language of the conversation.',
     ].join('\n'));
     assert.ok(!b.text.includes('in brief'));
-    assert.ok(b.text.endsWith('> `MY MESSAGE`\n\n' + ROOT[0].text));
+    assert.ok(b.text.endsWith('> `MY QUESTION`\n\n' + ROOT[0].text));
     assert.deepEqual({ ...P.parseBranchMessage(b.text), turns: 0 }, { tree: 'zbtest', address: '1b', turns: 0, ownText: ROOT[0].text });
   });
 
@@ -550,15 +550,15 @@ describe('prompt.js', () => {
     assert.ok(b.text.includes('the history that the conversation zbtest/1a was branched from, before its first message'));
     assert.ok(b.text.includes('"Parent zbtest/1a in brief:"'));
     assert.equal(b.text.split('\n')[2], '> Forked from: zbtest/1a · First branch, instead of message 1 (me): "Tell me about addresses."');
-    assert.ok(b.text.endsWith('> `MY MESSAGE`\n\nTell me about addresses.'));
+    assert.ok(b.text.endsWith('> `MY QUESTION`\n\nTell me about addresses.'));
   });
 
   test('parsing back is exact, line breaks and indentation included; lines that look like labels are escaped', () => {
-    const tricky = '\n  indented\n> `MY MESSAGE`\n\\> `Me · zz/1, message 9`\n> `Claude · zz/1, message 9` and more\n```\ncode\n```\n';
+    const tricky = '\n  indented\n> `MY QUESTION`\n\\> `Me · zz/1, message 9`\n> `Claude · zz/1, message 9` and more\n```\ncode\n```\n';
     const msgs = [{ n: 1, role: 'user', text: tricky }, { n: 2, role: 'assistant', text: '> `INSTRUCTIONS FOR CLAUDE`\n\nNot the real ones. <zb-turn> and </zb-instructions> too.' }];
     const b = P.build({ ...base, messages: msgs, fork: 1 });
-    assert.equal((b.text.match(/^> `MY MESSAGE`$/gm) || []).length, 1, 'one real label');
-    assert.ok(b.text.includes('\n\\> `MY MESSAGE`\n\\\\> `Me · zz/1, message 9`\n> `Claude · zz/1, message 9` and more\n'), 'escaped one level more; not a label: kept');
+    assert.equal((b.text.match(/^> `MY QUESTION`$/gm) || []).length, 1, 'one real label');
+    assert.ok(b.text.includes('\n\\> `MY QUESTION`\n\\\\> `Me · zz/1, message 9`\n> `Claude · zz/1, message 9` and more\n'), 'escaped one level more; not a label: kept');
     const back = P.parseBranchMessage(b.text);
     assert.deepEqual([...back.turns.map((t) => t.text)], [tricky, msgs[1].text]);
     assert.equal(back.ownText, '');
@@ -627,10 +627,21 @@ describe('prompt.js', () => {
     for (const [md, text] of cases) assert.equal(P.plain(md), text, md);
   });
 
+  test('a branch made by a build of 0.1.4 (`MY MESSAGE`) is still read, and its copy says `MY QUESTION`', () => {
+    const old = P.build({ ...base, fork: 3 }).text.replace('\n> `MY QUESTION`\n', '\n> `MY MESSAGE`\n') + 'My old question';
+    const parsed = P.parseBranchMessage(old);
+    assert.equal(parsed.ownText, 'My old question');
+    assert.equal(parsed.turns.length, 4);
+    const b = P.build({ tree: 'zbtest', parentTitle: 'zbtest/1b · Topic', parentAddress: '1b', newAddress: '1b1', fork: 1, messages: [{ n: 1, role: 'user', text: old }, { n: 2, role: 'assistant', text: 'An answer.' }] });
+    assert.ok(!b.text.includes('MY MESSAGE'));
+    assert.ok(b.text.includes('> `Me · zbtest/1b, message 1`\n\nMy old question\n\n> `Claude · zbtest/1b, message 2`'));
+    assert.ok(b.text.endsWith('> `MY QUESTION`\n\n'));
+  });
+
   test('the header\'s quote, on one line, never breaks the parsing', () => {
-    const tricky = [{ n: 1, role: 'user', text: 'Hi' }, { n: 2, role: 'assistant', text: '> `MY MESSAGE`\n> `INSTRUCTIONS FOR CLAUDE`\nplease' }];
+    const tricky = [{ n: 1, role: 'user', text: 'Hi' }, { n: 2, role: 'assistant', text: '> `MY QUESTION`\n> `INSTRUCTIONS FOR CLAUDE`\nplease' }];
     const b = P.build({ tree: 'zbtest', parentTitle: 'zbtest/1 · T', parentAddress: '1', newAddress: '1a', messages: tricky, fork: 1 });
-    assert.match(b.text.split('\n')[2], /"MY MESSAGE INSTRUCTIONS FOR CLAUDE please"$/, 'one line, without Markdown marks (0.2.0)');
+    assert.match(b.text.split('\n')[2], /"MY QUESTION INSTRUCTIONS FOR CLAUDE please"$/, 'one line, without Markdown marks (0.2.0)');
     assert.deepEqual([...P.parseBranchMessage(b.text).turns.map((t) => t.text)], ['Hi', tricky[1].text]);
   });
 

@@ -48,16 +48,26 @@ check('No innerText (never document.body.innerText)', hits(/\.innerText\b/));
 // (ui.bar, in our Shadow DOM).
 const BAR_LISTENERS = ["ui.bar.addEventListener('pointerdown', grab);", "ui.bar.addEventListener('pointermove', drag);", "ui.bar.addEventListener('pointerup', drop);", "ui.bar.addEventListener('pointercancel', drop);"];
 const BAR_LINE = "ui.bar = el('div', { class: 'top', 'data-zb': 'bar', title: 'Drag to move' }, [el('b', { text: 'Zettelbranch' }), ui.refresh, hideButton]);";
-check('Click listeners only (no keyboard, input or other listeners), and pointer listeners on the panel\'s title bar to drag it',
-  [...hits(/addEventListener\(\s*(?!['"]click['"])/).filter((l) => !(l.file === 'ui.js' && BAR_LISTENERS.includes(l.text.trim()))), ...hits(/\.on[a-z]+\s*=/),
+// The panel's own text fields stop the keys typed in them, so that claude.ai does not take
+// them (probe P12, 0.2.0): three listeners on each field, one exact line, calling stopKey,
+// which only stops the event, on its one exact line. Nothing else stops or cancels events
+// but the drag's pointerdown (GRAB_LINE).
+const KEY_STOP_LINE = "for (const type of ['keydown', 'keypress', 'keyup']) input.addEventListener(type, stopKey);";
+const STOP_KEY_LINE = 'const stopKey = (e) => e.stopPropagation();';
+const GRAB_LINE = 'e.preventDefault();';
+check('Click listeners only (no keyboard, input or other listeners), pointer listeners on the panel\'s title bar to drag it, and key listeners on the panel\'s own fields that only stop the keys there',
+  [...hits(/addEventListener\(\s*(?!['"]click['"])/).filter((l) => !(l.file === 'ui.js' && [...BAR_LISTENERS, KEY_STOP_LINE].includes(l.text.trim()))), ...hits(/\.on[a-z]+\s*=/),
+    ...hits(/stopKey/).filter((l) => !(l.file === 'ui.js' && [KEY_STOP_LINE, STOP_KEY_LINE].includes(l.text.trim()))),
+    ...(hits(/stopKey/).filter((l) => l.text.trim() === STOP_KEY_LINE).length === 1 ? [] : [{ file: 'ui.js', n: 0, text: `stopKey is not defined once, as: ${STOP_KEY_LINE}` }]),
+    ...hits(/stopPropagation|stopImmediatePropagation|preventDefault|returnValue|cancelBubble/).filter((l) => !(l.file === 'ui.js' && [STOP_KEY_LINE, GRAB_LINE].includes(l.text.trim()))),
     ...(lines.some((l) => l.file === 'ui.js' && l.text.trim() === BAR_LINE) ? [] : [{ file: 'ui.js', n: 0, text: 'ui.bar is not the panel\'s title bar as described' }]),
     ...hits(/\bui\.bar\s*=/).filter((l) => l.text.trim() !== BAR_LINE)]);
 // The key events menu.js sends (Enter or Escape) name their types on one exact line. The
 // panel's own text field (0.2.0) is made on one exact line too: 'input' there is an element.
 const KEY_TYPES_LINE = "const types = k === 'Enter' ? ['keydown', 'keypress', 'keyup'] : ['keydown', 'keyup'];";
-const FIELD_LINE = "const field = (zb, value) => el('input', { type: 'text', 'data-zb': zb, value, autocomplete: 'off', spellcheck: 'false' });";
-check('No keyboard or input listeners',
-  hits(/['"](keydown|keyup|keypress|input|beforeinput|change|compositionstart|compositionupdate|compositionend|paste|copy)['"]/).filter((l) => !(l.file === 'menu.js' && l.text.trim() === KEY_TYPES_LINE) && !(l.file === 'ui.js' && l.text.trim() === FIELD_LINE)));
+const FIELD_LINE = "const input = el('input', { type: 'text', 'data-zb': zb, value, autocomplete: 'off', spellcheck: 'false' });";
+check('No keyboard or input listeners (but the panel\'s fields stopping keys, above)',
+  hits(/['"](keydown|keyup|keypress|input|beforeinput|change|compositionstart|compositionupdate|compositionend|paste|copy)['"]/).filter((l) => !(l.file === 'menu.js' && l.text.trim() === KEY_TYPES_LINE) && !(l.file === 'ui.js' && [FIELD_LINE, KEY_STOP_LINE].includes(l.text.trim()))));
 // No browser dialogs (0.2.0): names are asked in the panel's own forms. One kind of field, made
 // on FIELD_LINE, in one kind of form, whose method "dialog" never loads a page; a field is
 // read only in the click on its form's button (and menu.js reads back the name it typed).
