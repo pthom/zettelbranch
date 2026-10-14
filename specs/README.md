@@ -37,7 +37,5 @@ Claude maintains these files. Pascal answers questions inline and may edit anyth
 
 ## Open questions
 
-| ID | Question | File |
-|---|---|---|
-| TL-2 | Which style for the label line above each copied message (TL-1 = B)? | [transcript-layout__questions](transcript-layout__questions.md) |
+None right now. TL-1 and TL-2 (the layout of a branch's first message) are decided; [their file](transcript-layout__questions.md) holds the check of 0.1.4 on claude.ai.
 

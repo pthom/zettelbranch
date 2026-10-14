@@ -1,19 +1,61 @@
 // Zettelbranch: the branch prompt, per specs/forking__prompt.md, parsing it back, and the
 // topic proposed for a branch's name. Pure functions, no DOM, no network.
 //
-// A branch's first message:
-//   1. header (3 plain lines)   2. <zb-transcript> of <zb-turn>   3. <zb-instructions>
-//   4. your message (empty, or your old message when branching instead of it)
+// A branch's first message, laid out for claude.ai, which shows only code blocks, inline code
+// and quotes in your messages (TL-1, TL-2, 2026-10-14):
+//   1. header (3 quoted lines)
+//   2. > `OUR CONVERSATION SO FAR`, then each message under a label: > `Me · tree/1a, message 3`
+//   3. > `INSTRUCTIONS FOR CLAUDE`
+//   4. > `MY MESSAGE`: empty, or your old message when branching instead of it
+// Branches made before 0.1.4 used tags (<zb-transcript>, <zb-turn>, <zb-instructions>): they
+// are still read.
 (function (global) {
   'use strict';
 
   const T = () => global.ZBTree;
-  // The header's first line. Also when the line breaks were lost (0.1.2 in Firefox sent the
-  // whole first message as one line): then a space follows the address.
-  const HEADER_RE = /^Zettelbranch · ([a-z0-9-]+)\/([0-9a-z]+)(?=\s|$)/;
+  // The header's first line, quoted (unquoted before 0.1.4). Also when the line breaks were
+  // lost (0.1.2 in Firefox sent the whole first message as one line): then a space follows the
+  // address.
+  const HEADER_RE = /^(?:> ?)?Zettelbranch · ([a-z0-9-]+)\/([0-9a-z]+)(?=\s|$)/;
 
-  // Message text holding `<zb-` (a chat about this very prompt) gets `&lt;zb-` there.
-  const escapeZb = (t) => t.replace(/<(\/?)zb-/g, '&lt;$1zb-');
+  // ---------------------------------------------------------------- the label lines
+
+  const SECTIONS = { transcript: 'OUR CONVERSATION SO FAR', instructions: 'INSTRUCTIONS FOR CLAUDE', mine: 'MY MESSAGE' };
+  const WHO = { user: 'Me', assistant: 'Claude' };
+  const sectionLine = (name) => `> \`${name}\``;
+  const turnLine = (tree, t) => `> \`${WHO[t.role]} · ${tree}/${t.branch}, message ${t.n}\``;
+  // A label line, or a message line that looks like one, escaped by one backslash per level.
+  const LABEL_RE = /^(\\*)> `(?:(Me|Claude) · [a-z0-9-]+\/([0-9a-z]+), message (\d+)|(OUR CONVERSATION SO FAR|INSTRUCTIONS FOR CLAUDE|MY MESSAGE))`[ \t]*$/;
+  const escapeLabels = (t) => t.split('\n').map((l) => (LABEL_RE.test(l) ? '\\' + l : l)).join('\n');
+  const unescapeLabels = (t) => t.split('\n').map((l) => { const m = LABEL_RE.exec(l); return m && m[1] ? l.slice(1) : l; }).join('\n');
+
+  // The label lines of a message: [{ start, end, section } or { start, end, role, branch, n }],
+  // start and end being the line's offsets.
+  function labels(text) {
+    const out = [];
+    let pos = 0;
+    for (const line of text.split('\n')) {
+      const m = LABEL_RE.exec(line);
+      if (m && !m[1]) out.push(m[5] ? { start: pos, end: pos + line.length, section: m[5] } : { start: pos, end: pos + line.length, role: m[2] === 'Me' ? 'user' : 'assistant', branch: m[3], n: Number(m[4]) });
+      pos += line.length + 1;
+    }
+    return out;
+  }
+
+  // A code block a message leaves open (a reply cut short) is closed at its end, so that it
+  // does not take in the labels and the instructions that follow.
+  function closeFence(text) {
+    let open = null;
+    for (const line of text.split('\n')) {
+      const m = /^ {0,3}(`{3,}|~{3,})/.exec(line);
+      if (!m) continue;
+      if (!open) open = m[1];
+      else if (m[1][0] === open[0] && m[1].length >= open.length && !line.slice(m.index + m[0].length).trim()) open = null;
+    }
+    return open ? `${text}\n${open}` : text;
+  }
+
+  // Before 0.1.4: message text holding `<zb-` had `&lt;zb-` there.
   const unescapeZb = (t) => t.replace(/&lt;(\/?)zb-/g, '<$1zb-');
 
   // Text for one line (a quote, a list label): code-fence marks and quote markers dropped.
@@ -34,13 +76,40 @@
     return h && T().parseAddress(h[2]) ? { tree: h[1], address: h[2] } : null;
   }
 
-  // A branch's first message, back into its parts. Null if it is not one.
+  // A branch's first message, back into its parts: { tree, address, turns, ownText }. Null if
+  // it is not one.
   function parseBranchMessage(text) {
     text = String(text);
     const head = parseHeader(text);
+    if (!head) return null;
+    return parseLabelled(text, head) || parseTagged(text, head);
+  }
+
+  // From 0.1.4: the label lines. A message is the text between its label and the next one,
+  // without the blank line after the label and the one before the next.
+  function parseLabelled(text, head) {
+    const marks = labels(text);
+    const instr = marks.findIndex((m) => m.section === SECTIONS.instructions);
+    const mine = marks.findIndex((m, i) => i > instr && m.section === SECTIONS.mine);
+    if (instr < 0 || mine < 0) return null;
+    const from = marks.findIndex((m) => m.section === SECTIONS.transcript);
+    const turns = [];
+    if (from >= 0 && from < instr) {
+      for (let i = from + 1; i < instr; i++) {
+        const m = marks[i];
+        if (!m.role) continue;
+        const body = text.slice(m.end, marks[i + 1].start).replace(/^\n\n?/, '').replace(/\n\n?$/, '');
+        turns.push({ branch: m.branch, n: m.n, role: m.role, text: unescapeLabels(body) });
+      }
+    }
+    return { ...head, turns, ownText: text.slice(marks[mine].end).trim() };
+  }
+
+  // Before 0.1.4: the tags.
+  function parseTagged(text, head) {
     const tr = /<zb-transcript>([\s\S]*?)<\/zb-transcript>/.exec(text);
     const end = text.indexOf('</zb-instructions>');
-    if (!head || !tr || end < 0) return null;
+    if (!tr || end < 0) return null;
     const turns = [];
     const re = /<zb-turn branch="([^"]*)" n="(\d+)" role="(user|assistant)">(?:\n| )?([\s\S]*?)(?:\n| )?<\/zb-turn>/g;
     let m;
@@ -104,7 +173,8 @@
   // lost holds them on its one line.
   function parseForkedFrom(text) {
     text = String(text);
-    const end = text.indexOf('<zb-transcript>');
+    const first = labels(text).find((m) => m.section);
+    const end = first ? first.start : text.indexOf('<zb-transcript>');
     const head = end < 0 ? text : text.slice(0, end);
     const m = /(?:^|\s)Forked from: (.*?), (after|instead of) message (\d+) \((?:Claude|me)\): "/.exec(head);
     if (!m) return null;
@@ -187,26 +257,28 @@
   const TITLE_LINE = 'a separate last line: "Branch title:" followed by 3 to 6 words naming what this branch is ' +
     'about, from my message below, in the language of the conversation.';
 
+  // The lines Zettelbranch adds, as Claude is told (Pascal, 2026-10-14).
+  const LAYOUT = 'Zettelbranch added the quoted lines (the header, the section names in capitals, and the label before ' +
+    'each message, which says who wrote it, in which conversation and its number) for display: they are not part of ' +
+    'the conversation, so do not reproduce them in your replies.';
+
   function instructions(parent, upTo, hasTurns) {
     if (!hasTurns) {
       // Branching from a chat's first message: no history, so no summary to ask for; your
       // message is pre-filled, so the branch title is always asked.
       return [
-        '<zb-instructions>',
         `This chat is a new branch of the conversation ${parent}, started from its first message, so there is no ` +
-          'earlier history (the transcript above is empty). Do not comment on the header lines; they are for my own ' +
+          'earlier history. Do not comment on the quoted lines above and below; Zettelbranch added them for my own ' +
           'records. Answer my message below.',
         '',
         `End your first reply with ${TITLE_LINE}`,
-        '</zb-instructions>',
       ].join('\n');
     }
     const source = upTo > 0
       ? `The transcript above is our conversation so far, copied from the conversation ${parent} up to message ${upTo}.`
       : `The transcript above is our conversation so far: the history that the conversation ${parent} was branched from, before its first message.`;
     return [
-      '<zb-instructions>',
-      `${source} The assistant turns are your own earlier replies. Treat it as shared history: do not comment on it, ` +
+      `${source} ${LAYOUT} The messages labelled Claude are your own earlier replies. Treat it as shared history: do not comment on it, ` +
         'quote it back, or answer its questions again. Placeholders ending in "not copied", such as ' +
         '[file: photo.png, not copied], mark content that was not carried over; ask me if you need it. Text under a ' +
         '[pasted text: …] line is text I pasted, copied in full.',
@@ -216,7 +288,6 @@
         'message below. If there is no message below, reply with the summary only.',
       '',
       `If there is a message below, end your first reply with ${TITLE_LINE}`,
-      '</zb-instructions>',
     ].join('\n');
   }
 
@@ -256,24 +327,25 @@
 
     const parent = `${tree}/${parentAddress}`;
     const header = [
-      `Zettelbranch · ${tree}/${newAddress}`,
-      `Path: ${tree}/${T().ancestry(newSegs).join(' › ')}`,
+      `> Zettelbranch · ${tree}/${newAddress}`,
+      `> Path: ${tree}/${T().ancestry(newSegs).join(' › ')}`,
       after
-        ? `Forked from: ${parentTitle}, after message ${forkMsg.n} (Claude): "${escapeZb(quote(quoted))}"`
-        : `Forked from: ${parentTitle}, instead of message ${forkMsg.n} (me): "${escapeZb(quote(forkText))}"`,
+        ? `> Forked from: ${parentTitle}, after message ${forkMsg.n} (Claude): "${quote(quoted)}"`
+        : `> Forked from: ${parentTitle}, instead of message ${forkMsg.n} (me): "${quote(forkText)}"`,
     ].join('\n');
-    const transcript = [
-      '<zb-transcript>',
-      ...turns.map((t) => `<zb-turn branch="${t.branch}" n="${t.n}" role="${t.role}">\n${escapeZb(t.text)}\n</zb-turn>`),
-      '</zb-transcript>',
-    ].join('\n');
-    const instr = instructions(parent, last >= 0 ? messages[last].n : 0, turns.length > 0);
-    const text = `${header}\n\n${transcript}\n\n${instr}\n\n${prefill}`;
+    // Each part is separated by a blank line; with no history, the transcript's section is left out.
+    const parts = [header];
+    if (turns.length) {
+      parts.push(sectionLine(SECTIONS.transcript), ...turns.map((t) => `${turnLine(tree, t)}\n\n${closeFence(escapeLabels(t.text))}`));
+    }
+    parts.push(`${sectionLine(SECTIONS.instructions)}\n\n${instructions(parent, last >= 0 ? messages[last].n : 0, turns.length > 0)}`);
+    parts.push(`${sectionLine(SECTIONS.mine)}\n\n${prefill}`);
+    const text = parts.join('\n\n');
     return { text, turns: turns.length, flattened: !!parsed, chars: text.length, tokens: Math.round(text.length / 4) };
   }
 
   global.ZBPrompt = {
-    build, parseHeader, parseBranchMessage, stripSummary, parseSummary, quote, plain, escapeZb, unescapeZb,
+    build, parseHeader, parseBranchMessage, stripSummary, parseSummary, quote, plain, closeFence,
     parseForkedFrom, namedTopic, shortTopic, firstWords, proposeTopic, parseBranchTitle, stripBranchTitle, replyBody,
   };
 })(globalThis);

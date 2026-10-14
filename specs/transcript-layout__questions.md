@@ -36,7 +36,7 @@ So A showed `**Me**` with its stars, B showed `####`, C broke, and D is A with a
 
 ## TL-2 Which style for the label line?
 
-**Status:** open
+**Status:** decided (B1 and B4 together: a code box inside a quote; built in 0.1.4)
 
 Four styles that claude.ai can render, in `tests/out/render-probe-2.md`: type `! pbcopy < tests/out/render-probe-2.md` in the Claude Code prompt, paste into the `zbtest/render` chat, send, unfold.
 
@@ -47,15 +47,31 @@ Four styles that claude.ai can render, in `tests/out/render-probe-2.md`: type `!
 
 **Recommendation:** B1: the box stands out from the text without needing any rendering claude.ai lacks, and stays readable on the phone. With B, a message line that looks exactly like a label gets escaped, as `<zb-` is today.
 
-**Answer:**
+**Answer:** a third sample (`tests/out/render-probe-3.md`) put the box inside the quote, with and without small arrows. Pascal passed on Claude's review of it from `zbtest/render`, and Claude Code built what it proposed:
+
+- the label is a code box inside a quote, a blank line after it, then the message as written: the bar and the box mark every boundary, and the messages read as normal text;
+- the section names in capitals (`OUR CONVERSATION SO FAR`, `INSTRUCTIONS FOR CLAUDE`, `MY MESSAGE`), so they do not look like one more message;
+- the header quoted too, so it stands apart from the messages (its three lines keep their line breaks);
+- no arrows: at that size they read as specks, and "Me" and "Claude" already differ.
+
+Checked offline: in a real Tiptap editor, neither browser turns a line ending with a backtick (or `**bold**`, `---`, `> `, `- `) into formatting, in one call or line by line.
+
+## The check on claude.ai (0.1.4)
+
+1. Chrome test profile: `chrome://extensions`, ⟳ on Zettelbranch (it shows 0.1.4). Firefox test profile: `about:debugging`, "Load Temporary Add-on…", `extension/manifest.json`.
+2. In a `zbtest` chat with a code block, branch from Claude's last reply, open the new chat, type a question under `MY MESSAGE`, send. Unfold the first message: the header, section names and labels have a bar, the labels a box, the messages read as normal text.
+3. Claude's reply: starts with "Parent … in brief", reproduces none of the labels, ends with "Branch title: …"; "Name this branch" proposes it.
+4. Branch again from the new branch: the preview holds one `OUR CONVERSATION SO FAR`, every message once.
+5. On a branch made before (for example `oulipo/1d`), click Branch: the preview shows its history in the new layout. Cancel.
+6. The same steps 2 and 3 in Firefox (its box is filled line by line).
 
 ## Defaults
 
-Unless you object here, whatever the layout:
+Applied in 0.1.4:
 
 - **Claude is told** (your point): the instructions say the label lines were added by Zettelbranch for display, are not part of the messages, and are not to be used in its replies.
 - **The outer tags go too:** `<zb-transcript>` and `<zb-instructions>` become label lines in the same style (for example "Our conversation so far", "Instructions for Claude", "My message").
 - **A code block left open** in a message (a cut reply) is closed at the end of its turn, so it cannot swallow the next labels.
 - **Old branches keep working:** branches made with 0.1.x (tags) are still read, named and flattened.
 - **Tested** in the offline tests and in the real Tiptap editor (Chromium and Firefox), including Firefox's line-by-line fill (a line that starts with `> ` or `- ` must stay text in the editor).
-- [forking__prompt](forking__prompt.md) is updated with the new layout.
+- [forking__prompt](forking__prompt.md) shows the new layout word for word (the unit tests compare it), and the manual describes it. The manual's screenshots and the demo still show the tags: to retake after the check.

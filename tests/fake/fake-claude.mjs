@@ -161,6 +161,7 @@ export function createFakeClaude() {
   add(root, 'human', 'How does branching work?', { parent: a2.uuid });
   add(root, 'assistant', 'Branching means continuing a card under a new address.');
 
+  // Made before 0.1.4: its first message has tags, which are still read.
   const branch = newConv('zbtest/1a · First branch');
   add(branch, 'human', [
     'Zettelbranch · zbtest/1a',
@@ -210,9 +211,10 @@ export function createFakeClaude() {
   const TITLES = { 'What is the green flash?': 'The green flash', 'What about fish and birds?': 'Fish and birds on one page', 'What is a lipogram?': 'Lipograms', 'How does branching work?': 'How branches work', 'Shall we name the cards?': 'Naming the cards' };
   function reply(text) {
     text = text.replace(/^\s+/, ''); // Firefox's empty line at the top of the box
-    if (text.startsWith('Zettelbranch · ') && text.includes('<zb-instructions>')) {
+    const mine = text.indexOf('\n> `MY MESSAGE`\n');
+    if (/^(> )?Zettelbranch · /.test(text) && mine >= 0) {
       const parent = /"Parent (\S+) in brief:"/.exec(text);
-      const own = text.slice(text.indexOf('</zb-instructions>') + '</zb-instructions>'.length).trim();
+      const own = text.slice(mine + '\n> `MY MESSAGE`\n'.length).trim();
       const summary = parent ? `> Parent ${parent[1]} in brief: We talked about card boxes and their addresses.\n\n` : '';
       const name = TITLES[own] || `About ${own.split(/\s+/).slice(0, 3).join(' ')}`;
       const titled = own && options.claudeTitles && text.includes('a separate last line: "Branch title:"');
@@ -225,8 +227,8 @@ export function createFakeClaude() {
   // branch after the parent (seen on 2026-10-13: "Poème en forme de chat" twice).
   function autoTitle(text) {
     text = text.replace(/^\s+/, '');
-    const parent = /^Forked from: (.*?), (?:after|instead of) message/.exec(text.split('\n')[2] || '');
-    if (text.startsWith('Zettelbranch · ')) return options.branchTitle || (parent ? parent[1].replace(/^[a-z0-9-]+\/[0-9a-z]+ · /, '') : 'Auto title of a branch');
+    const parent = /^(?:> )?Forked from: (.*?), (?:after|instead of) message/.exec(text.split('\n')[2] || '');
+    if (/^(> )?Zettelbranch · /.test(text)) return options.branchTitle || (parent ? parent[1].replace(/^[a-z0-9-]+\/[0-9a-z]+ · /, '') : 'Auto title of a branch');
     return 'Auto: ' + text.replace(/[^A-Za-z0-9 ]+/g, ' ').split(/\s+/).filter(Boolean).slice(0, 4).join(' ');
   }
 

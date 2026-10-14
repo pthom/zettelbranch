@@ -285,12 +285,12 @@ test('branch from Claude\'s reply: next address by segments (1a exists; 1a1 and 
   assert.equal(await text('preview-title'), 'Preview: the first message of zbtest/1b');
   previewText = await Z('preview').textContent();
   const lines = previewText.split('\n');
-  assert.equal(lines[0], 'Zettelbranch · zbtest/1b');
-  assert.equal(lines[1], 'Path: zbtest/1 › 1b');
-  assert.equal(lines[2], 'Forked from: zbtest/1 · Root topic, after message 4 (Claude): "Branching means continuing a card under a new address."');
-  assert.ok(previewText.includes('literal &lt;zb-turn> tag'), 'escaped');
+  assert.equal(lines[0], '> Zettelbranch · zbtest/1b');
+  assert.equal(lines[1], '> Path: zbtest/1 › 1b');
+  assert.equal(lines[2], '> Forked from: zbtest/1 · Root topic, after message 4 (Claude): "Branching means continuing a card under a new address."');
+  assert.ok(previewText.includes('> `Me · zbtest/1, message 1`\n\nWhat is a Zettelkasten? And how is a literal <zb-turn> tag escaped?\n\n> `Claude · zbtest/1, message 2`'), 'labelled, not escaped');
   assert.ok(!previewText.includes('OLD VERSION'), 'the edited message\'s old version is left out');
-  assert.ok(previewText.endsWith('</zb-instructions>\n\n'));
+  assert.ok(previewText.endsWith('> `MY MESSAGE`\n\n'));
   assert.equal(await text('size'), `${previewText.length.toLocaleString('en-US')} characters, about ${Math.round(previewText.length / 4).toLocaleString('en-US')} tokens. 4 messages copied.`);
   assert.equal(await Z('warning').count(), 0);
   assert.deepEqual(fake.apiLog.slice(before).map((e) => `${e.method} ${e.path.replace(/\?.*/, '')}`), ['GET /api/organizations/<org>/chat_conversations_v2', 'GET /api/organizations/<org>/chat_conversations_v2']);
@@ -306,7 +306,7 @@ test('Open new chat: the box holds exactly the preview text; Send is not pressed
   await click('open');
   assert.match(page.url(), /\/new$/);
   assert.equal(await text('opened'), 'The new chat holds the first message of zbtest/1b.');
-  assert.equal(await step(1), 'Type your question at the end of the box, after the instructions, then press Send.');
+  assert.equal(await step(1), 'Type your question at the end of the box, under MY MESSAGE, then press Send.');
   assert.equal(await step(2), 'When Claude has replied:');
   assert.equal(await Z('step-2').locator('[data-zb="name"]').textContent(), 'Name this branch');
   assert.equal(await Z('warning').count(), 0, 'the box matches the preview');
@@ -331,7 +331,7 @@ test('while the branch is not named, the hidden panel\'s pill says so; opened ag
   await shots('pill-remind');
   await openPanel();
   assert.equal(await text('status'), 'You opened the branch zbtest/1b in a new chat.');
-  assert.equal(await step(1), 'Type your question at the end of the box, after the instructions, then press Send.');
+  assert.equal(await step(1), 'Type your question at the end of the box, under MY MESSAGE, then press Send.');
   assert.equal(apiCount(), before, 'no API call in the new chat');
   assert.equal(await editorText(), previewText, 'the box is untouched');
 });
@@ -397,13 +397,13 @@ test('branch from your own message: it is pre-filled; next address 1c; Name with
   await click('branch');
   assert.equal(await text('preview-title'), 'Preview: the first message of zbtest/1c');
   const p = await Z('preview').textContent();
-  assert.equal(p.split('\n')[2], 'Forked from: zbtest/1 · Root topic, instead of message 3 (me): "How does branching work?"');
+  assert.equal(p.split('\n')[2], '> Forked from: zbtest/1 · Root topic, instead of message 3 (me): "How does branching work?"');
   assert.ok(p.includes('up to message 2.'));
-  assert.ok(!p.includes('<zb-turn branch="1" n="3"'));
-  assert.ok(p.endsWith('</zb-instructions>\n\nHow does branching work?'));
+  assert.ok(!p.includes('> `Me · zbtest/1, message 3`'));
+  assert.ok(p.endsWith('> `MY MESSAGE`\n\nHow does branching work?'));
   await click('open');
   assert.equal(await editorText(), p);
-  assert.equal(await step(1), 'Your message is at the end of the box, after the instructions. Change it if you like, then press Send.');
+  assert.equal(await step(1), 'Your message is at the end of the box, under MY MESSAGE. Change it if you like, then press Send.');
   fake.options.branchTitle = 'Visual poems about cards and boxes'; // describes the parent, as on 2026-10-13
   fake.options.claudeTitles = false; // Claude did not end with a branch title: the question is next
   await pressSend();
@@ -430,7 +430,7 @@ test('branch from the first message: empty transcript, no summary asked; Cancel 
   await click('branch');
   const p = await Z('preview').textContent();
   assert.equal(await text('preview-title'), 'Preview: the first message of zbtest/1d');
-  assert.ok(p.includes('<zb-transcript>\n</zb-transcript>'));
+  assert.ok(!p.includes('OUR CONVERSATION SO FAR'));
   assert.ok(p.includes('started from its first message, so there is no earlier history'));
   assert.ok(!p.includes('in brief'));
   await click('cancel');
@@ -438,7 +438,7 @@ test('branch from the first message: empty transcript, no summary asked; Cancel 
   assert.equal(await Z('preview').count(), 0);
 });
 
-test('branch of a branch: the transcript is flattened, the summary dropped', async () => {
+test('branch of a branch made before 0.1.4 (tags): the transcript is flattened into the new layout, the summary dropped', async () => {
   await goChat(fake.ids.branch);
   await openPanel();
   assert.deepEqual((await Z('message').allTextContents()).slice(0, 2), ['1YouTell me about addresses.', '2ClaudeAddresses look like 1, 1a, 1a1.']);
@@ -446,13 +446,14 @@ test('branch of a branch: the transcript is flattened, the summary dropped', asy
   assert.equal(await text('preview-title'), 'Preview: the first message of zbtest/1a2');
   assert.match(await text('size'), /6 messages copied, from the whole tree path\.$/);
   const p = await Z('preview').textContent();
-  assert.equal((p.match(/<zb-transcript>/g) || []).length, 1);
-  assert.equal((p.match(/^Zettelbranch · /gm) || []).length, 1);
+  assert.ok(!/<zb-(transcript|instructions)>|<zb-turn branch|&lt;zb-/.test(p), 'no tags and no escapes left');
+  assert.equal((p.match(/OUR CONVERSATION SO FAR/g) || []).length, 1);
+  assert.equal((p.match(/^> Zettelbranch · /gm) || []).length, 1);
   assert.ok(!p.includes('Parent zbtest/1 in brief: We defined'));
-  assert.ok(p.includes('<zb-turn branch="1" n="1" role="user">\nWhat is a Zettelkasten? And how is a literal &lt;zb-turn> tag escaped?'));
-  assert.ok(p.includes('<zb-turn branch="1a" n="1" role="user">\nTell me about addresses.'));
-  assert.ok(p.includes('<zb-turn branch="1a" n="2" role="assistant">\nAddresses look like 1, 1a, 1a1.'));
-  assert.equal(p.split('\n')[1], 'Path: zbtest/1 › 1a › 1a2');
+  assert.ok(p.includes('> `Me · zbtest/1, message 1`\n\nWhat is a Zettelkasten? And how is a literal <zb-turn> tag escaped?\n\n'));
+  assert.ok(p.includes('> `Me · zbtest/1a, message 1`\n\nTell me about addresses.\n\n'));
+  assert.ok(p.includes('> `Claude · zbtest/1a, message 2`\n\nAddresses look like 1, 1a, 1a1.\n\n'));
+  assert.equal(p.split('\n')[1], '> Path: zbtest/1 › 1a › 1a2');
   await remember();
 });
 
@@ -581,7 +582,7 @@ test('a chat not in a tree: an invalid tree name is asked again; accepted, the c
   assert.equal(await text('notice'), 'This chat is now the tree root oulipo/1 · Oulipo and constraints.');
   await assertMenuRename('oulipo/1 · Oulipo and constraints', putsBefore);
   assert.equal(await text('preview-title'), 'Preview: the first message of oulipo/1a');
-  assert.equal((await Z('preview').textContent()).split('\n')[2].slice(0, 63), 'Forked from: oulipo/1 · Oulipo and constraints, after message 2');
+  assert.equal((await Z('preview').textContent()).split('\n')[2].slice(0, 65), '> Forked from: oulipo/1 · Oulipo and constraints, after message 2');
 });
 
 test('Name this branch: a wrong edit is asked again, then cancelled; Claude\'s branch title in bold, with a period', async () => {
@@ -745,9 +746,9 @@ test('a branch of a branch whose first reply ends with a branch title: the title
   await click('branch');
   assert.equal(await text('preview-title'), 'Preview: the first message of zbtest/1b1');
   const p = await Z('preview').textContent();
-  assert.equal(p.split('\n')[2], 'Forked from: zbtest/1b · Fish and birds on one page, after message 2 (Claude): "Here is my answer to your message."');
-  assert.ok(p.includes('<zb-turn branch="1b" n="1" role="user">\nWhat about fish and birds?\n</zb-turn>'));
-  assert.ok(p.includes('<zb-turn branch="1b" n="2" role="assistant">\nHere is my answer to your message.\n</zb-turn>'), 'without the summary and the branch title');
+  assert.equal(p.split('\n')[2], '> Forked from: zbtest/1b · Fish and birds on one page, after message 2 (Claude): "Here is my answer to your message."');
+  assert.ok(p.includes('> `Me · zbtest/1b, message 1`\n\nWhat about fish and birds?\n\n> `Claude'));
+  assert.ok(p.includes('> `Claude · zbtest/1b, message 2`\n\nHere is my answer to your message.\n\n> `INSTRUCTIONS FOR CLAUDE`'), 'without the summary and the branch title');
   assert.ok(!/^\**Branch title/m.test(p), 'no branch title line copied');
   await click('cancel');
 });
@@ -767,8 +768,8 @@ test('pasted text is kept; thinking and tool calls left out; placeholders for fi
   await openPanel();
   await click('branch');
   const p = await Z('preview').textContent();
-  assert.ok(p.includes('<zb-turn branch="3" n="1" role="user">\nHere are my notes and a photo.\n\n[file: photo.png, not copied]\n\n[pasted text: notes.txt]\nPasted line one\nPasted line two\n</zb-turn>'));
-  assert.ok(p.includes('<zb-turn branch="3" n="2" role="assistant">\nI read your notes.\n\n[artifact: Garden plan, not copied]\n\nHere is a plan, as an artifact.\n</zb-turn>'));
+  assert.ok(p.includes('> `Me · zbtest/3, message 1`\n\nHere are my notes and a photo.\n\n[file: photo.png, not copied]\n\n[pasted text: notes.txt]\nPasted line one\nPasted line two\n\n> `Claude'));
+  assert.ok(p.includes('> `Claude · zbtest/3, message 2`\n\nI read your notes.\n\n[artifact: Garden plan, not copied]\n\nHere is a plan, as an artifact.\n\n> `INSTRUCTIONS FOR CLAUDE`'));
   assert.ok(!p.includes('THINKING-SECRET-TEXT') && !p.includes('TOOL-SECRET-TEXT'));
   await remember();
 });
@@ -839,7 +840,7 @@ test('Firefox (claude.ai\'s box joins the lines of one insertion): the box is em
     await typeAtEnd('What is the green flash?');
     await pressSend();
     const sent = [...fake.convs.values()].find((c) => c.messages.length && c.messages[0].content[0].text.includes('Zettelbranch · zbtest/1d')).messages[0].content[0].text;
-    assert.ok(sent.startsWith('\nZettelbranch · zbtest/1d\nPath: zbtest/1 › 1d\nForked from: '), 'sent with its line breaks');
+    assert.ok(sent.startsWith('\n> Zettelbranch · zbtest/1d\n> Path: zbtest/1 › 1d\n> Forked from: '), 'sent with its line breaks');
     assert.equal(await text('identity'), 'Branch zbtest/1d (not named yet), from zbtest/1 after message 4');
     const putsBefore = puts().length;
     plan({});
@@ -877,9 +878,13 @@ test('a branch whose first message lost its line breaks (0.1.2 in Firefox) is st
   await openPanel();
   await click('branch');
   assert.equal(await text('preview-title'), 'Preview: the first message of zbtest/10b');
-  const preview = await Z('preview').textContent();
   await click('cancel');
-  const flat = '\n' + preview.replace(/\n/g, ' ') + 'What about flattened lines?';
+  // As 0.1.2 wrote it (tags), every line joined into one by claude.ai's box in Firefox.
+  const flat = '\n' + [
+    'Zettelbranch · zbtest/10b', 'Path: zbtest/10 › 10b', 'Forked from: zbtest/10 · Sibling root, after message 2 (Claude): "Root ten answer"', '',
+    '<zb-transcript>', '<zb-turn branch="10" n="1" role="user">', 'Root ten question', '</zb-turn>', '<zb-turn branch="10" n="2" role="assistant">', 'Root ten answer', '</zb-turn>', '</zb-transcript>', '',
+    '<zb-instructions>', 'The transcript above is our conversation so far. (…)', '</zb-instructions>', '', '',
+  ].join(' ') + 'What about flattened lines?';
   const id = fake.addChat('Sibling root', flat, '> Parent zbtest/10 in brief: We talked about card boxes.\n\nAn answer.\n\nBranch title: Flattened lines');
   await goChat(id);
   await openPanel();

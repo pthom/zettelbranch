@@ -413,8 +413,8 @@
         el('span', { class: 'num', text: '1.' }),
         el('p', {
           text: o.own
-            ? 'Your message is at the end of the box, after the instructions. Change it if you like, then press Send.'
-            : 'Type your question at the end of the box, after the instructions, then press Send.',
+            ? 'Your message is at the end of the box, under MY MESSAGE. Change it if you like, then press Send.'
+            : 'Type your question at the end of the box, under MY MESSAGE, then press Send.',
         }),
       ]),
       el('div', { class: 'step', 'data-zb': 'step-2' }, [

@@ -20,12 +20,13 @@ if (!fs.existsSync(BUNDLE)) {
 }
 
 // The texts: P1's sample (a list, a fenced code block), a branch prompt built by prompt.js
-// from messages with code and a table, and a prompt of about 100,000 characters.
+// from messages with code, a table and lines that end like Markdown shortcuts (as the label
+// lines do, with a backtick), and a prompt of about 100,000 characters.
 const P1 = ['Zettelbranch · zbtest/p1', 'Path: zbtest/p1 (insertion test, P1)', '', 'A list:', '- first item', '- second item', '  - nested item', '', '```python', 'def f(x):', '    if x:', '        return 1', '    return 0', '```', '', 'Reply only with: ok'].join('\n');
 const P = loadIntoWindow(['tree.js', 'prompt.js']).ZBPrompt;
 const msgs = [
   { n: 1, role: 'user', text: 'Show me a function and a table.' },
-  { n: 2, role: 'assistant', text: 'Here:\n\n```js\nfunction f(x) {\n  return x * 2;\n}\n```\n\n| a | b |\n| --- | --- |\n| 1 | 2 |' },
+  { n: 2, role: 'assistant', text: 'Here:\n\n```js\nfunction f(x) {\n  return x * 2;\n}\n```\n\n| a | b |\n| --- | --- |\n| 1 | 2 |\n\n---\n\n> A quote\n- a list item\n# A heading\nLines that end like Markdown shortcuts: **bold**\nan *italic*\nsome `code`\n~~struck~~' },
 ];
 const PROMPT = P.build({ tree: 'zbtest', parentTitle: 'zbtest/1 · Root', parentAddress: '1', newAddress: '1a', messages: msgs, fork: 1 }).text + 'What about tables?';
 const filler = Array.from({ length: 1100 }, (_, i) => `Line ${String(i + 1).padStart(5, '0')}: a long reply for the size test, the quick brown fox jumps over the lazy dog.`).join('\n');

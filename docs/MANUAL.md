@@ -47,14 +47,16 @@ Zettelbranch shows the exact text it will put in the new chat, and its size.
 The text has three parts:
 
 - **A short header:** the branch's address (`sky/1a`), its path from the root, and where it was forked from. It stays readable in the claude.ai apps, without the extension.
-- **The conversation so far,** copied from the root to the message you chose, so Claude knows the context.
-- **Instructions for Claude:** treat the copy as your shared history, start with a short summary of where the parent stood, and suggest a name for the branch.
+- **The conversation so far** (`OUR CONVERSATION SO FAR`), copied from the root to the message you chose, so Claude knows the context. Each message comes under a label saying who wrote it and where it comes from, such as `Me · sky/1, message 1`.
+- **Instructions for Claude** (`INSTRUCTIONS FOR CLAUDE`): treat the copy as your shared history, start with a short summary of where the parent stood, and suggest a name for the branch.
+
+Once sent, the header and the labels show in claude.ai with a bar on their left, and the messages read as normal text between them.
 
 Click **Open new chat**, or **Cancel**.
 
 ### 4. Ask your question
 
-A new chat opens with the text in the message box. Type your question at the end of the box, after the instructions, then press **Send** yourself. Zettelbranch never sends anything.
+A new chat opens with the text in the message box. Type your question at the end of the box, under `MY MESSAGE`, then press **Send** yourself. Zettelbranch never sends anything.
 
 ![The new chat, with the text in the box and the two steps](images/new-chat.png)
 
