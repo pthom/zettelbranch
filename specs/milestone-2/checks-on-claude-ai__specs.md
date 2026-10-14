@@ -94,7 +94,7 @@ Steps 2 to 6 of Chrome, shorter: one branch, named. Firefox fills the box line b
 
 ### 4. Tell Claude
 
-What differed from the list above, with a screenshot when something looks wrong. Then Claude prepares the release (the [usual steps](../zettelbranch__status.md#how-a-release-goes-for-the-next-version)); at the release, your installed 0.1.3 in your main Firefox should update itself to 0.2.0, the first live test of the automatic update.
+What differed from the list above, with a screenshot when something looks wrong. Then Claude prepares the release (the [usual steps](../zettelbranch__status.md#how-a-release-goes-for-the-next-version)); at the release, your installed 0.1.3 in your main Firefox should update itself to 0.2.0, the first live test of the automatic update. **Seen working 2026-10-14:** after "Check for Updates", Firefox said "Vos modules ont été mis à jour" and showed version 0.2.0.
 
 ### 5. Pictures to take
 

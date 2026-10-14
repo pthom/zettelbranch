@@ -1,6 +1,6 @@
-# Release 0.2.0: notes (draft)
+# Release 0.2.0: notes
 
-The text of the GitHub release, drafted on 2026-10-14 for Pascal's review. Same shape as 0.1.3's. Published by Claude at the release, when Pascal says so ([how a release goes](../zettelbranch__status.md#how-a-release-goes-for-the-next-version)). Edit freely below the line.
+The text of the GitHub release, drafted on 2026-10-14 for Pascal's review, published the same day ([how a release goes](../zettelbranch__status.md#how-a-release-goes-for-the-next-version)), without the title line; the demo video is in its place below the first paragraph. Same shape as 0.1.3's.
 
 ---
 

@@ -11,7 +11,7 @@ Plan step 8 (M2-3 = B: the Chrome Web Store before the posts). Drafted by Claude
 
 ## Two things the package needs first (questions)
 
-- **An icon.** The store asks for a 128 x 128 icon, in the package (manifest `icons`) and on the listing *(to verify: whether the package's icon is mandatory)*; Zettelbranch has none, so Chrome and Firefox show a grey puzzle piece. Proposal: Claude draws a simple one, three linked cards in a small tree, in the panel's brown (`#8a4b2a`), as SVG turned into PNG at 16, 32, 48 and 128 px; Pascal picks among two or three drafts. It would ship in 0.2.0 if ready before the release, else in the next version.
+- **An icon.** The store asks for a 128 x 128 icon, in the package (manifest `icons`) and on the listing *(to verify: whether the package's icon is mandatory)*; Zettelbranch has none, so Chrome and Firefox show a grey puzzle piece. Proposal: Claude draws a simple one, three linked cards in a small tree, in the panel's brown (`#8a4b2a`), as SVG turned into PNG at 16, 32, 48 and 128 px; Pascal picks among two or three drafts. 0.2.0 shipped without it: it comes in the next version (0.2.1), before the submission.
 - **The Firefox part of the manifest** (`browser_specific_settings`): Chrome ignores it with a warning; the store should accept it *(to verify at upload)*. If not, the store's zip leaves it out, and `AUDIT.md` says why.
 
 ## Store listing tab
