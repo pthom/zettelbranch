@@ -46,23 +46,24 @@ With 0.2.0 on the `sky` demo tree, in four parts. Each picture is a screenshot o
 
 **Part A: stills, `sky/1a` from Claude's first reply**
 
-- [ ] A1 `choose`: `sky/1` with the panel open, message 2 clicked.
-- [ ] A2 `preview`: after Branch.
-- [ ] A3 `new-chat`: after Open new chat, `Why are sunsets red and orange?` typed under `MY QUESTION`, the panel's steps visible. Then Send.
-- [ ] A4 `first-message`: your message on screen (header, section names, labels), as claude.ai shows it folded.
-- [ ] A5 `first-reply`: Claude's whole first reply: the summary, the answer, "Branch title: …".
-- [ ] A6 `name`: after Name this branch, the form.
-- [ ] A7 `named`: after Rename: the panel closed, the new title at the top; the mouse over the Zettelbranch button, its tooltip showing.
+- [x] A1 `choose`: `sky/1` with the panel open, message 2 clicked.
+- [x] A2 `preview`: after Branch.
+- [x] A3 `new-chat`: after Open new chat, `Why are sunsets red and orange?` typed under `MY QUESTION`, the panel's steps visible. Then Send. Taken, but the panel hid claude.ai's Send button (a narrow window): fixed the same day, the panel now moves just above the message box. The README's `new-chat` comes from the demo instead (B3), which shows the fix.
+- [x] A4 `first-message`: your message on screen (header, section names, labels), as claude.ai shows it folded.
+- [x] A5 `first-reply`: Claude's whole first reply: the summary, the answer, "Branch title: …".
+- [x] A6 `name`: after Name this branch, the form.
+- [x] A7 `named`: after Rename: the panel closed, the new title at the top; the mouse over the Zettelbranch button, its tooltip showing.
 
-**Part B: the demo, `sky/1b` from Claude's last reply**
+Part A taken on 2026-10-14 (`tests/out/shoot/`, not committed), with Chrome's "Continue where you left off" bar showing: cropped away, as every picture is cropped to the page. `sky/1b` (Mars) was made meanwhile, without pictures of each step.
 
-One screenshot at each step, nothing else moving on screen: B1 `sky/1` with the panel open (Claude's last reply chosen by default); B2 the preview; B3 the new chat, filled; B4 `What colour is the sky on Mars?` typed; B5 Claude's reply, complete; B6 the naming form; B7 after Rename (panel closed, new title); B8 the panel opened again, showing the tree; B9 after clicking `1a` in the tree (that chat, the panel showing where you are); B10 after clicking `1` (back at the root).
+**Part B: the demo, `sky/1a1` from `sky/1a`'s last reply**
+
+After reloading the extension (the panel's move above the message box). One screenshot at each step, nothing else moving on screen: B1 `sky/1a` with the panel open (Claude's last reply chosen by default); B2 the preview; B3 the new chat, filled, the panel above the message box; B4 `What is the green flash?` typed (half, then whole); B5 Claude's reply, complete; B6 the naming form; B7 after Enter (panel closed, new title); B8 the panel opened again, showing the tree (4 chats); B9 after clicking `1b` in the tree (that chat, the panel showing where you are); B10 after clicking `1` (back at the root).
 
 **Part C: `tree` and `sidebar`**
 
-- [ ] In `sky/1a`, branch from Claude's last reply: `What is the green flash?`, send, name it (`sky/1a1`).
-- [ ] C1 `tree`: the panel on `sky/1a1`, "Tree sky: 4 chats".
-- [ ] C2 `sidebar`: the sidebar open, its top showing the four `sky/` chats.
+- [x] C1 `tree`: the panel on `sky/1b`, "Tree sky: 3 chats" (2026-10-14). After Part B, a retake with 4 chats is optional.
+- [x] C2 `sidebar`: the sidebar open, its top showing the three `sky/` chats (2026-10-14).
 
 **Part D: `tree-name`**
 

@@ -324,6 +324,13 @@ test('Open new chat: the box holds exactly the preview text; Send is not pressed
   assert.equal(await Z('insert-method').count(), 0, 'one insertText call was enough');
   assert.equal(await editorText(), previewText);
   assert.equal(await page.locator('[data-testid="chat-input-send"]').isEnabled(), true, 'the app saw the text');
+  // The panel keeps clear of the message box and its Send button, pressed next (Pascal's
+  // shoot, 2026-10-14: the panel hid Send in a narrow window). At the bottom right, it covered them.
+  const overlaps = (a, b) => a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+  const panelBox = await Z('panel').boundingBox();
+  assert.ok(!overlaps(panelBox, await page.locator('[data-testid="chat-input-send"]').boundingBox()), 'Send is not covered');
+  assert.ok(!overlaps(panelBox, await page.locator('[data-testid="chat-input"] [contenteditable="true"]').boundingBox()), 'the message box is not covered');
+  assert.ok(Math.abs(panelBox.x + panelBox.width - (1280 - 12)) <= 1, 'still on the right');
   const reads = apiCount();
   await page.waitForTimeout(1000);
   assert.equal(requestLog.filter((r) => r.url.endsWith('/fake/send')).length, sendsBefore, 'nothing sent');

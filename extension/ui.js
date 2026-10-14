@@ -386,6 +386,18 @@
     // Taller content scrolls inside the panel instead of going below the window.
     ui.panel.style.maxHeight = `${Math.round(Math.min(window.innerHeight * 0.8, window.innerHeight - top - MARGIN))}px`;
   }
+  // After Open new chat, you type at the end of claude.ai's message box and press its Send
+  // button, just under the text. If the panel covers them (a narrow window: Pascal's shoot,
+  // 2026-10-14), it moves just above the box, as if dragged there; you can still move it.
+  const BUTTON_ROW = 60; // the room for the box's buttons, under its text
+  function clearBox() {
+    const box = B().boxRect();
+    if (!box) return;
+    const p = ui.panel.getBoundingClientRect();
+    const covers = p.left < box.right && p.right > box.left && p.top < box.bottom + BUTTON_ROW && p.bottom > box.top;
+    const top = box.top - p.height - 8;
+    if (covers && top >= MARGIN) setPlace(p.left, top);
+  }
   function grab(e) {
     if (e.button !== 0 || e.target.closest('button')) return;
     const r = ui.host.getBoundingClientRect();
@@ -542,6 +554,7 @@
         ]),
       steps(r)
     );
+    clearBox();
   }
 
   async function nameBranch() {

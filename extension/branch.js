@@ -501,11 +501,18 @@
     }
   }
 
+  // Where claude.ai's message box is on screen, for the panel to keep clear of it; null if
+  // there is none. Read only.
+  function boxRect() {
+    const box = find('composer');
+    return box ? box.getBoundingClientRect() : null;
+  }
+
   // The branch this tab opened and has not named yet, for the pill's reminder; null if none.
   const unnamed = () => (opened ? opened.address : null);
 
   // For the offline tests of the insertion against a real editor (tests/editor/).
   const insertion = { insertOnce, insertLines, emptyBox, editorText, same, fill };
 
-  global.ZBBranch = { read, cached, prepare, proposeRoot, makeRoot, cancel, open, proposeName, name, explain, pageKind, unnamed, insertion, current: () => chat, SIZE_WARNING };
+  global.ZBBranch = { read, cached, prepare, proposeRoot, makeRoot, cancel, open, proposeName, name, explain, pageKind, unnamed, boxRect, insertion, current: () => chat, SIZE_WARNING };
 })(globalThis);

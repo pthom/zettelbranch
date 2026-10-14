@@ -24,6 +24,7 @@ Decided during session 1 (2026-10-14), and built into 0.2.0 the same day (tests:
 
 - **P12:** claude.ai takes keys typed in the panel (Chrome and Firefox): the forms stop the keys at their own fields, as the probe's field B did, and `AUDIT.md` says so.
 - **`MY QUESTION`** instead of `MY MESSAGE` (Pascal: "MY MESSAGE" does not say what to do). An instruction such as "PLEASE TYPE A FIRST QUESTION BELOW" would stay in the sent message for good, and Claude would read it too; the label names what goes under it, and the panel explains it at the right moment, when the new chat opens. Branches made with `MY MESSAGE` still read.
+- **The panel kept clear of Send** (found in the shoot, 2026-10-14): in a narrow window, the panel at the bottom right hid claude.ai's Send button right when you must press it. After Open new chat, if the panel covers the message box, it now moves just above it, as if dragged there.
 - **Render test:** no rewrite of code blocks; four-backtick and tilde blocks render, tables show as typed.
 - **Install:** a fresh Firefox profile grants claude.ai at install; the README's step 3 becomes a note for when the button does not show. No manifest change.
 - **"Gather branches":** Claude found a chat by its title prefix and opened another from its link, with claude.ai's own past-chat tools (Milestone 3).
