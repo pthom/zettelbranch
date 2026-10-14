@@ -2,7 +2,9 @@
 
 Branch your [claude.ai](https://claude.ai) conversations into a tree you can find your way in.
 
-![Branching a conversation with Zettelbranch](docs/images/demo.gif)
+https://github.com/user-attachments/assets/8ec0c346-1b16-4e5f-856d-6b9d30c5f4f0
+
+The demo, 34 seconds: pause it to read each step. Without video: [the same as an animation](docs/images/demo.gif).
 
 When we think, we open parentheses: a side question, an alternative, a detail worth chasing. In a long conversation, every parenthesis lands in the same thread, and soon nobody remembers where it was opened, or what the original question was. Zettelbranch opens the parenthesis in a new chat instead: branch from any message, and the main thread stays where you left it. Each branch gets a short address, like the cards of Niklas Luhmann's Zettelkasten:
 

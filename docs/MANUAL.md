@@ -11,7 +11,9 @@ sky/1b   · Colour of the Martian sky        (another branch of sky/1)
 
 Each branch is an ordinary claude.ai chat. Its address is in its title, so you see your tree in the sidebar, on your phone, everywhere. Zettelbranch only adds a small panel to claude.ai in your browser.
 
-![Branching a conversation with Zettelbranch](images/demo.gif)
+https://github.com/user-attachments/assets/8ec0c346-1b16-4e5f-856d-6b9d30c5f4f0
+
+The demo, 34 seconds: pause it to read each step. Without video: [the same as an animation](images/demo.gif).
 
 ## Install
 
