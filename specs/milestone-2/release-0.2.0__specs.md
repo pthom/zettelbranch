@@ -8,6 +8,8 @@ The text of the GitHub release, drafted on 2026-10-14 for Pascal's review. Same 
 
 The panel now asks for names itself, and a branch's first message reads well in the chat.
 
+(The demo video goes here: Pascal drags `zettelbranch-demo.mp4` into these notes on GitHub after publishing.)
+
 ## What's new
 
 - **A readable first message.** claude.ai shows only code blocks and quotes in your messages, so the copied conversation used to appear with raw tags. It is now laid out with small labels (`Me · sky/1, message 1`), section names in capitals, and your question at the end under `MY QUESTION`. Claude is told these lines are Zettelbranch's and does not repeat them. Branches made before still read.

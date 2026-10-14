@@ -69,4 +69,6 @@ After reloading the extension (the panel's move above the message box). One scre
 
 - [x] New chat, `Why do leaves change colour in autumn?`, wait for the reply, Zettelbranch, Branch. D1 `tree-name`: the tree form. Then Cancel, and delete this chat. Taken 2026-10-14; it proposes "tree", since the panel read the chat before claude.ai titled it (fixed the same day: Branch reads the title again, and would propose "autumn"). A retake is optional.
 
+**The demo as a video** (decided 2026-10-14): the README and the manual show the MP4 in GitHub's player, saved in the 0.2.0 release's notes; until then, and as a fallback, the GIF. Steps in [the status file](../zettelbranch__status.md#how-a-release-goes-for-the-next-version).
+
 **The shoot is complete** (2026-10-14). Next, Claude's part: crop the pictures into `docs/images/`, rebuild the demo from B01 to B10 (frame 3, the instructions, shorter), add `first-message` to the README, and show Pascal the result before committing.
