@@ -192,5 +192,6 @@ Pascal's merged ("one Claude") account, in Chrome, on 2026-10-13, by hand, with 
 | Virtualization | 11 of 80 messages in the DOM for a long chat |
 | Sidebar | `[data-testid="sidebar-recents"] a[href*="/chat/"]`: recent chats only (15 of 67) |
 | Bot checks | none, in five sessions by hand |
+| Your messages on screen | Markdown in part (pasted sample, 2026-10-14): code blocks with three backticks, inline code and quotes render; bold, italic, headings, lists, `[!NOTE]` admonitions, four-backtick blocks and tag-like text show as typed ([transcript-layout__questions](transcript-layout__questions.md)) |
 
 Not checked: the page title's format, what `summary` holds, an attachment made by a paste, Firefox.

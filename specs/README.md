@@ -39,5 +39,5 @@ Claude maintains these files. Pascal answers questions inline and may edit anyth
 
 | ID | Question | File |
 |---|---|---|
-| TL-1 | Which layout for the copied conversation in a branch's first message? | [transcript-layout__questions](transcript-layout__questions.md) |
+| TL-2 | Which style for the label line above each copied message (TL-1 = B)? | [transcript-layout__questions](transcript-layout__questions.md) |
 
