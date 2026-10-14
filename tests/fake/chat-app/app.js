@@ -74,6 +74,11 @@
   }
 
   editor.addEventListener('input', updateSend);
+  // As claude.ai's editor: the text you type stays in view, the box scrolled to its end.
+  editor.addEventListener('input', () => {
+    const frame = editor.closest('[data-testid="chat-input"]');
+    if (frame) frame.scrollTop = frame.scrollHeight;
+  });
 
   // Firefox in claude.ai's box, as Pascal's probe P1 saw it (2026-10-13), when the fake
   // server's options.firefox asks for it. `flatten`: one insertText holding line breaks ends

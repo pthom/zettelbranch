@@ -501,11 +501,23 @@
     }
   }
 
-  // Where claude.ai's message box is on screen, for the panel to keep clear of it; null if
-  // there is none. Read only.
+  // The part of claude.ai's message box you see on screen, for the panel to keep clear of it;
+  // null if there is none. The box's text can be taller than the screen: it scrolls inside
+  // its parents (seen in Pascal's shoot, 2026-10-14), so the box is cut to them and to the
+  // window. Read only.
   function boxRect() {
     const box = find('composer');
-    return box ? box.getBoundingClientRect() : null;
+    if (!box) return null;
+    const r = box.getBoundingClientRect();
+    const v = { top: Math.max(r.top, 0), bottom: Math.min(r.bottom, window.innerHeight), left: r.left, right: r.right };
+    for (let a = box.parentElement; a && a !== document.documentElement; a = a.parentElement) {
+      const s = getComputedStyle(a);
+      if (!/auto|scroll|hidden|clip/.test(s.overflowY + ' ' + s.overflowX)) continue;
+      const q = a.getBoundingClientRect();
+      v.top = Math.max(v.top, q.top);
+      v.bottom = Math.min(v.bottom, q.bottom);
+    }
+    return v.bottom > v.top ? v : null;
   }
 
   // The branch this tab opened and has not named yet, for the pill's reminder; null if none.

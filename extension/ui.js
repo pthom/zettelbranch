@@ -44,6 +44,7 @@
     button { font: inherit; background: var(--btn); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 4px 10px; cursor: pointer; }
     button:hover { background: var(--btn-hover); }
     button.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 600; }
+    button:disabled { opacity: .45; cursor: default; }
     .busy button { opacity: .6; pointer-events: none; }
     .box { border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
     .notice { background: var(--ok-bg); color: var(--ok-fg); }
@@ -165,11 +166,15 @@
     ui.error.hidden = false;
   }
 
-  // A result that did not go through: its plain text, and its error if any.
+  // A result that did not go through: its plain text, and its error if any. In the new chat's
+  // steps, the panel then keeps clear of the message box again.
   function showFailure(r) {
-    if (r.error) return showError(r.text, r.error);
-    ui.info.textContent = r.text;
-    ui.info.hidden = false;
+    if (r.error) showError(r.text, r.error);
+    else {
+      ui.info.textContent = r.text;
+      ui.info.hidden = false;
+    }
+    if (ui.body.querySelector('[data-zb="steps"]')) clearBox();
   }
 
   // ---------------------------------------------------------------- views
@@ -192,7 +197,10 @@
   }
 
   function showRead(r) {
-    if (r.steps) return show(el('p', { class: 'muted', 'data-zb': 'status', text: `You opened the branch ${r.steps.address} in a new chat.` }), steps(r.steps));
+    if (r.steps) {
+      show(el('p', { class: 'muted', 'data-zb': 'status', text: `You opened the branch ${r.steps.address} in a new chat.` }), steps(r.steps));
+      return clearBox();
+    }
     if (!r.ok) {
       say(r.text);
       if (r.error) showError('', r.error);
@@ -389,7 +397,7 @@
   // After Open new chat, you type at the end of claude.ai's message box and press its Send
   // button, just under the text. If the panel covers them (a narrow window: Pascal's shoot,
   // 2026-10-14), it moves just above the box, as if dragged there; you can still move it.
-  const BUTTON_ROW = 60; // the room for the box's buttons, under its text
+  const BUTTON_ROW = 40; // the room for the box's buttons, under its text
   function clearBox() {
     const box = B().boxRect();
     if (!box) return;
@@ -516,6 +524,17 @@
 
   // What to do in the new chat: after Open new chat, and when the panel opens again there.
   // o.own: the box ends with your own message (a branch instead of it).
+  // "Name this branch" in the steps: greyed until the message is sent, since there is nothing
+  // to name before (clicked anyway, its warning made the panel taller, over Send: the shoot).
+  function nameAfterSend(sent) {
+    const b = button('Name this branch', 'name', nameBranch, 'primary');
+    if (!sent) {
+      b.disabled = true;
+      b.title = 'Once you have sent your question and Claude has replied';
+    }
+    return b;
+  }
+
   // o.sent: the message is sent (the tab moved to the new chat), step 1 is done (hints item 6).
   function steps(o) {
     return el('div', { class: 'steps', 'data-zb': 'steps' }, [
@@ -531,7 +550,7 @@
       ]),
       el('div', { class: 'step', 'data-zb': 'step-2' }, [
         el('span', { class: 'num', text: '2.' }),
-        el('div', { class: 'row' }, [el('p', { text: 'When Claude has replied:' }), button('Name this branch', 'name', nameBranch, 'primary')]),
+        el('div', { class: 'row' }, [el('p', { text: 'When Claude has replied:' }), nameAfterSend(o.sent)]),
       ]),
     ]);
   }

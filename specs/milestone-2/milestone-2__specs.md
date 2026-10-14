@@ -24,12 +24,12 @@ Decided during session 1 (2026-10-14), and built into 0.2.0 the same day (tests:
 
 - **P12:** claude.ai takes keys typed in the panel (Chrome and Firefox): the forms stop the keys at their own fields, as the probe's field B did, and `AUDIT.md` says so.
 - **`MY QUESTION`** instead of `MY MESSAGE` (Pascal: "MY MESSAGE" does not say what to do). An instruction such as "PLEASE TYPE A FIRST QUESTION BELOW" would stay in the sent message for good, and Claude would read it too; the label names what goes under it, and the panel explains it at the right moment, when the new chat opens. Branches made with `MY MESSAGE` still read.
-- **The panel kept clear of Send** (found in the shoot, 2026-10-14): in a narrow window, the panel at the bottom right hid claude.ai's Send button right when you must press it. After Open new chat, if the panel covers the message box, it now moves just above it, as if dragged there.
+- **The panel kept clear of Send** (found in the shoot, 2026-10-14): in a narrow window, the panel at the bottom right hid claude.ai's Send button right when you must press it. In the new chat's steps, if the panel covers the message box or the row of buttons under it, it moves just above it, as if dragged there. The first version measured the whole text of the box, taller than the screen on claude.ai (it scrolls inside a parent), so it never moved: it now measures the part you see, and the fake claude.ai scrolls its box the same way. "Name this branch" stays greyed in the steps until you have sent: clicked before, its warning made the panel taller, over Send.
 - **Render test:** no rewrite of code blocks; four-backtick and tilde blocks render, tables show as typed.
 - **Install:** a fresh Firefox profile grants claude.ai at install; the README's step 3 becomes a note for when the button does not show. No manifest change.
 - **"Gather branches":** Claude found a chat by its title prefix and opened another from its link, with claude.ai's own past-chat tools (Milestone 3).
 
-Not in Milestone 2 (Milestone 3 candidates): the "gather branches" button (probed here, step 9), a button on each message, the banner, cross-references and backlinks, the shorter transcript modes, the Mozilla Add-ons listing (M2-3 = B), a website.
+Not in Milestone 2 (Milestone 3 candidates): where the panel sits on a chat page (open, it covers the right part of claude.ai's message box and its Send button, as since 0.1.0; it could keep clear of it as it does in the new chat), the "gather branches" button (probed here, step 9), a button on each message, the banner, cross-references and backlinks, the shorter transcript modes, the Mozilla Add-ons listing (M2-3 = B), a website.
 
 ## Steps
 
@@ -41,7 +41,7 @@ Not in Milestone 2 (Milestone 3 candidates): the "gather branches" button (probe
 | 4 | Render test: a Claude message with a four-backtick block, a `~~~` block and a small table, pasted in a `zbtest` chat; then the rewrite rule, if `~~~` renders | Claude prepares, Pascal pastes (2 minutes) | robust copies |
 | 5 | **Checked 2026-10-14, all passed.** Check 0.2.0 on the real page (Chrome, Firefox), with the open steps of 0.1.4's check; release as usual; watch Firefox update 0.1.3 to 0.2.0 by itself (the first live test of `updates.json`) | Pascal, then Claude | 0.2.0 |
 | 6 | Install friction: on a fresh Firefox profile, does installing ask for claude.ai, or is "allow on claude.ai" a separate step as Pascal found? Then a picture in the README, or a change to the manifest if one helps | Pascal checks, Claude adapts | an install that works first time |
-| 7 | Visuals and docs: the README's new opening; a shot list for Pascal's screenshots ([visuals__specs](visuals__specs.md)); the demo re-rendered; the manual updated (its text done for 0.2.0, the pictures to come). The README's line "Also inspired by Georges Perec's card systems" stays or goes with the new opening (M2-4 is about the posts) | Claude, Pascal's screenshots | the README for newcomers |
+| 7 | Visuals and docs: the README's new opening; the repository's "About" text on GitHub, more accessible (Pascal, 2026-10-14; proposal below); a shot list for Pascal's screenshots ([visuals__specs](visuals__specs.md)); the demo re-rendered; the manual updated (its text done for 0.2.0, the pictures to come). The README's line "Also inspired by Georges Perec's card systems" stays or goes with the new opening (M2-4 is about the posts) | Claude, Pascal's screenshots | the README for newcomers |
 | 8 | The Chrome Web Store (M2-3 = B): texts, images and privacy answers drafted, the zip made; Pascal opens the developer account (5 USD, once) and submits; the README's Chrome install then points to the store | Claude drafts, Pascal submits | Chrome in one click, with updates |
 | 9 | "Gather branches" probe, by hand in a chat, no extension: can Claude open a chat from a pasted link? Find one by its address in the title (`oulipo/1a`)? | Pascal (5 minutes) | the input for Milestone 3 |
 | 10 | Posts: one draft per channel in a file, Luhmann and the Zettelkasten without Perec (M2-4 = A); Pascal publishes them, a few days apart, after steps 5, 7 and 8 | Claude drafts, Pascal posts | the announcement |
@@ -56,6 +56,18 @@ Claude does most of the work alone, offline: the 0.2.0 build and its tests, `AUD
 - **Two sessions of clicks on claude.ai**, in the test profile ([checks-on-claude-ai__specs](checks-on-claude-ai__specs.md)): steps 2, 4, 6 and 9 (about 25 minutes, any time now), then step 5 (0.2.0 in both browsers, about 30 minutes). Each ends with its pictures for step 7 ([visuals__specs](visuals__specs.md)); Claude reminds him.
 - **His accounts:** the Mozilla upload at each release; the Chrome Web Store account and its submission (step 8).
 - **Publishing:** the posts (step 10), and saying when to push and release.
+
+## The repository's "About" text
+
+Shown at the top right of the GitHub page, and in link previews. Pascal (2026-10-14): make it more accessible. Now:
+
+> Browser extension for claude.ai: branch conversations into a Zettelkasten-style tree, each branch a chat named with an address (sky/1a1). Firefox (signed by Mozilla) and Chrome. Early version.
+
+Proposal, in the words of the README's new opening:
+
+> Open a side question in a new chat without losing your conversation. Zettelbranch, a browser extension for claude.ai, branches a conversation into a new chat that knows everything said so far, and names each branch with a short address (sky/1a), so your chats form a tree you can find your way in. Firefox and Chrome, early version.
+
+Changed by Pascal in the repository's settings (the gear next to "About"), or by Claude with `gh repo edit --description` when Pascal says so.
 
 ## The panel's forms (0.2.0)
 

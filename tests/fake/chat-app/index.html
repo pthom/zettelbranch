@@ -12,7 +12,11 @@
   [data-testid="user-message"] { background: #e8e5d8; border-radius: 10px; padding: 4px 10px; margin: 8px 0; }
   .whitespace-pre-wrap { white-space: pre-wrap; }
   fieldset { border: 1px solid #bbb; margin: 10px; border-radius: 10px; }
-  .ProseMirror { min-height: 40px; white-space: pre-wrap; outline: none; max-height: 200px; overflow: auto; }
+  /* As on claude.ai, the text scrolls inside the box's frame (Pascal's shoot, 2026-10-14).
+     Send stays on the left here: on claude.ai it is on the right, where the open panel covers
+     it on a chat page, as since 0.1.0; the tests do not hide the panel to press it. */
+  [data-testid="chat-input"] { max-height: 200px; overflow-y: auto; }
+  .ProseMirror { min-height: 40px; white-space: pre-wrap; outline: none; }
   [data-testid="file-thumbnail"] { display: inline-block; border: 1px solid #999; padding: 2px 6px; margin: 2px; }
   [data-testid="chat-title-split"] { display: flex; gap: 6px; padding: 8px 20px; border-bottom: 1px solid #ddd; }
   [role="menu"] { position: fixed; top: 44px; left: 260px; background: #fff; border: 1px solid #bbb; border-radius: 8px; padding: 4px; }

@@ -320,6 +320,7 @@ test('Open new chat: the box holds exactly the preview text; Send is not pressed
   assert.equal(await step(1), 'Type your first question for this branch at the end of the box, under MY QUESTION, then press Send. Everything above it is the conversation so far, copied for Claude.');
   assert.equal(await step(2), 'When Claude has replied:');
   assert.equal(await Z('step-2').locator('[data-zb="name"]').textContent(), 'Name this branch');
+  assert.equal(await Z('step-2').locator('[data-zb="name"]').isDisabled(), true, 'greyed until sent: nothing to name yet');
   assert.equal(await Z('warning').count(), 0, 'the box matches the preview');
   assert.equal(await Z('insert-method').count(), 0, 'one insertText call was enough');
   assert.equal(await editorText(), previewText);
@@ -328,8 +329,8 @@ test('Open new chat: the box holds exactly the preview text; Send is not pressed
   // shoot, 2026-10-14: the panel hid Send in a narrow window). At the bottom right, it covered them.
   const overlaps = (a, b) => a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
   const panelBox = await Z('panel').boundingBox();
-  assert.ok(!overlaps(panelBox, await page.locator('[data-testid="chat-input-send"]').boundingBox()), 'Send is not covered');
-  assert.ok(!overlaps(panelBox, await page.locator('[data-testid="chat-input"] [contenteditable="true"]').boundingBox()), 'the message box is not covered');
+  const frame = await page.locator('[data-testid="chat-input"]').boundingBox();
+  assert.ok(!overlaps(panelBox, { ...frame, height: frame.height + 40 }), 'the message box and the row of buttons under it are not covered');
   assert.ok(Math.abs(panelBox.x + panelBox.width - (1280 - 12)) <= 1, 'still on the right');
   const reads = apiCount();
   await page.waitForTimeout(1000);
@@ -781,7 +782,7 @@ test('right after Send, before the message is stored and before Claude replies: 
     assert.equal(await text('status'), 'You opened the branch zbtest/1a1a in a new chat.', 'nothing stored yet: the steps stay');
     assert.equal(await step(1), 'Sent.', 'step 1 done');
     assert.equal(await Z('step-1').locator('.num').textContent(), '✓');
-    assert.equal(await Z('step-2').locator('[data-zb="name"]').count(), 1);
+    assert.equal(await Z('step-2').locator('[data-zb="name"]').isDisabled(), false, 'sent: Name this branch can be clicked');
     await shots('steps-sent', '[data-zb="steps"]');
     await page.waitForTimeout(1300); // the message is stored; Claude is still replying
     await click('refresh');
