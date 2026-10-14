@@ -22,11 +22,11 @@ The story of the day (0.1.0 to 0.1.3, the native fork explored and dropped, the 
 
 Pascal asked on 2026-10-14 for a better rendering of the copied conversation, where claude.ai showed the `<zb-turn>` tags as raw text. Three pasted samples showed what claude.ai renders in your messages (code blocks, inline code and quotes only), and led to TL-1 and TL-2 ([transcript-layout__questions](transcript-layout__questions.md)): each message under a label in a box inside a quote, the section names in capitals, the header quoted, and Claude told that these lines are Zettelbranch's. Branches made before still read.
 
-Built offline (version 0.1.4, not released): all tests pass, including the real Tiptap editor in both browsers. Next: Pascal's check on claude.ai (the steps are in the questions file), then the release as usual, with the manual's screenshots and the demo retaken (they still show the tags).
+Built offline (version 0.1.4, not released): all tests pass, including the real Tiptap editor in both browsers. Seen working in a live test on 2026-10-14 (`zettelbranch/1` → `zettelbranch/1a`): the layout renders, and Claude's summary was accurate and stopped at the right message. Found there: Claude may write the summary in bold (`> **Parent …**`), which `prompt.js` does not recognise yet ([milestone-2__findings](milestone-2__findings.md), section 1, item 4); worth fixing before the release. Next: the rest of the check (the steps are in the questions file), then the release as usual, with the manual's screenshots and the demo retaken (they still show the tags).
 
 ## Waiting on Pascal
 
-1. **Check 0.1.4 on claude.ai** (Chrome and Firefox): [the steps](transcript-layout__questions.md#the-check-on-claudeai-014).
+1. **Finish checking 0.1.4 on claude.ai** (Chrome and Firefox): [the steps](transcript-layout__questions.md#the-check-on-claudeai-014); steps 2 and 3 were seen in the live test.
 2. **Use Zettelbranch for real** and note what bothers you; watch the post's replies, the GitHub issues and Discussions. That feedback sets Milestone 2.
 3. **Optional:** reply under the post that 0.1.3 fixes Firefox (draft in chat: "Update: Zettelbranch 0.1.3 fixes branching in Firefox…").
 4. **Clean up:** delete the `zbtest/` and `zbtest2/` chats (now also `zbtest/render`).
@@ -40,7 +40,7 @@ Built offline (version 0.1.4, not released): all tests pass, including the real 
 
 ## Next for Claude
 
-1. Plan Milestone 2 from Pascal's real use and the first feedback. Candidates, from the spec and the sessions:
+1. Plan Milestone 2 from Pascal's real use and the first feedback: [milestone-2__findings](milestone-2__findings.md) (UI fixes from a live test, robustness of the copied history, the README's opening, a "gather branches" idea, the communication plan). Other candidates, from the spec and the sessions:
    - the banner in each branch (path, siblings, children, with links);
    - a "Branch from here" button on each message (M1-2 = C);
    - cross-references between distant branches (`→ 2b`) and backlinks;
