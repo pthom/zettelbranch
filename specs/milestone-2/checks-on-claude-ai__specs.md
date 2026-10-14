@@ -30,6 +30,8 @@ A branch's first message where Claude's copied reply holds the hard cases: a cod
 3. Look at your message on screen: which of A, B, C and E show as code boxes, and how does the table D show? A screenshot of your message, or a line per case, to Claude.
 4. Once Claude has replied: Zettelbranch, "Name this branch" (the chat becomes `zbtest/9a · …`).
 
+**Result (2026-10-14, Chrome):** A, B, C and E all show as code boxes, the inner three-backtick lines of B and C as text inside them; the table D shows as typed, pipes and all, still readable. So four-backtick blocks render after all: the garbled case of the first sample (TL-1) had its fence right after a line of text, with no blank line between; Claude's replies put blank lines around their code blocks, and so does the layout. No rewrite needed.
+
 What Claude does with it: if C and E render, a four-backtick block in a copied message becomes a tilde block, so claude.ai shows it as code; tables stay as they are (Defaults of the [questions](milestone-2__questions.md#defaults)).
 
 ### 3. "Gather branches", by hand (Chrome, no extension needed)
