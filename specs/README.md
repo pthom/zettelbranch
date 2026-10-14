@@ -32,7 +32,7 @@ Claude maintains these files. Pascal answers questions inline and may edit anyth
 |---|---|---|---|
 | 0. Probes on the real site | **finished** 2026-10-13 | A spike that settled the unknowns before building: every probe passed | [finalized](done/milestone-0/milestone-0__finalized.md), [plan](done/milestone-0/milestone-0__specs.md), [results](done/milestone-0/milestone-0__findings.md) |
 | 1. The extension | **finished** 2026-10-13 | 0.1.0: branch any chat from any message, with a preview, into named branches; the tree in the panel. Followed by 0.1.1 to 0.1.3, outside milestones | [finalized](done/milestone-1/milestone-1__finalized.md), [plan](done/milestone-1/milestone-1__specs.md), [build notes](done/milestone-1/milestone-1__findings.md) |
-| 2. From the first feedback | **in progress** since 2026-10-14 | Done: 0.1.4 built, a readable first message (not released yet). Next: the plan, from the hints | [hints](milestone-2/milestone-2__findings.md), [the layout of 0.1.4](milestone-2/transcript-layout__questions.md) |
+| 2. Ready for a wider audience | **in progress** since 2026-10-14 | Done: 0.1.4 built, a readable first message (not released yet). The plan is a draft, waiting on M2-1 to M2-4 | [plan (draft)](milestone-2/milestone-2__specs.md), [questions](milestone-2/milestone-2__questions.md), [hints](milestone-2/milestone-2__findings.md), [the layout of 0.1.4](milestone-2/transcript-layout__questions.md) |
 
 ## Map
 
@@ -42,10 +42,17 @@ Claude maintains these files. Pascal answers questions inline and may edit anyth
 - What public sources say about claude.ai, and what Milestone 0 confirmed on the real site: [claude-ai__findings](claude-ai__findings.md)
 - Anthropic's terms and support's answer: [terms__findings](terms__findings.md)
 - Why branches made in Firefox could not be named, and the fix in 0.1.3: [firefox-insertion__findings](firefox-insertion__findings.md)
-- Milestone 2, in progress: hints from the first feedback and a live test of 0.1.4 ([milestone-2__findings](milestone-2/milestone-2__findings.md)); a more readable layout for the copied conversation ([transcript-layout__questions](milestone-2/transcript-layout__questions.md))
+- Milestone 2, in progress: the [plan (draft)](milestone-2/milestone-2__specs.md) and its [questions](milestone-2/milestone-2__questions.md); hints from the first feedback and a live test of 0.1.4 ([milestone-2__findings](milestone-2/milestone-2__findings.md)); a more readable layout for the copied conversation ([transcript-layout__questions](milestone-2/transcript-layout__questions.md))
 - Finished work: the [done log](done/README.md). It holds the first review of the spec (findings and questions per subject, all decided), the original design conversation with its check against the vault, Milestone 0 and Milestone 1 (plans, results and their finalized notes; 0.1.0 released).
 
 ## Open questions
 
-None right now. TL-1 and TL-2 (the layout of a branch's first message) are decided; [their file](milestone-2/transcript-layout__questions.md) holds the check of 0.1.4 on claude.ai.
+| ID | Question | File |
+|---|---|---|
+| M2-1 | What does Milestone 2 cover? | [milestone-2__questions](milestone-2/milestone-2__questions.md) |
+| M2-2 | Release 0.1.4 now, or with 0.2.0? | [milestone-2__questions](milestone-2/milestone-2__questions.md) |
+| M2-3 | Store listings before the announcement? | [milestone-2__questions](milestone-2/milestone-2__questions.md) |
+| M2-4 | Name Perec in the posts? | [milestone-2__questions](milestone-2/milestone-2__questions.md) |
+
+TL-1 and TL-2 (the layout of a branch's first message) are decided; [their file](milestone-2/transcript-layout__questions.md) holds the check of 0.1.4 on claude.ai.
 
