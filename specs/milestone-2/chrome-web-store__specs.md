@@ -51,7 +51,17 @@ Plan step 8 (M2-3 = B: the Chrome Web Store before the posts). Drafted by Claude
 **Graphics** (from the shoot's pictures, composed by Claude, [visuals__specs](visuals__specs.md)):
 - the icon, 128 x 128 (above);
 - 1 to 5 screenshots, 1280 x 800: the panel choosing where to branch; the new chat with the steps; Claude's first reply; the tree in the panel; the sidebar with the addresses;
-- the small promotional tile, 440 x 280: the name and the small `sky/` tree of the demo's title card *(to verify: required or optional)*.
+- the small promotional tile, 440 x 280: the name and the small `sky/` tree of the demo's title card.
+
+**Made 2026-10-14** (`tests/demo/store.html`, `cd tests && node make-demo.mjs --store`, into `tests/out/store/`, not committed; `sheet.png` shows them all). Google's rules ([images](https://developer.chrome.com/docs/webstore/images)): 1 to 5 screenshots at 1280 x 800, full bleed, square corners; the small tile is required, 440 x 280, little text, saturated colours, must read at half size. So each screenshot has a caption column on the left (360 px) and the shot full bleed on the right, at about 1:1 (the shoot's window is about 1044 px wide, so a caption band above would have blown the shots up). The tile is brown, with the name and a three-line `sky/` tree; the icon goes left of the name once chosen (one line in `store.html`).
+
+1. "Branch from any message": `sky/1`, the panel with the list of messages, Claude's reply 2 chosen.
+2. "A new chat that knows the conversation so far": the filled box, "What is the green flash?" typed, the panel's steps (claude.ai's greeting with Pascal's first name covered).
+3. "Claude sums up where you were, then answers": the summary, the answer, "Branch title: The green flash at sunset", step 1 checked.
+4. "Your chats form a tree": the panel on `sky/1a1`, the tree of 4 chats, "you are here".
+5. "Find your way back, on any device": claude.ai's sidebar with the four `sky/` chats (the chats below them covered, the account row out of the crop).
+
+Every picture checked for private content: no other chat title, no account name, no browser tabs or toolbar.
 
 **Links:** homepage and support: `https://github.com/pthom/zettelbranch` (support: its issues).
 

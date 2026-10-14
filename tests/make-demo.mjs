@@ -6,6 +6,9 @@
 //   node make-demo.mjs --mp4   ->  out/demo/zettelbranch-demo.mp4 (30 frames a second, H.264, for
 //                                  social media; not committed)
 //   node make-demo.mjs --social ->  out/demo/social-preview.png (the repository's link preview)
+//   node make-demo.mjs --store  ->  out/store/screenshot-1.png ... screenshot-5.png (1280 x 800) and
+//                                  tile-440x280.png, the Chrome Web Store listing pictures, and
+//                                  sheet.png to review them at a glance (not committed)
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -24,6 +27,38 @@ if (process.argv.includes('--social')) {
   await p.screenshot({ path: out });
   await b.close();
   console.log(`-> ${path.relative(process.cwd(), out)}`);
+  process.exit(0);
+}
+// --store: the Chrome Web Store listing pictures, from demo/store.html (one picture per page load,
+// store.html?1 ... ?5, ?tile), saved as 24-bit PNG without alpha.
+if (process.argv.includes('--store')) {
+  const dir = path.join(DIR, 'out', 'store');
+  fs.mkdirSync(dir, { recursive: true });
+  const pics = [1, 2, 3, 4, 5].map((n) => [String(n), `screenshot-${n}.png`, 1280, 800]);
+  pics.push(['tile', 'tile-440x280.png', 440, 280]);
+  const b = await chromium.launch({ channel: 'chromium', headless: true });
+  for (const [id, name, width, height] of pics) {
+    const p = await b.newPage({ viewport: { width, height }, deviceScaleFactor: 1 });
+    await p.route('**/*', (r) => (r.request().url().startsWith('file:') ? r.continue() : r.abort()));
+    await p.goto('file://' + path.join(DIR, 'demo', 'store.html') + '?' + id);
+    await p.waitForFunction(() => window.ready === true);
+    const out = path.join(dir, name);
+    await p.screenshot({ path: out });
+    await p.close();
+    execFileSync('magick', [out, '-background', 'white', '-alpha', 'remove', '-alpha', 'off', 'PNG24:' + out]);
+    console.log(`-> ${path.relative(process.cwd(), out)}`);
+  }
+  await b.close();
+  // The contact sheet: the screenshots at half size (640 x 400), the tile at full size, on light grey
+  // (Google: assume the tile sits on a light grey background).
+  const f = (n) => path.join(dir, n);
+  const cell = ['-background', '#e4e4e4', '-gravity', 'center', '-extent', '664x424'];
+  execFileSync('magick', [
+    '(', f('screenshot-1.png'), f('screenshot-2.png'), f('screenshot-3.png'), '-resize', '640x400', ...cell, '+append', ')',
+    '(', f('screenshot-4.png'), f('screenshot-5.png'), '-resize', '640x400', f('tile-440x280.png'), ...cell, '+append', ')',
+    '-append', '-bordercolor', '#e4e4e4', '-border', '12', 'PNG24:' + f('sheet.png'),
+  ]);
+  console.log(`-> ${path.relative(process.cwd(), f('sheet.png'))}`);
   process.exit(0);
 }
 const FPS = MP4 ? 30 : 12;

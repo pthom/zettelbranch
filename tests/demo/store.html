@@ -1,0 +1,125 @@
+<!doctype html>
+<!-- The Chrome Web Store listing pictures: five screenshots (1280 x 800) and the small promo tile
+     (440 x 280). Pascal's screenshots of claude.ai (tests/out/shoot, not committed), cropped, with a
+     caption column. Rendered by make-demo.mjs --store, one picture per page load:
+     store.html?1 ... store.html?5, store.html?tile. Without a parameter, all six one under the other.
+     Offline: nothing is fetched. -->
+<html><head><meta charset="utf-8"><title>Zettelbranch store pictures</title>
+<style>
+  :root { --ink: #2b2118; --muted: #6b5a4a; --accent: #9a5434; --page: #fcfcfb; }
+  html, body { margin: 0; }
+  body { font-family: system-ui, -apple-system, "Helvetica Neue", sans-serif; color: var(--ink); }
+  body.all { background: #d9d6d0; padding: 24px; display: flex; flex-direction: column; gap: 24px; align-items: flex-start; }
+  .pic { position: relative; overflow: hidden; flex: none; }
+
+  /* Screenshots: the caption column on the left, the screenshot full bleed on the right (Google:
+     square corners, no padding). */
+  .shot { width: 1280px; height: 800px; display: flex; }
+  .cap { width: 360px; flex: none; box-sizing: border-box; padding: 92px 38px 44px 46px; display: flex; flex-direction: column; background: linear-gradient(160deg, #f6f1e7 0%, #ece2d0 100%); border-right: 1px solid rgba(60, 40, 20, 0.16); }
+  .cap h1 { margin: 0 0 26px; font: 400 40px/1.16 Georgia, "Times New Roman", serif; letter-spacing: -0.01em; text-wrap: balance; }
+  .cap p { margin: 0; font-size: 23px; line-height: 1.42; color: var(--muted); }
+  .cap .brand { margin-top: auto; font: 400 27px/1 Georgia, "Times New Roman", serif; color: var(--accent); }
+  .view { position: relative; flex: 1; overflow: hidden; background: var(--page); }
+  .view img { position: absolute; max-width: none; }
+  .view .cover { position: absolute; }
+  /* keep: the part left sharp; the rest of the view is dimmed with the page's colour */
+  .view .keep { position: absolute; border-radius: 12px; box-shadow: 0 0 0 4000px rgba(252, 252, 251, 0.6); }
+  /* A soft edge where the crop cuts through the conversation's lines */
+  .view .fade { position: absolute; top: 0; bottom: 0; width: 120px; }
+  .view .fade.left { left: 0; width: 170px; background: linear-gradient(90deg, var(--page) 55%, rgba(252, 252, 251, 0)); }
+  .view .fade.right { right: 0; background: linear-gradient(270deg, var(--page) 15%, rgba(252, 252, 251, 0)); }
+  /* The column's shadow on the screenshot */
+  .view::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 14px; background: linear-gradient(90deg, rgba(60, 40, 20, 0.10), rgba(60, 40, 20, 0)); }
+
+  /* Small promo tile. Google: little text, fill the whole region, clear edges, saturated colours rather
+     than white or light grey, must work at half size. */
+  .tile { width: 440px; height: 280px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; background: linear-gradient(160deg, #a65d38 0%, #8a4b2a 55%, #6f3a20 100%); }
+  .tile .name { display: flex; align-items: center; gap: 16px; }
+  .tile .icon { width: 80px; height: 80px; flex: none; }
+  .tile h1 { margin: 0; font: 400 56px/1 Georgia, "Times New Roman", serif; letter-spacing: -0.01em; color: #fbf5ea; text-shadow: 0 2px 10px rgba(40, 20, 8, 0.25); }
+  .tile .name:has(.icon) h1 { font-size: 46px; }
+  .tile .tree { background: #fffdf8; border-radius: 12px; padding: 13px 20px; font: 15px/1.75 Menlo, Monaco, monospace; white-space: pre; color: var(--ink); box-shadow: 0 10px 26px rgba(40, 20, 8, 0.35); }
+  .tile .tree b { color: var(--accent); font-weight: 700; }
+  .tile .tree i { color: #b9a894; font-style: normal; }
+</style></head>
+<body>
+<template id="tile">
+  <div class="pic tile">
+    <div class="name">
+      <!-- The icon, once there is one: uncomment the next line and set the path (shown at 80 px, the name then gets smaller). -->
+      <!-- <img class="icon" src="../../extension/icons/icon-128.png" alt=""> -->
+      <h1>Zettelbranch</h1>
+    </div>
+    <div class="tree"><b>sky/1  </b> · Why the sky is blue
+<i>├─ </i><b>sky/1a </b> · Why sunsets are red
+<i>└─ </i><b>sky/1b </b> · The sky on Mars</div>
+  </div>
+</template>
+<script>
+// The captions (drafts): title and one line, for screenshots 1 to 5.
+const CAPTIONS = {
+  1: ['Branch from any message', 'Choose where the new chat starts: after one of Claude’s replies, or instead of one of your messages.'],
+  2: ['A new chat that knows the conversation so far', 'Type your question under MY QUESTION, then press Send yourself.'],
+  3: ['Claude sums up where you were, then answers', 'And it suggests a name for the branch.'],
+  4: ['Your chats form a tree', 'Every title carries its address, like sky/1a · Why sunsets are red and orange.'],
+  5: ['Find your way back, on any device', 'The addresses are in the titles, so claude.ai’s own sidebar shows the tree.'],
+};
+
+// The screenshots: Pascal's window shots (2000 x 1293, the Chrome window at about x 24-1068,
+// y 137-1168). crop: [x, y, width] in the source's pixels, the height follows from the view
+// (920 x 800). cover: [x, y, width, height, colour], over what must not show. keep: [x, y, width,
+// height], the part left sharp, the rest dimmed. fade: the side where the crop cuts lines of text.
+const SHOOT = '../out/shoot/';
+const SHOTS = {
+  // sky/1, the panel open, Claude's reply 2 chosen.
+  1: { src: 'A1-choose.png', crop: [110, 330, 954] },
+  // sky/1a1's new chat: the filled box, What is the green flash? typed, Send visible, the panel's
+  // steps. The greeting above the box names Pascal's account: covered.
+  2: { src: 'B-raw/233.png', crop: [214, 421, 850], cover: [[300, 440, 500, 76, '#fcfcfb']] },
+  // sky/1a1's first reply: the summary of sky/1a, the answer, the Branch title line, the panel.
+  3: { src: 'B/B05b-reply-end.png', crop: [121, 340, 943] },
+  // sky/1a1 named, the panel showing the tree of 4 chats; the conversation behind it dimmed.
+  4: { src: 'B/B08-tree.png', crop: [310, 505, 754], keep: [658, 730, 400, 428], fade: 'left' },
+  // The sidebar open, sky/1a1 just named: only the sky/ chats show, the other chats and the account
+  // (bottom of the sidebar) are covered with the sidebar's colour.
+  5: { src: 'B-raw/226.png', crop: [26, 138, 738], cover: [[24, 562, 279, 700, '#fbfaf9']], fade: 'right' },
+  // The same from C2-sidebar.png (3 sky/ chats, sky/1b open; store.html?5-c2): to use it, rename this
+  // entry to 5.
+  '5-c2': { src: 'C2-sidebar.png', crop: [26, 138, 738], cover: [[24, 529, 279, 700, '#fbfaf9']], fade: 'right' },
+};
+const VIEW_W = 920; // the view is 920 x 800, right of the 360 px caption column
+
+function el(tag, cls, parent) { const e = document.createElement(tag); if (cls) e.className = cls; if (parent) parent.appendChild(e); return e; }
+
+function shot(n) {
+  const s = SHOTS[n], [title, line] = CAPTIONS[n.split('-')[0]];
+  const pic = el('div', 'pic shot');
+  const cap = el('div', 'cap', pic);
+  el('h1', '', cap).textContent = title;
+  el('p', '', cap).textContent = line;
+  el('div', 'brand', cap).textContent = 'Zettelbranch';
+  const view = el('div', 'view', pic);
+  const [x, y, w] = s.crop, k = VIEW_W / w;
+  const img = el('img', '', view);
+  img.src = SHOOT + s.src;
+  Object.assign(img.style, { width: 2000 * k + 'px', left: -x * k + 'px', top: -y * k + 'px' });
+  for (const [cx, cy, cw, ch, colour] of s.cover || []) {
+    Object.assign(el('div', 'cover', view).style, { left: (cx - x) * k + 'px', top: (cy - y) * k + 'px', width: cw * k + 'px', height: ch * k + 'px', background: colour });
+  }
+  if (s.keep) {
+    const [kx, ky, kw, kh] = s.keep;
+    Object.assign(el('div', 'keep', view).style, { left: (kx - x) * k + 'px', top: (ky - y) * k + 'px', width: kw * k + 'px', height: kh * k + 'px' });
+  }
+  if (s.fade) el('div', 'fade ' + s.fade, view);
+  return pic;
+}
+
+const which = decodeURIComponent(location.search.slice(1));
+const list = which ? [which] : ['1', '2', '3', '4', '5', 'tile'];
+if (!which) document.body.className = 'all';
+for (const id of list) {
+  document.body.appendChild(id === 'tile' ? document.getElementById('tile').content.firstElementChild.cloneNode(true) : shot(id));
+}
+Promise.all([...document.images].map((i) => i.decode())).then(() => { window.ready = true; });
+</script>
+</body></html>
