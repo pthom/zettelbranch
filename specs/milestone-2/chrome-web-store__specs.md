@@ -1,6 +1,6 @@
 # Chrome Web Store: the listing (draft)
 
-Plan step 8 (M2-3 = B: the Chrome Web Store before the posts). Drafted by Claude on 2026-10-14 for Pascal's review; Pascal creates the developer account and submits. The dashboard's exact questions change from time to time: what is marked *(to verify)* is checked against the dashboard when Pascal opens it.
+Plan step 8 (M2-3 = B: the Chrome Web Store before the posts). The texts to paste into the store's form are in `text` blocks, ready to copy. Drafted by Claude on 2026-10-14 for Pascal's review; Pascal creates the developer account and submits. The dashboard's exact questions change from time to time: what is marked *(to verify)* is checked against the dashboard when Pascal opens it.
 
 ## What Pascal does
 
@@ -20,31 +20,35 @@ Plan step 8 (M2-3 = B: the Chrome Web Store before the posts). Drafted by Claude
 
 **Summary** (132 characters at most; 128):
 
-> Branch claude.ai conversations into new chats with short addresses (sky/1a), so your chats form a tree you can find your way in.
+```text
+Branch claude.ai conversations into new chats with short addresses (sky/1a), so your chats form a tree you can find your way in.
+```
 
 **Description** (plain text, as the store shows it):
 
-> Explore your thoughts and side quests without getting lost.
->
-> When we think, we open parentheses: a side question, an alternative, a detail worth chasing. In a long conversation, every parenthesis lands in the same thread, and soon nobody remembers where it was opened. Zettelbranch opens the parenthesis in a new chat instead: branch from any message, and the main thread stays where you left it.
->
-> How it works:
-> 1. Click the Zettelbranch button on claude.ai and choose where the branch starts: after one of Claude's replies, or instead of one of your messages.
-> 2. Zettelbranch opens a new chat holding the conversation so far, with a short header. Type your question and press Send yourself; it never sends anything for you.
-> 3. Claude sums up where the conversation stood, answers, and suggests a name.
-> 4. The chat is named with its address, like sky/1a · Why sunsets are red and orange. Your chats form a tree, shown in the panel with links, and readable in the sidebar on every device.
->
-> The name: Zettelkasten (German, "box of index cards") + branch, after the card boxes of Niklas Luhmann, where every card has an address.
->
-> Privacy and trust:
-> - No permissions. It runs only on claude.ai, in your own page.
-> - It reads a conversation only when you open its panel or click, through claude.ai's own interface, and sends it nowhere but back to claude.ai, into the new chat you open.
-> - It stores nothing, never reads your login, and never sends a message or deletes anything.
-> - The code is short and open (MIT), with an audit guide: github.com/pthom/zettelbranch
->
-> An early version: claude.ai changes often, and Zettelbranch relies on its web interface. When something breaks, please open an issue on GitHub.
->
-> Zettelbranch is an independent project, not made or endorsed by Anthropic. Claude and claude.ai are Anthropic's.
+```text
+Explore your thoughts and side quests without getting lost.
+
+When we think, we open parentheses: a side question, an alternative, a detail worth chasing. In a long conversation, every parenthesis lands in the same thread, and soon nobody remembers where it was opened. Zettelbranch opens the parenthesis in a new chat instead: branch from any message, and the main thread stays where you left it.
+
+How it works:
+1. Click the Zettelbranch button on claude.ai and choose where the branch starts: after one of Claude's replies, or instead of one of your messages.
+2. Zettelbranch opens a new chat holding the conversation so far, with a short header. Type your question and press Send yourself; it never sends anything for you.
+3. Claude sums up where the conversation stood, answers, and suggests a name.
+4. The chat is named with its address, like sky/1a · Why sunsets are red and orange. Your chats form a tree, shown in the panel with links, and readable in the sidebar on every device.
+
+The name: Zettelkasten (German, "box of index cards") + branch, after the card boxes of Niklas Luhmann, where every card has an address.
+
+Privacy and trust:
+- No permissions. It runs only on claude.ai, in your own page.
+- It reads a conversation only when you open its panel or click, through claude.ai's own interface, and sends it nowhere but back to claude.ai, into the new chat you open.
+- It stores nothing, never reads your login, and never sends a message or deletes anything.
+- The code is short and open (MIT), with an audit guide: github.com/pthom/zettelbranch
+
+An early version: claude.ai changes often, and Zettelbranch relies on its web interface. When something breaks, please open an issue on GitHub.
+
+Zettelbranch is an independent project, not made or endorsed by Anthropic. Claude and claude.ai are Anthropic's.
+```
 
 **Category:** Productivity, "Workflow & Planning" *(to verify: the store's current categories)*. **Language:** English.
 
@@ -65,15 +69,25 @@ Every picture checked for private content: no other chat title, no account name,
 
 **Links:** homepage and support: `https://github.com/pthom/zettelbranch` (support: its issues).
 
+**Privacy policy address** (privacy tab):
+
+```text
+https://github.com/pthom/zettelbranch/blob/main/PRIVACY.md
+```
+
 ## Privacy practices tab
 
 **Single purpose:**
 
-> Zettelbranch branches a claude.ai conversation into a new claude.ai chat holding a copy of the conversation so far, and names the chats with tree addresses so that they form a tree.
+```text
+Zettelbranch branches a claude.ai conversation into a new claude.ai chat holding a copy of the conversation so far, and names the chats with tree addresses so that they form a tree.
+```
 
 **Permissions:** none requested. The only access is the content script on `https://claude.ai/*`. Justification, if asked for the site access:
 
-> Zettelbranch works only on claude.ai: when you click, it reads the conversation on screen through claude.ai's own interface, opens a new claude.ai chat with a copy of it, and renames claude.ai chats to their tree addresses. It does nothing on any other site.
+```text
+Zettelbranch works only on claude.ai: when you click, it reads the conversation on screen through claude.ai's own interface, opens a new claude.ai chat with a copy of it, and renames claude.ai chats to their tree addresses. It does nothing on any other site.
+```
 
 **Remote code:** No. All code is in the package; nothing is downloaded or evaluated.
 
