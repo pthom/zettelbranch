@@ -139,7 +139,7 @@ Seen in Milestone 0 (P8, 2026-10-13): Claude followed it. The blockquote came fi
 
 The extension reads this blockquote for the banner's "where this came from". The banner lists siblings and children by their titles, not by these summaries: a summary describes the parent at the fork point, not the branch itself.
 
-Parsing is lenient. The extension takes the first blockquote of the first reply that starts with `Parent`. If there is none, the banner shows no summary; nothing else breaks.
+Parsing is lenient. The extension takes the first blockquote of the first reply that starts with `Parent`, bold or italic marks aside (Claude wrote `> **Parent zettelbranch/1 in brief:**` on 2026-10-14). If there is none, the banner shows no summary; nothing else breaks.
 
 
 The last line, here `Branch title: Backlinks for option A` (on Pascal's `oulipo/1a1`, it would read `Branch title: Un enfant au ballon`), is Claude's suggestion for the branch's name (Pascal, 2026-10-13): claude.ai's automatic title describes the parent, since the first message holds its transcript, and the first words of a question rarely make a good name. It is asked only when the first message holds a question; when the question comes in a later message, the proposal falls back to that question's first words.

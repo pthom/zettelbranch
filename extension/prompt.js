@@ -117,10 +117,14 @@
     return { ...head, turns, ownText: text.slice(end + '</zb-instructions>'.length).trim() };
   }
 
+  // Claude's summary opens with "Parent <tree>/<address> in brief:", sometimes in bold or
+  // italics (`> **Parent zettelbranch/1 in brief:**`, seen on 2026-10-14).
+  const SUMMARY_RE = /^[*_]{0,2}Parent (\S+?)[*_]{0,2} in brief[*_]{0,2}:[*_]{0,2}\s*/;
+
   // Drops Claude's "> Parent … in brief:" blockquote at the top of a branch's first reply.
   function stripSummary(text) {
     const lines = String(text).split('\n');
-    if (!/^>\s*Parent\b/.test(lines[0] || '')) return text;
+    if (!/^>\s*[*_]{0,2}Parent\b/.test(lines[0] || '')) return text;
     let i = 0;
     while (i < lines.length && /^>/.test(lines[i])) i++;
     while (i < lines.length && !lines[i].trim()) i++;
@@ -152,7 +156,8 @@
   // title at the bottom.
   const replyBody = (text) => stripBranchTitle(stripSummary(text));
 
-  // The first blockquote of a reply, if it starts with "Parent" (for the banner, later).
+  // The first blockquote of a reply, if it starts with "Parent", bold or italic marks aside (for
+  // the banner, later).
   function parseSummary(reply) {
     const lines = String(reply).split('\n');
     const start = lines.findIndex((l) => /^>/.test(l));
@@ -160,7 +165,7 @@
     let end = start;
     while (end < lines.length && /^>/.test(lines[end])) end++;
     const text = lines.slice(start, end).map((l) => l.replace(/^>\s?/, '')).join(' ').replace(/\s+/g, ' ').trim();
-    const m = /^Parent (\S+) in brief:\s*/.exec(text);
+    const m = SUMMARY_RE.exec(text);
     return m ? { parent: m[1], text: text.slice(m[0].length) } : null;
   }
 

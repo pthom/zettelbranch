@@ -58,7 +58,7 @@ Checked offline: in a real Tiptap editor, neither browser turns a line ending wi
 
 ## The check on claude.ai (0.1.4)
 
-Steps 2 and 3 were seen in Pascal's live test on 2026-10-14 (`zettelbranch/1` → `zettelbranch/1a`), with one finding: Claude wrote its summary in bold, which is not recognised yet ([milestone-2__findings](milestone-2__findings.md), section 1, item 4).
+Steps 2 and 3 were seen in Pascal's live test on 2026-10-14 (`zettelbranch/1` → `zettelbranch/1a`), with one finding: Claude wrote its summary in bold, which was not recognised (fixed; [milestone-2__findings](milestone-2__findings.md), section 1, item 4).
 
 1. Chrome test profile: `chrome://extensions`, ⟳ on Zettelbranch (it shows 0.1.4). Firefox test profile: `about:debugging`, "Load Temporary Add-on…", `extension/manifest.json`.
 2. In a `zbtest` chat with a code block, branch from Claude's last reply, open the new chat, type a question under `MY MESSAGE`, send. Unfold the first message: the header, section names and labels have a bar, the labels a box, the messages read as normal text.

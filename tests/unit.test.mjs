@@ -526,6 +526,14 @@ describe('prompt.js', () => {
     assert.ok(b.text.includes('literal <zb-turn> tag'), 'unescaped');
   });
 
+  test('a summary in bold is dropped too, from the copy and from the quote', () => {
+    const bold = [BRANCH[0], { ...BRANCH[1], text: '> **Parent zbtest/1 in brief:** We defined a Zettelkasten.\n\nAddresses look like 1, 1a, 1a1.' }, ...BRANCH.slice(2)];
+    const b = P.build({ ...flat, messages: bold, fork: 3 });
+    assert.equal(P.parseBranchMessage(b.text).turns[3].text, 'Addresses look like 1, 1a, 1a1.');
+    assert.ok(!b.text.includes('We defined'));
+    assert.match(P.build({ ...flat, messages: bold, fork: 1 }).text.split('\n')[2], /after message 2 \(Claude\): "Addresses look like 1, 1a, 1a1\."$/);
+  });
+
   test('a branch\'s first reply is copied without its summary and its branch title line', () => {
     const titled = [BRANCH[0], { ...BRANCH[1], text: BRANCH[1].text + '\n\n---\n\n**Branch title:** Addresses and letters.' }, ...BRANCH.slice(2)];
     const b = P.build({ ...flat, messages: titled, fork: 3 });
@@ -584,6 +592,12 @@ describe('prompt.js', () => {
     assert.equal(P.stripSummary('> A quote\n\nAnswer.'), '> A quote\n\nAnswer.');
     assert.deepEqual({ ...P.parseSummary('> Parent zb/1 in brief: Two\n> lines.\n\nAnswer') }, { parent: 'zb/1', text: 'Two lines.' });
     assert.equal(P.parseSummary('No quote here'), null);
+    // In bold or italics (seen on 2026-10-14: `> **Parent zettelbranch/1 in brief:** We had…`).
+    for (const open of ['**Parent zb/1 in brief:**', '**Parent zb/1 in brief**:', '*Parent zb/1 in brief:*', '__Parent zb/1 in brief:__', '**Parent zb/1** in brief:']) {
+      assert.deepEqual({ ...P.parseSummary(`> ${open} Two\n> lines.\n\nAnswer`) }, { parent: 'zb/1', text: 'Two lines.' }, open);
+      assert.equal(P.stripSummary(`> ${open} Two\n> lines.\n\nAnswer.`), 'Answer.', open);
+    }
+    assert.equal(P.stripSummary('> **Parents** say hi\n\nAnswer.'), '> **Parents** say hi\n\nAnswer.', 'another word: kept');
     assert.equal(P.quote('short'), 'short');
     assert.equal(P.quote('word '.repeat(20)), 'word word word word word word word word word word word word…');
   });
