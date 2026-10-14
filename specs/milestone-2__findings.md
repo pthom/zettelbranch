@@ -80,3 +80,35 @@ Task: draft one post per channel.
 - r/ClaudeAI: the problem plus the demo.
 - Obsidian: the Zettelkasten addresses, and the specs being an Obsidian vault.
 - HN: the design choice (the tree lives in chat titles, so it survives without the extension) and the audit approach.
+
+## Claude Code's view (2026-10-14)
+
+Asked by Pascal for feedback on the brief above. Overall it is sound: the UI fixes are real, the order is right, and "fix first, then refresh the visuals, then announce" is the right sequencing. Points where I would add or change something:
+
+**Section 1, the UI.**
+
+- Items 1, 2 and 7 are one piece of work: a small form inside the panel replacing every browser dialog (tree name, branch name, the rename confirmation). With the address shown as a fixed prefix and only the topic editable, item 2's bug disappears, and so does the "asked again after a wrong edit" loop. This is the most valuable change for trust, and the end-to-end tests that answer the dialogs must be rewritten with it. I would do it first.
+- Item 3: closing the panel by itself once the branch is named is simple and right: the job is done, and the pill stays. The notice ("You just created the branch…") can move into the pill's tooltip or show for a few seconds.
+- Item 4: the bold summary is fixed (above). Stripping Markdown in the list is cheap.
+- Item 5: a debug setting would need storage, and "stores nothing" is one of the trust points. Simpler: say nothing when the box ended up exact, and keep the details in a tooltip; show a warning only when it differs.
+- Item 6 is feasible: the panel already notices when the address changes, which happens when the new chat is sent.
+
+**Section 3, the copied history.**
+
+- Four-backtick fences: I would not say "often". Claude uses them mostly to show Markdown that itself holds code blocks, as in this very brief. Rewriting them as `~~~` keeps the meaning for Claude, and the copy is already rewritten slightly elsewhere (labels, closed fences), so it is acceptable, but only if the bubble renders `~~~` fences: the render test comes first, as the brief says. I can prepare that sample.
+- Tables: I would leave them. In a code block Claude might take a table for code, and the literal pipes only cost some looks in the bubble.
+- Label look-alikes: done (escaping, addresses in labels).
+
+**Section 4, the README.** The parenthesis paragraph is better than the current opening: it states the problem in one breath and leads straight into the `sky/1` example. I would take it as is. The screenshots and the GIF need retaking anyway for 0.1.4's layout: better to do it once, after the UI fixes.
+
+**Section 5, gathering branches.** A good idea, the natural "close the parenthesis". Two things to check before building it:
+
+- Whether Claude can open a chat from a pasted claude.ai link. "Summarize all the Oulipo sessions" shows that it can search past chats by topic, not that it follows links. The branch addresses in the titles (`oulipo/1a`) are unique words, so listing the children's titles may work better than their links. A quick test settles it.
+- The alternative without that claude.ai setting: Zettelbranch already reads whole conversations to branch, so it could copy the children's last replies into the box itself, the way a branch copies its history. That works for everyone, at the cost of a longer message.
+
+**Section 6, communication.**
+
+- Perec points to the Oulipo, and you did not want to disclose the poems idea (2026-10-13). Leading with Luhmann alone avoids that.
+- Store listings before a wide announcement: I agree, for one more reason than casual readers. "Expect it to break" means fixes must reach users fast; in developer mode, Chrome users never get them. The Chrome Web Store gives automatic updates (one-time 5 USD fee, a review of a few days, a privacy form). The listing must say plainly that Zettelbranch is not made by Anthropic.
+- Hacker News readers will ask whether using claude.ai's undocumented web API is allowed. A short, honest answer ready in advance helps: it runs in your own page with your own session, makes four kinds of calls, and only when you click ([terms__findings](terms__findings.md)). Asking Anthropic (Waiting on Pascal, in the status file) becomes more useful before a wide announcement.
+- Missing from the brief: install friction in Firefox. Today, even you missed "allow Zettelbranch on claude.ai" after installing, and nothing shows that the step is missing, since the extension cannot run without it. A screenshot of that step in the README, and checking whether Firefox can grant it at install, are worth doing before the posts.
