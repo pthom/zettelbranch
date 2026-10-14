@@ -24,11 +24,12 @@ Milestones and their state: [the vault's README](README.md#milestones). Mileston
 ## Waiting on Pascal
 
 1. **Clean up after the sessions:** on claude.ai, delete the test chats of 2026-10-14 (`zbtest/render-2`, `zbtest/gather`, the P12 "Test chat", session 2's `zbtest/1`, `/1a`, `/2`, `/2a`, and the "autumn" chat of the tree-name picture if it is still there) and the older `zbtest/` and `zbtest2/` chats. In the Firefox test profile, turn Zettelbranch back on (it was off since P12): untouched, it should go to 0.2.0 by itself within a day, the test of Firefox's daily check.
-2. **The Chrome Web Store account** ([chrome-web-store__specs](milestone-2/chrome-web-store__specs.md)): fill its "Profil" page (publisher name, contact email and its verification, the non-trader declaration), and choose the privacy answer, A (recommended, with a short `PRIVACY.md`) or B.
-3. **Pick the icon** among Claude's drafts, once they are there.
-4. **Use Zettelbranch for real** and note what bothers you; watch the GitHub issues and Discussions. That feedback guides Milestone 3.
-5. **Optional:** ask a person at Anthropic about automated tests, and about Zettelbranch now that others use it (draft from Claude).
-6. **Pictures** (reminder, as asked on 2026-10-14): the shoot is done; new ones only if the panel changes again before the posts.
+2. **The Chrome Web Store account** ([chrome-web-store__specs](milestone-2/chrome-web-store__specs.md)): name and non-trader set; left: add the contact email and click the link Google sends. Privacy answer: A (`PRIVACY.md`, written).
+3. **Pick the icon** among Claude's three drafts (`tests/out/icon/icon-drafts.png`).
+4. **Read the posts' drafts** ([posts__specs](milestone-2/posts__specs.md)) and change what does not sound like you.
+5. **Use Zettelbranch for real** and note what bothers you; watch the GitHub issues and Discussions. That feedback guides Milestone 3.
+6. **Optional:** ask a person at Anthropic about automated tests, and about Zettelbranch now that others use it (draft from Claude).
+7. **Pictures** (reminder, as asked on 2026-10-14): the shoot is done; new ones only if the panel changes again before the posts.
 
 ## How a release goes (for the next version)
 
@@ -42,10 +43,9 @@ The demo video of 0.2.0 lives in that release's notes (Pascal dragged it there, 
 ## Next for Claude
 
 1. Milestone 2's [plan](milestone-2/milestone-2__specs.md), in this order:
-   - **the icon:** two or three drafts of three linked cards in a small tree, in the panel's brown (`#8a4b2a`), PNG at 16, 32, 48 and 128 px; it ships in the next version (0.2.1), before the store submission;
-   - **the store's pictures:** up to five screenshots at 1280 x 800 and the small tile at 440 x 280, composed from the shoot;
-   - `PRIVACY.md`, if Pascal chooses A;
-   - **the posts' drafts** (r/ClaudeAI, the Obsidian community, Show HN; Luhmann, no Perec), with an honest answer ready on the undocumented API and the terms;
+   - **the icon:** three drafts made (`tests/out/icon/icon-drafts.png`; Claude recommends B, the brown tile); once Pascal picks, it goes into `extension/icons/` and the manifest, and ships in 0.2.1, before the store submission;
+   - **the store's pictures:** five screenshots at 1280 x 800 and the small tile at 440 x 280, composed from the shoot (`tests/demo/store.html`, `node make-demo.mjs --store`);
+   - done 2026-10-14: `PRIVACY.md` (privacy answer A); the posts' drafts with answers for the comments ([posts__specs](milestone-2/posts__specs.md));
    - then the close: the finalized note, the folder to `done/`.
 2. Milestone 3 candidates, from the spec and the sessions:
    - "gather branches" (Claude can already find and open chats with claude.ai's past-chat tools);
