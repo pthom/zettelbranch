@@ -32,11 +32,38 @@ The pictures of 0.1.1 show what 0.2.0 changes: the copied conversation in `<zb-t
 - [x] **F1:** the "Add Zettelbranch" prompt in a fresh Firefox profile, which lists access to claude.ai (2026-10-14, `tests/out/install/`).
 - [x] **F2:** not needed: the button showed at once.
 
-## Session 2
+## Session 2: the shoot (2026-10-14)
 
-The exact frames are written once 0.2.0 is built and its forms are known. The plan, as in 0.1.1, on the `sky` demo tree:
+With 0.2.0 on the `sky` demo tree, in four parts. Each picture is a screenshot of the Chrome window alone (Cmd+Ctrl+Shift+4, then Space, then click the window: it goes to the clipboard), pasted in the chat with its name. Claude crops them.
 
-- Before shooting: delete `sky/1a`, `sky/1b` and `sky/1a1` (they hold the old tags), so that the new branches get the same addresses and the README's text stays true. Keep `sky/1`. Claude's sidebar collapsed, except for the sidebar picture.
-- [ ] `sky/1a` from Claude's first reply ("Why are sunsets red and orange?"): `choose`, the tree form when `sky` is not a tree yet (if `sky/1` is already a root, no tree form: Claude says how to show it on another chat), `preview`, `new-chat`, `first-message`, `first-reply`, the naming form, `named`.
-- [ ] The demo: `sky/1b` from Claude's last reply ("What colour is the sky on Mars?"), one screenshot at each step, as for the 0.1.1 demo.
-- [ ] `sky/1a1` from `sky/1a` ("What is the green flash?"), then `tree` and `sidebar`.
+**Before shooting**
+
+- Chrome test profile, `chrome://extensions`: ⟳ on Zettelbranch (0.2.0, with the hint changed after session 2), the spike off.
+- Close Chrome's "Continue where you left off" bar.
+- Keep the Chrome window at the same size and place for every picture, and leave the panel where it opens (bottom right).
+- claude.ai's sidebar collapsed (the icon at the top left), except for `sidebar`.
+- Delete `sky/1a`, `sky/1b` and `sky/1a1` (they hold the old tags), so that the new branches get the same addresses and the README's text stays true. Keep `sky/1`.
+
+**Part A: stills, `sky/1a` from Claude's first reply**
+
+- [ ] A1 `choose`: `sky/1` with the panel open, message 2 clicked.
+- [ ] A2 `preview`: after Branch.
+- [ ] A3 `new-chat`: after Open new chat, `Why are sunsets red and orange?` typed under `MY QUESTION`, the panel's steps visible. Then Send.
+- [ ] A4 `first-message`: your message on screen (header, section names, labels), as claude.ai shows it folded.
+- [ ] A5 `first-reply`: Claude's whole first reply: the summary, the answer, "Branch title: …".
+- [ ] A6 `name`: after Name this branch, the form.
+- [ ] A7 `named`: after Rename: the panel closed, the new title at the top; the mouse over the Zettelbranch button, its tooltip showing.
+
+**Part B: the demo, `sky/1b` from Claude's last reply**
+
+One screenshot at each step, nothing else moving on screen: B1 `sky/1` with the panel open (Claude's last reply chosen by default); B2 the preview; B3 the new chat, filled; B4 `What colour is the sky on Mars?` typed; B5 Claude's reply, complete; B6 the naming form; B7 after Rename (panel closed, new title); B8 the panel opened again, showing the tree; B9 after clicking `1a` in the tree (that chat, the panel showing where you are); B10 after clicking `1` (back at the root).
+
+**Part C: `tree` and `sidebar`**
+
+- [ ] In `sky/1a`, branch from Claude's last reply: `What is the green flash?`, send, name it (`sky/1a1`).
+- [ ] C1 `tree`: the panel on `sky/1a1`, "Tree sky: 4 chats".
+- [ ] C2 `sidebar`: the sidebar open, its top showing the four `sky/` chats.
+
+**Part D: `tree-name`**
+
+- [ ] New chat, `Why do leaves change colour in autumn?`, wait for the reply, Zettelbranch, Branch. D1 `tree-name`: the tree form. Then Cancel, and delete this chat.
