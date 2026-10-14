@@ -17,6 +17,8 @@ Does what you type in a field of Zettelbranch's panel stay there, or does claude
 5. Firefox test profile: `about:debugging`, "This Firefox", "Load Temporary Add-on…", pick `spike/extension/manifest.json` (and remove or disable the Zettelbranch there for now). Same steps 2 to 4.
 6. Afterwards: the spike off, Zettelbranch back on, in both browsers (in Chrome, also ⟳ on Zettelbranch: it shows 0.2.0, built since).
 
+**Result (2026-10-14, Chrome and Firefox): claude.ai takes the keys.** In field A, the first key moves the focus to claude.ai's message box, so the letters land there (and Enter there would send them). Field B keeps every key, and Enter in it clicks its button. So 0.2.0's forms stop the keys at their own fields, as field B does.
+
 What Claude does with it: if field A keeps the keys, 0.2.0's forms need no keyboard listener at all; if only field B does, the forms stop the keys at their own fields (and `AUDIT.md` says so); if neither, Claude comes back with another way.
 
 ### 2. Render test (Chrome, Zettelbranch on)
