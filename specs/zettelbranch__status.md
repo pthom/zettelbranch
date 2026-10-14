@@ -2,17 +2,17 @@
 
 What is open, and the next steps. Updated by Claude at the end of each session. Finished work leaves this file for the [done log](done/README.md).
 
-**Last update:** 2026-10-14, 0.2.1 released (the icon), ready for the Chrome Web Store.
+**Last update:** 2026-10-14, 0.2.2 released (a description the Chrome Web Store accepts), the store submission under way.
 
 **Repository:** https://github.com/pthom/zettelbranch (public, MIT). Claude pushes only when Pascal asks.
 
 ## Where things are
 
-Zettelbranch **0.2.1** is the latest release (2026-10-14): the icon, after 0.2.0 the same day (the panel's own forms, a readable first message, new pictures, the demo as a video at the top of the README; [done log](done/README.md)). 0.1.2 and 0.1.3 were announced by Pascal on X on 2026-10-13.
+Zettelbranch **0.2.2** is the latest release (2026-10-14), for Chrome: a description of 132 characters at most, which the Chrome Web Store requires; Firefox keeps the signed **0.2.1** (the icon, the same scripts). Before them, 0.2.0 the same day (the panel's own forms, a readable first message, new pictures, the demo as a video at the top of the README; [done log](done/README.md)). 0.1.2 and 0.1.3 were announced by Pascal on X on 2026-10-13.
 
 - **Firefox:** signed by Mozilla (unlisted, add-on 3095566 on addons.mozilla.org), one-click install from the README, automatic updates through `updates.json` in this repository. Seen working on 2026-10-14: Pascal's main Firefox went to 0.2.0 on "Rechercher des mises à jour" ("Vos modules ont été mis à jour").
 - **Chrome:** developer mode ("Load unpacked"), updated by hand; the README tells Chrome users to watch the repository's releases. The Chrome Web Store comes next (Milestone 2, step 8).
-- **Tests** (0.2.1): audit 79/79, unit 65/65, end-to-end 36/36, a real Tiptap editor in Chromium and Firefox 6/6 (`cd tests && npm test`, offline).
+- **Tests** (0.2.2): audit 79/79, unit 67/67, end-to-end 36/36, a real Tiptap editor in Chromium and Firefox 6/6 (`cd tests && npm test`, offline).
 - **The repository:** README opening on the demo video (GitHub's player, the GIF as a link), four illustrated steps and one-click install; user manual in `docs/MANUAL.md`; the About text chosen on 2026-10-14; Discussions on; a "Something broke" issue form; private security reports (`SECURITY.md`); a link-preview image.
 
 The story so far (0.1.0 to 0.2.0) is in the [done log](done/README.md). The facts about claude.ai it all builds on: [claude-ai__findings](claude-ai__findings.md#9-checked-on-pascals-account-milestone-0).
@@ -25,7 +25,7 @@ Milestones and their state: [the vault's README](README.md#milestones). Mileston
 
 1. **Clean up after the sessions:** on claude.ai, delete the test chats of 2026-10-14 (`zbtest/render-2`, `zbtest/gather`, the P12 "Test chat", session 2's `zbtest/1`, `/1a`, `/2`, `/2a`, and the "autumn" chat of the tree-name picture if it is still there) and the older `zbtest/` and `zbtest2/` chats. In the Firefox test profile, turn Zettelbranch back on (it was off since P12): untouched, it should go to 0.2.0 by itself within a day, the test of Firefox's daily check.
 2. **The Chrome Web Store account** ([chrome-web-store__specs](milestone-2/chrome-web-store__specs.md)): name and non-trader set; left: add the contact email and click the link Google sends. Privacy answer: A (`PRIVACY.md`, written).
-3. **Submit to the Chrome Web Store:** "New item", upload `tests/out/release-0.2.1/zettelbranch-0.2.1.zip`, fill the tabs from [chrome-web-store__specs](milestone-2/chrome-web-store__specs.md) (texts, the pictures in `tests/out/store/`, privacy answer A with `PRIVACY.md`), submit.
+3. **Submit to the Chrome Web Store:** "New item", upload `tests/out/release-0.2.2/zettelbranch-0.2.2.zip`, fill the tabs from [chrome-web-store__specs](milestone-2/chrome-web-store__specs.md) (texts, the pictures in `tests/out/store/`, privacy answer A with `PRIVACY.md`), submit.
 4. **Read the posts' drafts** ([posts__specs](milestone-2/posts__specs.md)) and change what does not sound like you.
 5. **Use Zettelbranch for real** and note what bothers you; watch the GitHub issues and Discussions. That feedback guides Milestone 3.
 6. **Optional:** ask a person at Anthropic about automated tests, and about Zettelbranch now that others use it (draft from Claude).
@@ -37,6 +37,8 @@ Milestones and their state: [the vault's README](README.md#milestones). Mileston
 2. Pascal uploads the zip to addons.mozilla.org ("Envoyer une nouvelle version", "À vous de jouer", source code: Non) and saves the signed `.xpi` into `tests/out/` (right-click, "Enregistrer la cible du lien sous…": unlisted files are served only to the signed-in owner).
 3. Claude checks the `.xpi` against `extension/`, adds the version to `updates.json` (with its SHA-256), and publishes the GitHub release with the versioned files and the version-free copies `zettelbranch.xpi` and `zettelbranch.zip` (the README's install links point to `releases/latest/download/` with those names) and `SHA256SUMS`; then verifies the update chain.
 4. Once Zettelbranch is on the Chrome Web Store: Pascal uploads the same zip there too.
+
+A change that Firefox does not need (0.2.2, the store's description) can be released for Chrome only: no Mozilla upload, the release carries the last signed `.xpi` (its own name and `zettelbranch.xpi`, for the README's one-click install), and `updates.json` stays. The unit tests check the store's limits on the manifest (name, description, version).
 
 The demo video of 0.2.0 lives in that release's notes (Pascal dragged it there, so GitHub keeps it); a new demo would go the same way ([visuals__specs](milestone-2/visuals__specs.md)).
 

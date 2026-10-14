@@ -6,7 +6,7 @@ Plan step 8 (M2-3 = B: the Chrome Web Store before the posts). The texts to past
 
 1. **Done 2026-10-14:** the developer account exists (Pascal's Google account, signed up from Firefox; the dashboard shows no item yet, "Limite d'extensions : 0/2"). Its settings, filled by Pascal the same day: publisher name "Pascal Thomet" (shown as "Offered by"), non-trader ("compte non professionnel"); left: the contact email, shown publicly with the extension, to add and verify. The postal address stays empty: Google requires it only for items that sell something ([set-up-account](https://developer.chrome.com/docs/webstore/set-up-account)). "Créer un éditeur" (a publisher for a group) is not needed. On the way, a sign-in to Chrome itself in the test profile turned on Chrome Sync and installed 11 extensions from Pascal's account there; Pascal removed them and turned sync off the same day, so the test profile holds only Zettelbranch again.
    Originally: sign up at the Chrome Web Store developer dashboard with the Google account to use, pay the one-time 5 USD, and give a contact email (it shows on the listing). Declare a **non-trader** account (a free project, not a business): the EU asks every developer.
-2. When this file is approved and the pictures are ready: "New item", upload `zettelbranch-0.2.1.zip` (the release's zip, the first with the icon), fill the tabs from the sections below, submit. Google's review takes a few days, sometimes more for a first item.
+2. When this file is approved and the pictures are ready: "New item", upload `zettelbranch-0.2.2.zip` (the release's zip: the icon, and a description the store accepts), fill the tabs from the sections below, submit. Google's review takes a few days, sometimes more for a first item.
 3. Once published: the README's Chrome install points to the store, and each later release is uploaded there too (one more step in [how a release goes](../zettelbranch__status.md#how-a-release-goes-for-the-next-version)).
 
 ## Two things the package needs first (questions)
@@ -18,7 +18,7 @@ Plan step 8 (M2-3 = B: the Chrome Web Store before the posts). The texts to past
 
 **Name:** Zettelbranch
 
-**Summary** (132 characters at most; 128):
+**Summary**: the store takes it from the manifest's `description`, 132 characters at most. 0.2.1's (150 characters) was refused at upload on 2026-10-14; since 0.2.2 the manifest holds the line Pascal chose (option 1 of four, his About phrase, 128 characters), so there is nothing to paste. The first draft, unused:
 
 ```text
 Branch claude.ai conversations into new chats with short addresses (sky/1a), so your chats form a tree you can find your way in.

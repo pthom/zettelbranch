@@ -43,7 +43,7 @@ Every step, with more pictures: the [user manual](docs/MANUAL.md).
 
 ## Status
 
-Version 0.2.1 (2026-10-14), an early version, used by its author in Chrome and Firefox.
+Version 0.2.2 (2026-10-14), an early version, used by its author in Chrome and Firefox.
 
 > **Expect it to break.** Zettelbranch relies on claude.ai's undocumented web interface, which Anthropic updates often and without notice. One of these updates will break it, probably soon. When it does, please [open an issue](https://github.com/pthom/zettelbranch/issues).
 

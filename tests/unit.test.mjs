@@ -973,3 +973,14 @@ describe('menu.js: claude.ai\'s title menu', () => {
     });
   });
 });
+
+describe('the manifest fits the stores', () => {
+  const manifest = JSON.parse(fs.readFileSync(new URL('../extension/manifest.json', import.meta.url), 'utf8'));
+  test('the Chrome Web Store\'s limits: a name of 75 characters at most, a description of 132 (0.2.2: the store refused 150)', () => {
+    assert.ok(manifest.name.length <= 75, `name: ${manifest.name.length} characters`);
+    assert.ok(manifest.description.length <= 132, `description: ${manifest.description.length} characters`);
+  });
+  test('a version of numbers only, as both stores require', () => {
+    assert.match(manifest.version, /^\d+(\.\d+){0,3}$/);
+  });
+});
