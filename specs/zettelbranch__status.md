@@ -2,18 +2,18 @@
 
 What is open, and the next steps. Updated by Claude at the end of each session. Finished work leaves this file for the [done log](done/README.md).
 
-**Last update:** 2026-10-14, Milestone 2 decided; 0.2.0 built offline; Pascal's session 1 ready.
+**Last update:** 2026-10-14, 0.2.0 released.
 
 **Repository:** https://github.com/pthom/zettelbranch (public, MIT). Claude pushes only when Pascal asks.
 
 ## Where things are
 
-Zettelbranch **0.1.3** is the latest release (2026-10-14), announced by Pascal on X on 2026-10-13 (with 0.1.2).
+Zettelbranch **0.2.0** is the latest release (2026-10-14): the panel's own forms, a readable first message, new pictures ([done log](done/README.md)). 0.1.2 and 0.1.3 were announced by Pascal on X on 2026-10-13.
 
 - **Firefox:** signed by Mozilla (unlisted, add-on 3095566 on addons.mozilla.org), one-click install from the README, automatic updates through `updates.json` in this repository.
 - **Chrome:** developer mode ("Load unpacked"), updated by hand; the README tells Chrome users to watch the repository's releases.
 - **What 0.1.3 fixed:** in Firefox, claude.ai's box joined the prompt's lines into one, so branches made in Firefox could not be named. Now the box is refilled line by line when that happens, branches made by 0.1.2 are read anyway, and the panel can be dragged by its title bar ([findings](firefox-insertion__findings.md)). Checked by Pascal in Firefox and Chrome.
-- **Tests** (0.2.0, not released): audit 76/76, unit 65/65, end-to-end 35/35, a real Tiptap editor in Chromium and Firefox 6/6 (`cd tests && npm test`, offline).
+- **Tests** (0.2.0): audit 76/76, unit 65/65, end-to-end 35/35, a real Tiptap editor in Chromium and Firefox 6/6 (`cd tests && npm test`, offline).
 - **The repository:** README with an animated demo, four illustrated steps and one-click install; user manual in `docs/MANUAL.md`; Discussions on; a "Something broke" issue form; private security reports (`SECURITY.md`); a link-preview image.
 
 The story of the day (0.1.0 to 0.1.3, the native fork explored and dropped, the rename through claude.ai's menu, the Firefox fix) is in the [done log](done/README.md). The facts about claude.ai it all builds on: [claude-ai__findings](claude-ai__findings.md#9-checked-on-pascals-account-milestone-0).
