@@ -38,13 +38,13 @@ Not in Milestone 2 (Milestone 3 candidates): the "gather branches" button (probe
 | 10 | Posts: one draft per channel in a file, Luhmann and the Zettelkasten without Perec (M2-4 = A); Pascal publishes them, a few days apart, after steps 5, 7 and 8 | Claude drafts, Pascal posts | the announcement |
 | 11 | Close: the finalized note, the folder to `done/`, the Milestones table | Claude | Milestone 2 finished |
 
-Steps 2, 4, 6 and 9 are short and independent: they can happen in one session of Pascal's.
+Steps 2, 4, 6 and 9 are short and independent: they happen in one session of Pascal's, session 1 of [checks-on-claude-ai__specs](checks-on-claude-ai__specs.md); step 5 is session 2. The pictures each session ends with: [visuals__specs](visuals__specs.md).
 
 ## Who does what
 
 Claude does most of the work alone, offline: the 0.2.0 build and its tests, `AUDIT.md`, the probe and the samples to paste, the README, the manual and the demo, the store texts, the posts, the releases on GitHub. Pascal's part is short and cannot be done by Claude (no scripts on claude.ai, his accounts, his name):
 
-- **Two sessions of clicks on claude.ai**, in the test profile: steps 2, 4, 6 and 9 (about 15 minutes, any time now), then step 5 (0.2.0 in both browsers, about 20 minutes), with the new screenshots of step 7 taken at the same time.
+- **Two sessions of clicks on claude.ai**, in the test profile ([checks-on-claude-ai__specs](checks-on-claude-ai__specs.md)): steps 2, 4, 6 and 9 (about 25 minutes, any time now), then step 5 (0.2.0 in both browsers, about 30 minutes). Each ends with its pictures for step 7 ([visuals__specs](visuals__specs.md)); Claude reminds him.
 - **His accounts:** the Mozilla upload at each release; the Chrome Web Store account and its submission (step 8).
 - **Publishing:** the posts (step 10), and saying when to push and release.
 
@@ -53,6 +53,7 @@ Claude does most of the work alone, offline: the 0.2.0 build and its tests, `AUD
 - **Name this branch:** `oulipo/1a ·` as fixed text, then a field holding the proposed topic, with its source under it ("proposed by Claude", "from your first question"). Buttons: Rename, Cancel. The old and new titles show before you confirm.
 - **Tree name:** a field pre-filled from the chat's title (`oulipo`), the hint "a–z, 0–9 and -", and the root title it will give (`oulipo/1 · Oulipo and constraints`). Buttons: Make it a tree, Cancel.
 - **Enter submits, without listening to keys.** Each form is a `<form method="dialog">` whose button has a click listener: pressing Enter in a field clicks the form's button (the browser does it), and a `dialog` form never loads a page. So the extension still has only click listeners, plus the panel's drag. It reads a field only when you click its button, and only Zettelbranch's own fields. `AUDIT.md` point 9 says so.
+- **Probe P12** (spike 0.0.12, section P12) has two fields: A without any key listener, as planned; B stopping the keys at the field. Checked offline against three local pages (one that leaves the keys alone, one that moves them to its own box, one that does so before anything else sees them): it tells the three cases apart in Chromium and Firefox. If only B keeps the keys, 0.2.0 stops them at its own fields; if neither does, another way is needed.
 - **The risk** that step 2 checks: key presses inside the panel also reach claude.ai's page, which may move the focus to its message box as you type. If it does, the forms need a keyboard listener that stops those keys at the panel, and `AUDIT.md` says that too.
 
 ## Rules carried over

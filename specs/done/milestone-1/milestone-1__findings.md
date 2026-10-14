@@ -28,14 +28,14 @@ Line counts after step 6e, following the chat and Claude's branch title (`a3891b
 
 | File | Lines | What |
 |---|---|---|
-| [manifest.json](../extension/manifest.json) | 19 | MV3, scripts on `https://claude.ai/*`, no permissions, no background; `gecko.id` `zettelbranch@pthom.github.io`, Firefox 128 or later |
-| [api.js](../extension/api.js) | 146 | The only network file: the four calls, an allowed list checked before each request, renames only to tree titles |
-| [tree.js](../extension/tree.js) | 135 | Addresses by segments, titles (` · `, or ` . ` and ` - ` typed by hand), next child, next root, the proposed tree name, a tree's chats in address order |
-| [conversation.js](../extension/conversation.js) | 296 | Messages from the API (path, text, placeholders); the page fallback, as Markdown |
-| [prompt.js](../extension/prompt.js) | 273 | The prompt of [forking__prompt](../../forking__prompt.md); parsing it back; the topic proposed for a branch's name |
-| [branch.js](../extension/branch.js) | 408 | The flow: read (with the tree), branch, open the new chat, name |
-| [ui.js](../extension/ui.js) | 448 | The pill, the panel, the refresh button, the tree, the preview, the steps after Open new chat, the notices |
-| [content.js](../extension/content.js) | 7 | Mounts the pill, except on `/share/` pages |
+| [manifest.json](../../../extension/manifest.json) | 19 | MV3, scripts on `https://claude.ai/*`, no permissions, no background; `gecko.id` `zettelbranch@pthom.github.io`, Firefox 128 or later |
+| [api.js](../../../extension/api.js) | 146 | The only network file: the four calls, an allowed list checked before each request, renames only to tree titles |
+| [tree.js](../../../extension/tree.js) | 135 | Addresses by segments, titles (` · `, or ` . ` and ` - ` typed by hand), next child, next root, the proposed tree name, a tree's chats in address order |
+| [conversation.js](../../../extension/conversation.js) | 296 | Messages from the API (path, text, placeholders); the page fallback, as Markdown |
+| [prompt.js](../../../extension/prompt.js) | 273 | The prompt of [forking__prompt](../../forking__prompt.md); parsing it back; the topic proposed for a branch's name |
+| [branch.js](../../../extension/branch.js) | 408 | The flow: read (with the tree), branch, open the new chat, name |
+| [ui.js](../../../extension/ui.js) | 448 | The pill, the panel, the refresh button, the tree, the preview, the steps after Open new chat, the notices |
+| [content.js](../../../extension/content.js) | 7 | Mounts the pill, except on `/share/` pages |
 | **extension/** | **1,732** | |
 | [AUDIT.md](../../../AUDIT.md) | 184 | 18 points, 30 commands, what they cannot prove, an LLM prompt |
 | `tests/` | 2,303 | Audit, unit and end-to-end tests, the fake claude.ai (`tests/fake/`), real fixtures |
@@ -293,10 +293,10 @@ Built offline by Claude on 2026-10-13, commit `ba045c4`, as decided in NF-2 = A.
 
 - **From the last message, Claude's reply** (the panel's default), the preview says "claude.ai will copy this conversation into a new chat, named `zbtest/1d · Root topic`. Your first message there:", then shows that message.
 - **Open new chat** asks claude.ai for the copy (the `POST` of P9, with only `continueBranchAsNewChat` in its body). It reads the new chat once a second until it has as many messages as this one (15 seconds at most), checks their roles, renames it `<tree>/<address> · <parent's topic>`, reads the name back, and loads the copy's page.
-- **On that page** the panel opens by itself, with "Start the branch" and the line about the default model. The click puts the first message in the box: the header and the instructions, no transcript ([forking__prompt](../../forking__prompt.md#when-claudeai-copied-the-conversation)). You add your text and press Send.
+- **On that page** the panel opens by itself, with "Start the branch" and the line about the default model. The click puts the first message in the box: the header and the instructions, no transcript ([forking__prompt](../../forking__prompt.md#when-claudeai-copies-the-conversation)). You add your text and press Send.
 - **Anywhere else**, or **when claude.ai's copy fails**, the quoted transcript, as before. A failure (an error answer, an unexpected answer, a copy not complete after 15 seconds, a copy that differs, a rename that fails) goes straight on to the quoted transcript, with a note such as "claude.ai's own copy failed: HTTP 500 internal; this branch uses a quoted transcript instead."
 - **Name this branch** works on any branch chat and proposes the current name. A branch claude.ai copied is named from the start, so the dialog is for changing its topic.
-- **Copies from such chats** are flattened into one list, each turn with its branch and place ([the rules](../../forking__prompt.md#flattening-and-attribution)).
+- **Copies from such chats** are flattened into one list, each turn with its branch and place ([the rules](../../forking__prompt.md#transcript)).
 
 ### Numbers
 

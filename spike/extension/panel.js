@@ -5,7 +5,7 @@
 (function (global) {
   'use strict';
 
-  const VERSION = '0.0.11';
+  const VERSION = '0.0.12';
   const Z = () => global.ZBProbes;
   const log = [];
   let host = null;
@@ -40,6 +40,7 @@
     ol.steps li::marker { color: var(--accent); font-weight: 600; }
     ol.steps p { color: var(--fg); }
     .fork { font-weight: 600; }
+    input[type="text"] { font: inherit; width: 190px; padding: 3px 6px; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; }
   `;
 
   function el(tag, props = {}, children = []) {
@@ -104,6 +105,16 @@
       }
     });
     return b;
+  }
+
+  // P12: a form as 0.2.0 plans it (method "dialog", a click listener on its button only:
+  // Enter in the field makes the browser click it). Field B also stops the keys at the field.
+  function p12Form(variant, out) {
+    const input = el('input', { type: 'text', 'data-zb': `p12-field-${variant}`, autocomplete: 'off', spellcheck: 'false', placeholder: `field ${variant}` });
+    const submit = el('button', { type: 'submit', 'data-zb': `p12-submit-${variant}`, text: `Submit ${variant}` });
+    if (variant === 'B') for (const t of ['keydown', 'keypress', 'keyup']) input.addEventListener(t, (e) => e.stopPropagation());
+    submit.addEventListener('click', (ev) => run('P12', `Submit ${variant} (${ev.detail === 0 ? 'Enter' : 'mouse'})`, () => Z().p12Submit(variant, input, ev, host.shadowRoot), out));
+    return el('form', { method: 'dialog', class: 'row' }, [el('b', { text: `${variant}:` }), input, submit]);
   }
 
   // One section per probe: plain instructions, buttons, a result area.
@@ -190,7 +201,23 @@
       out.textContent = 'Opening a new chat… If no P3 result appears here after the new chat opens, the page reloaded (the panel restarted and lost its memory).';
     };
 
+    const p12Out = el('pre', { 'data-zb-result': 'p12' });
+    const p12Start = el('button', { type: 'button', 'data-zb': 'p12-start', text: 'Start' });
+    p12Start.addEventListener('click', () => run('P12', 'Start', () => p.p12Start(), p12Out));
+    const p12 = el('section', { 'data-zb-section': 'p12' }, [
+      el('h3', { text: 'P12 · Typing in the panel (Milestone 2)' }),
+      el('p', { text: "Does what you type in a field of the panel stay there, or does claude.ai take the keys into its own message box? Nothing is sent or changed: the probe only measures the length of claude.ai's box." }),
+      el('ol', { class: 'steps' }, [
+        el('li', {}, [el('p', { text: "Open any chat. Leave claude.ai's message box empty. Click Start." }), el('div', { class: 'row' }, [p12Start])]),
+        el('li', {}, [el('p', { text: `Click in field A, type ${p.P12_TEXT} and press Enter (not the button). Watch where the letters appear. Then click "Submit A" with the mouse.` }), p12Form('A', p12Out)]),
+        el('li', {}, [el('p', { text: 'The same with field B: type, Enter, then "Submit B" with the mouse.' }), p12Form('B', p12Out)]),
+        el('li', {}, [el('p', { text: 'If letters went into claude.ai\'s box, delete them there; never send them. Then do steps 1 to 3 once more on a new chat (New chat in the sidebar), and click "Copy results" at the top.' })]),
+      ]),
+      p12Out,
+    ]);
+
     body.append(
+      p12,
       section('p1', 'P1 · Insert text', [
         'Open a new chat (New chat in the sidebar). Click "Insert test text" and look at the message box.',
         'Press Send yourself. After the reply, click "Check last sent message": it then offers to rename the chat to zbtest/p1 (click OK).',

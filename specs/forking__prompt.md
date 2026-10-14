@@ -148,7 +148,7 @@ Parsing is lenient here too. The extension takes the last non-empty line of the 
 
 ## What the extension parses
 
-The header message is message 1 in a copy. In a branch claude.ai copied, it is the first message of yours that starts with the branch's header, after the copied messages ([below](#when-claudeai-copied-the-conversation)).
+The header message is message 1 in a copy. In a branch claude.ai copied, it is the first message of yours that starts with the branch's header, after the copied messages ([below](#when-claudeai-copies-the-conversation)).
 
 | Item | Where | How |
 |---|---|---|

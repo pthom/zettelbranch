@@ -4,7 +4,7 @@ Context: [milestone-1__specs](milestone-1__specs.md), and what Milestone 0 found
 
 ## M1-1 · Does Milestone 1 name branches with their address?
 
-**Status:** decided (2026-10-13): A. Folded into the [plan](milestone-1__specs.md) and the [spec](../../zettelbranch__specs.md#first-milestone).
+**Status:** decided (2026-10-13): A. Folded into the [plan](milestone-1__specs.md) and the [spec](../../zettelbranch__specs.md#milestone-1).
 
 The spec's first milestone was "extraction plus a branch button; addresses come after". Milestone 0 showed that renaming works, and the spike already computes addresses correctly (`1a`, `1b`, `1a1`, by segments).
 

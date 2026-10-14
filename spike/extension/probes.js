@@ -1158,7 +1158,57 @@
     };
   }
 
+  // ---------------------------------------------------------------- P12
+
+  // A field inside the panel (0.2.0's forms, Milestone 2). Does what Pascal types stay in the
+  // panel's field, or does claude.ai pull the keys to its own message box? Does Enter submit
+  // the form (the browser then clicks its button)? Field A has no key listener, as 0.2.0
+  // plans; field B stops the keys at the field, the fallback if A loses them. Read-only: the
+  // message box is measured (its length), never read out or changed.
+  const P12_TEXT = 'Oulipo / test 1';
+  let p12Before = null;
+  const boxChars = () => {
+    const c = find('composer').el;
+    return c ? editorText(c).length : null;
+  };
+
+  function p12Start() {
+    p12Before = { href: location.href, chars: boxChars() };
+    return {
+      ok: true,
+      readOnly: READ_ONLY,
+      page: pageKind().kind,
+      messageBoxFound: find('composer').selector,
+      messageBoxChars: p12Before.chars,
+      next: `Click in field A, type ${P12_TEXT} and press Enter (not the button).`,
+    };
+  }
+
+  // On the click of a form's button: by Enter (the browser's click, detail 0) or the mouse.
+  function p12Submit(variant, input, ev, root) {
+    if (!p12Before) return refuse('click "Start" first');
+    const chars = boxChars();
+    const focus = root.activeElement;
+    return {
+      ok: input.value === P12_TEXT && chars === p12Before.chars,
+      field: variant === 'A' ? 'A, no key listener (as planned for 0.2.0)' : 'B, keys stopped at the field',
+      submittedBy: ev.detail === 0 ? 'Enter (the browser clicked the button)' : 'a mouse click',
+      click: { detail: ev.detail, pointerType: ev.pointerType === undefined ? null : ev.pointerType, isTrusted: ev.isTrusted },
+      value: input.value,
+      valueAsTyped: input.value === P12_TEXT,
+      focusInPanel: focus ? focus.tagName.toLowerCase() : null,
+      pageFocus: document.activeElement ? { tag: document.activeElement.tagName.toLowerCase(), id: document.activeElement.id || null, editable: !!document.activeElement.isContentEditable } : null,
+      messageBoxChars: { before: p12Before.chars, after: chars },
+      messageBoxChanged: chars !== p12Before.chars,
+      pageMoved: location.href !== p12Before.href,
+      next: chars !== p12Before.chars ? "Text went into claude.ai's box: delete it there (do not send it)." : 'Next step.',
+    };
+  }
+
   global.ZBProbes = {
+    p12Start,
+    p12Submit,
+    P12_TEXT,
     startWatching,
     pageKind,
     p1Insert: () => p1Insert('insert'),
